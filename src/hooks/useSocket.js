@@ -17,7 +17,10 @@ export function useSocket(token) {
     const s = io(import.meta.env.VITE_API_URL, {
       auth: { token },
       forceNew: true,
-      withCredentials: true,
+      transports: ["polling", "websocket"],
+      extraHeaders: {
+        "ngrok-skip-browser-warning": "true",
+      },
     });
 
     setSocket(s);
