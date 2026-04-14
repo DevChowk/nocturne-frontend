@@ -14,7 +14,7 @@ export function useSocket(token) {
 
     console.log('[useSocket] connecting with token:', token.slice(0, 20) + '...');
 
-    const s = io('http://localhost:3001', {
+    const s = io(import.meta.env.VITE_API_URL, {
       auth: { token },
       forceNew: true,
       withCredentials: true,
