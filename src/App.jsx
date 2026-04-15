@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
@@ -8,6 +9,7 @@ import HomePage from './pages/HomePage';
 
 function App() {
   return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
     <BrowserRouter>
       <AuthProvider>
         <Routes>
@@ -26,6 +28,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 

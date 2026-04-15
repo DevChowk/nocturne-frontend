@@ -31,6 +31,12 @@ export function AuthProvider({ children }) {
     navigate('/');
   }, [saveAuth, navigate]);
 
+  const googleLogin = useCallback(async (accessToken) => {
+    const { data } = await api.post('/api/auth/google', { accessToken });
+    saveAuth(data);
+    navigate('/home');
+  }, [saveAuth, navigate]);
+
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -40,7 +46,7 @@ export function AuthProvider({ children }) {
   }, [navigate]);
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, login, googleLogin, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
