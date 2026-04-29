@@ -36,6 +36,12 @@ export function useSocket(token) {
     });
     s.on('connect_error', (err) => {
       console.error('[useSocket] connect_error:', err.message);
+      if (err.message.startsWith('Authentication error')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return;
+      }
       setError(err.message);
       setIsConnected(false);
     });
