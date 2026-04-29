@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthHeader from '../components/AuthHeader';
 import AuthFooter from '../components/AuthFooter';
@@ -13,8 +13,6 @@ const FEATURES = [
 
 export default function SignupPage() {
   const { register } = useAuth();
-  const navigate = useNavigate();
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [agreed, setAgreed] = useState(false);
@@ -29,7 +27,6 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await register(email, password);
-      navigate('/home');
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.error || 'Registration failed');
     } finally {
@@ -85,19 +82,6 @@ export default function SignupPage() {
               </div>
 
               <form className="space-y-5" onSubmit={handleSubmit}>
-                <div className="space-y-2">
-                  <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide px-1">FULL NAME</label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">person</span>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                      placeholder="Alex Nocturne"
-                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-12 pr-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
-                    />
-                  </div>
-                </div>
                 <div className="space-y-2">
                   <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide px-1">EMAIL ADDRESS</label>
                   <div className="relative">

@@ -23,12 +23,6 @@ export default function LandingPage() {
           </span>
           <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Nocturne</span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ background: 'rgba(19,19,19,0.9)' }}>
-            <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-            <span className="text-on-surface-variant text-xs font-label tracking-wide">2,403 online</span>
-          </div>
-        </div>
       </header>
 
       {/* ── Hero ── */}
@@ -65,26 +59,6 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* ── Side decorations (xl only) ── */}
-      <div className="fixed left-5 top-1/2 -translate-y-1/2 hidden xl:flex flex-col items-center gap-2 z-20">
-        <div className="flex flex-col items-center gap-2 p-3 rounded-xl border"
-          style={{ background: 'rgba(19,19,19,0.5)', backdropFilter: 'blur(10px)', borderColor: 'rgba(72,72,71,0.1)' }}>
-          <div className="w-0.5 h-10 bg-primary rounded-full" />
-          <p className="text-on-surface-variant font-label" style={{ fontSize: 9, writingMode: 'vertical-rl', letterSpacing: '0.3em', transform: 'rotate(180deg)' }}>
-            GLOBAL HUB
-          </p>
-        </div>
-      </div>
-      <div className="fixed right-5 top-1/2 -translate-y-1/2 hidden xl:flex flex-col items-center gap-2 z-20">
-        <div className="flex flex-col items-center gap-2 p-3 rounded-xl border"
-          style={{ background: 'rgba(19,19,19,0.5)', backdropFilter: 'blur(10px)', borderColor: 'rgba(72,72,71,0.1)' }}>
-          <span className="material-symbols-outlined text-secondary animate-pulse" style={{ fontSize: 20 }}>sensors</span>
-          <p className="text-on-surface-variant font-label" style={{ fontSize: 9, writingMode: 'vertical-rl', letterSpacing: '0.3em' }}>
-            SYSTEM LIVE
-          </p>
-          <div className="w-0.5 h-10 bg-secondary rounded-full" />
-        </div>
-      </div>
     </div>
   );
 }

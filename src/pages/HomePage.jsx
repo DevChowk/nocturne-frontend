@@ -132,7 +132,7 @@ function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, 
           <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full" style={{ background: '#131313' }}>
             <span className="w-2 h-2 rounded-full" style={{ background: isConnected ? '#00cffc' : '#ff6e84', boxShadow: isConnected ? '0 0 6px #00cffc' : 'none' }} />
             <span className="text-on-surface-variant font-label uppercase tracking-wider" style={{ fontSize: 11 }}>
-              {isConnected ? '2,403 online' : 'Disconnected'}
+              {isConnected ? 'Online' : 'Disconnected'}
             </span>
           </div>
         </div>
@@ -160,28 +160,6 @@ function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, 
             </div>
           </div>
 
-          {/* Nav links */}
-          <div className="flex flex-col gap-0.5 px-3">
-            {[
-              { icon: 'home', label: 'Home', active: true },
-              { icon: 'chat_bubble', label: 'Messages', active: false },
-              { icon: 'history', label: 'History', active: false },
-              { icon: 'group', label: 'Friends', active: false },
-            ].map(item => (
-              <a key={item.icon}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 font-label text-sm"
-                style={{
-                  color: item.active ? '#fff' : '#adaaaa',
-                  background: item.active ? '#20201f' : 'transparent',
-                  borderRight: item.active ? '2px solid #ba9eff' : '2px solid transparent',
-                  fontWeight: item.active ? 700 : 400,
-                }}
-                href="#">
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{item.icon}</span>
-                {item.label}
-              </a>
-            ))}
-          </div>
         </nav>
 
         {/* Main canvas */}
@@ -260,7 +238,7 @@ function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, 
       </div>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-20 flex justify-around items-center px-4 pb-5 pt-3 rounded-t-3xl"
+      <nav className="fixed bottom-0 left-0 right-0 z-20 flex justify-center items-center gap-8 px-4 pb-5 pt-3 rounded-t-3xl"
         style={{ background: 'rgba(19,19,19,0.85)', backdropFilter: 'blur(20px)', boxShadow: '0 -8px 32px rgba(139,92,246,0.12)' }}>
         <button
           onClick={status === 'waiting' ? undefined : findMatch}
@@ -270,25 +248,12 @@ function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, 
           <span className="material-symbols-outlined" style={{ fontSize: 22 }}>skip_next</span>
           <span className="font-label uppercase tracking-widest" style={{ fontSize: 9 }}>Next</span>
         </button>
-        {[
-          { icon: 'mic', label: 'Mic' },
-          { icon: 'videocam', label: 'Camera' },
-        ].map(item => (
-          <button key={item.icon} className="flex flex-col items-center gap-1 p-3 rounded-xl text-on-surface-variant hover:text-white transition-colors">
-            <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{item.icon}</span>
-            <span className="font-label uppercase tracking-widest" style={{ fontSize: 9 }}>{item.label}</span>
-          </button>
-        ))}
         <button
           onClick={status === 'waiting' ? cancel : undefined}
           className="flex flex-col items-center gap-1 p-3 rounded-xl transition-colors"
           style={{ color: status === 'waiting' ? '#ff6e84' : 'rgba(173,170,170,0.3)', cursor: status === 'waiting' ? 'pointer' : 'not-allowed' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 22 }}>stop_circle</span>
           <span className="font-label uppercase tracking-widest" style={{ fontSize: 9 }}>Stop</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 p-3 rounded-xl text-on-surface-variant hover:text-white transition-colors">
-          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>chat</span>
-          <span className="font-label uppercase tracking-widest" style={{ fontSize: 9 }}>Chat</span>
         </button>
       </nav>
     </div>
@@ -300,20 +265,11 @@ function VideoCallView({ swapped, setSwapped, localVideoRef, remoteVideoRef, mes
   return (
     <div className="bg-background text-on-background font-body h-screen flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-background flex justify-between items-center px-6 py-4 w-full z-40">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-2xl" style={{fontVariationSettings:"'FILL' 1"}}>bedroom_parent</span>
-            <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Nocturne</span>
-          </div>
-          <div className="hidden md:flex items-center gap-2 bg-surface-container-low px-3 py-1 rounded-full">
-            <span className="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-            <span className="text-on-surface-variant font-label text-xs uppercase tracking-wider">2,403 online</span>
-          </div>
+      <header className="bg-background flex items-center px-6 py-4 w-full z-40">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-2xl" style={{fontVariationSettings:"'FILL' 1"}}>bedroom_parent</span>
+          <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Nocturne</span>
         </div>
-        <button className="text-on-surface-variant hover:text-white transition-colors duration-300">
-          <span className="material-symbols-outlined">settings</span>
-        </button>
       </header>
 
       {/* Main */}
@@ -336,9 +292,6 @@ function VideoCallView({ swapped, setSwapped, localVideoRef, remoteVideoRef, mes
                 <span className="text-on-surface-variant text-sm">Anonymous</span>
               </div>
             </div>
-            <button className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-lg text-on-surface-variant hover:text-error transition-colors opacity-0 group-hover:opacity-100">
-              <span className="material-symbols-outlined text-lg">flag</span>
-            </button>
           </div>
 
           {/* Local (self) video - PIP */}
@@ -403,7 +356,7 @@ function VideoCallView({ swapped, setSwapped, localVideoRef, remoteVideoRef, mes
       </main>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-4 bg-surface-container-low/60 backdrop-blur-xl rounded-t-3xl" style={{boxShadow:'0 -8px 30px rgba(139,92,246,0.15)'}}>
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-center gap-12 px-4 pb-6 pt-4 bg-surface-container-low/60 backdrop-blur-xl rounded-t-3xl" style={{boxShadow:'0 -8px 30px rgba(139,92,246,0.15)'}}>
         {/* Next */}
         <div className="flex flex-col items-center gap-1">
           <button
@@ -414,22 +367,6 @@ function VideoCallView({ swapped, setSwapped, localVideoRef, remoteVideoRef, mes
             <span className="material-symbols-outlined text-3xl">skip_next</span>
           </button>
           <span className="font-label text-[10px] uppercase tracking-widest text-primary font-bold mt-1">Next</span>
-        </div>
-
-        {/* Mic / Camera / Chat cluster */}
-        <div className="flex items-center gap-4 md:gap-8 bg-surface-container-high/80 px-8 py-3 rounded-full border border-white/5">
-          <button className="flex flex-col items-center justify-center text-on-surface-variant hover:text-white transition-all duration-300">
-            <span className="material-symbols-outlined text-2xl">mic</span>
-            <span className="font-label text-[8px] uppercase tracking-tighter mt-1">Mic</span>
-          </button>
-          <button className="flex flex-col items-center justify-center text-on-surface-variant hover:text-white transition-all duration-300">
-            <span className="material-symbols-outlined text-2xl">videocam</span>
-            <span className="font-label text-[8px] uppercase tracking-tighter mt-1">Cam</span>
-          </button>
-          <button className="flex flex-col items-center justify-center text-primary transition-all duration-300">
-            <span className="material-symbols-outlined text-2xl">chat</span>
-            <span className="font-label text-[8px] uppercase tracking-tighter mt-1">Chat</span>
-          </button>
         </div>
 
         {/* End/Stop */}

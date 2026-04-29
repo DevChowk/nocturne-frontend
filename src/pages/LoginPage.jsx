@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import AuthHeader from '../components/AuthHeader';
@@ -9,7 +8,6 @@ import { GRADIENT } from '../constants/theme';
 
 export default function LoginPage() {
   const { login, googleLogin } = useAuth();
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -37,7 +35,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/home');
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.error || 'Invalid credentials');
     } finally {
@@ -103,10 +100,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <div className="flex justify-between items-center px-1">
-                  <label className="font-label text-sm font-semibold text-on-surface-variant" htmlFor="password">Password</label>
-                  <button type="button" className="text-sm font-semibold text-secondary hover:text-secondary-fixed transition-colors">Forgot?</button>
-                </div>
+                <label className="font-label text-sm font-semibold text-on-surface-variant ml-1" htmlFor="password">Password</label>
                 <input
                   id="password"
                   type="password"
