@@ -19,9 +19,6 @@ export default function AuthFooter({ onPrivacy, onTerms }) {
           >
             Terms of Service
           </button>
-          <a href="#" className="text-on-surface-variant hover:text-secondary transition-all duration-300 font-body text-sm">
-            Help
-          </a>
         </nav>
       </div>
     </footer>

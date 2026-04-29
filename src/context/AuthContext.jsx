@@ -22,13 +22,13 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (email, password) => {
     const { data } = await api.post('/api/auth/register', { email, password });
     saveAuth(data);
-    navigate('/');
+    navigate('/home');
   }, [saveAuth, navigate]);
 
   const login = useCallback(async (email, password) => {
     const { data } = await api.post('/api/auth/login', { email, password });
     saveAuth(data);
-    navigate('/');
+    navigate('/home');
   }, [saveAuth, navigate]);
 
   const googleLogin = useCallback(async (accessToken) => {
