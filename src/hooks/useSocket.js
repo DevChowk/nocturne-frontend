@@ -23,6 +23,10 @@ export function useSocket(token) {
       },
     });
 
+    // Socket is an external system; consumers re-render when it appears/disappears.
+    // The single extra render on mount is intentional and matches React's own
+    // guidance for syncing external systems.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(s);
 
     s.on('connect', () => {

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import AuthHeader from '../components/AuthHeader';
 import AuthFooter from '../components/AuthFooter';
 import useAuthModals from '../hooks/useAuthModals';
-import { GRADIENT } from '../constants/theme';
+import { GRADIENT, gradientTextStyle } from '../constants/theme';
 
 const FEATURES = [
   { icon: 'videocam', color: 'text-secondary', title: 'Cinema-Grade Video', desc: 'Ultra-low latency streaming for real-time vibe.' },
@@ -50,7 +50,7 @@ export default function SignupPage() {
           <div className="hidden md:block">
             <h1 className="text-6xl font-headline font-extrabold tracking-tighter leading-tight mb-6">
               Enter the <br />
-              <span style={{ backgroundImage: 'linear-gradient(90deg, #ba9eff, #8455ef, #00cffc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <span style={gradientTextStyle}>
                 Electric Pulse.
               </span>
             </h1>
