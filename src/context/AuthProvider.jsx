@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { AuthContext } from './AuthContext';
@@ -9,7 +9,34 @@ export function AuthProvider({ children }) {
     return stored ? JSON.parse(stored) : null;
   });
   const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [loading, setLoading] = useState(() => !!localStorage.getItem('token'));
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    api.get('/api/auth/me')
+      .then(({ data }) => {
+        if (cancelled) return;
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+      })
+      .catch((err) => {
+        // 401 is handled by the axios interceptor (auto-logout + redirect).
+        // Other errors (server down, network) keep the cached user.
+        if (err.response?.status !== 401) {
+          console.warn('[auth] /me failed, keeping cached user:', err.message);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const saveAuth = useCallback((data) => {
     localStorage.setItem('token', data.token);
@@ -45,7 +72,7 @@ export function AuthProvider({ children }) {
   }, [navigate]);
 
   return (
-    <AuthContext.Provider value={{ user, token, login, googleLogin, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, googleLogin, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
