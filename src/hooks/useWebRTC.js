@@ -8,6 +8,8 @@ const ICE_SERVERS = [
 export function useWebRTC(socket, roomId, role) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [micEnabled, setMicEnabled] = useState(true);
+  const [cameraEnabled, setCameraEnabled] = useState(true);
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
 
@@ -22,6 +24,22 @@ export function useWebRTC(socket, roomId, role) {
     }
     setLocalStream(null);
     setRemoteStream(null);
+  }, []);
+
+  const toggleMic = useCallback(() => {
+    setMicEnabled((prev) => {
+      const next = !prev;
+      localStreamRef.current?.getAudioTracks().forEach((t) => { t.enabled = next; });
+      return next;
+    });
+  }, []);
+
+  const toggleCamera = useCallback(() => {
+    setCameraEnabled((prev) => {
+      const next = !prev;
+      localStreamRef.current?.getVideoTracks().forEach((t) => { t.enabled = next; });
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -40,6 +58,10 @@ export function useWebRTC(socket, roomId, role) {
         return;
       }
       localStreamRef.current = stream;
+      // Apply current toggle state to fresh tracks so the user's
+      // mic/camera preference persists across matches in a session.
+      stream.getAudioTracks().forEach((t) => { t.enabled = micEnabled; });
+      stream.getVideoTracks().forEach((t) => { t.enabled = cameraEnabled; });
       setLocalStream(stream);
 
       // Create peer connection
@@ -102,7 +124,19 @@ export function useWebRTC(socket, roomId, role) {
       socket.off('ice_candidate');
       cleanup();
     };
+  // micEnabled/cameraEnabled are intentionally excluded — toggles during a
+  // live call mutate tracks directly via the callbacks above, and we don't
+  // want a state change to tear down the peer connection.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, roomId, role, cleanup]);
 
-  return { localStream, remoteStream, cleanup };
+  return {
+    localStream,
+    remoteStream,
+    cleanup,
+    micEnabled,
+    cameraEnabled,
+    toggleMic,
+    toggleCamera,
+  };
 }

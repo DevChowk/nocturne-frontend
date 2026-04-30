@@ -14,11 +14,15 @@ export default function HomePage() {
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
 
-  const { localStream, remoteStream, cleanup: cleanupWebRTC } = useWebRTC(
-    socket,
-    matchInfo?.roomId,
-    matchInfo?.role
-  );
+  const {
+    localStream,
+    remoteStream,
+    cleanup: cleanupWebRTC,
+    micEnabled,
+    cameraEnabled,
+    toggleMic,
+    toggleCamera,
+  } = useWebRTC(socket, matchInfo?.roomId, matchInfo?.role);
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -85,6 +89,7 @@ export default function HomePage() {
 
   if (isInCall) {
     return <VideoCallView
+      user={user}
       swapped={swapped}
       setSwapped={setSwapped}
       localVideoRef={localVideoRef}
@@ -96,6 +101,10 @@ export default function HomePage() {
       sendMessage={sendMessage}
       skip={skip}
       endCall={endCall}
+      micEnabled={micEnabled}
+      cameraEnabled={cameraEnabled}
+      toggleMic={toggleMic}
+      toggleCamera={toggleCamera}
     />;
   }
 

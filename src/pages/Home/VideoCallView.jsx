@@ -1,6 +1,12 @@
 import { GRADIENT } from '../../constants/theme';
 
-export default function VideoCallView({ swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall }) {
+export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera }) {
+  const username = user?.email?.split('@')[0] ?? 'You';
+  const initial = username[0]?.toUpperCase() ?? '?';
+  // When camera is off, overlay avatar on whichever slot is currently showing the local feed
+  const showAvatarOnBig = swapped && !cameraEnabled;
+  const showAvatarOnPip = !swapped && !cameraEnabled;
+
   return (
     <div className="bg-background text-on-background font-body h-screen flex flex-col overflow-hidden">
       {/* Header */}
@@ -23,12 +29,20 @@ export default function VideoCallView({ swapped, setSwapped, localVideoRef, remo
               autoPlay playsInline
               muted={swapped}
             />
+            {showAvatarOnBig && (
+              <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
+                <div className="flex items-center justify-center rounded-full font-bold font-headline"
+                  style={{ width: 120, height: 120, fontSize: 48, background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.15)' }}>
+                  {initial}
+                </div>
+              </div>
+            )}
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             <div className="absolute bottom-6 left-6 flex flex-col">
-              <span className="font-headline font-bold text-2xl text-white">Stranger</span>
+              <span className="font-headline font-bold text-2xl text-white">{swapped ? `${username} (You)` : 'Stranger'}</span>
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-secondary text-sm">location_on</span>
-                <span className="text-on-surface-variant text-sm">Anonymous</span>
+                <span className="text-on-surface-variant text-sm">{swapped ? 'Local Feed' : 'Anonymous'}</span>
               </div>
             </div>
           </div>
@@ -44,8 +58,16 @@ export default function VideoCallView({ swapped, setSwapped, localVideoRef, remo
               className="w-full h-full object-cover"
               autoPlay playsInline muted={!swapped}
             />
+            {showAvatarOnPip && (
+              <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
+                <div className="flex items-center justify-center rounded-full font-bold font-headline"
+                  style={{ width: 56, height: 56, fontSize: 22, background: 'rgba(186,158,255,0.15)', color: '#ba9eff' }}>
+                  {initial}
+                </div>
+              </div>
+            )}
             <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest text-white">
-              You
+              {swapped ? 'Stranger' : 'You'}
             </div>
           </div>
         </div>
@@ -95,7 +117,7 @@ export default function VideoCallView({ swapped, setSwapped, localVideoRef, remo
       </main>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-center gap-12 px-4 pb-6 pt-4 bg-surface-container-low/60 backdrop-blur-xl rounded-t-3xl" style={{boxShadow:'0 -8px 30px rgba(139,92,246,0.15)'}}>
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-center gap-8 md:gap-12 px-4 pb-6 pt-4 bg-surface-container-low/60 backdrop-blur-xl rounded-t-3xl" style={{boxShadow:'0 -8px 30px rgba(139,92,246,0.15)'}}>
         {/* Next */}
         <div className="flex flex-col items-center gap-1">
           <button
@@ -106,6 +128,40 @@ export default function VideoCallView({ swapped, setSwapped, localVideoRef, remo
             <span className="material-symbols-outlined text-3xl">skip_next</span>
           </button>
           <span className="font-label text-[10px] uppercase tracking-widest text-primary font-bold mt-1">Next</span>
+        </div>
+
+        {/* Mic toggle */}
+        <div className="flex flex-col items-center gap-1">
+          <button
+            onClick={toggleMic}
+            aria-pressed={!micEnabled}
+            className="flex items-center justify-center rounded-full p-4 border transition-all duration-200 active:scale-95"
+            style={micEnabled
+              ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
+              : { background: 'rgba(167,1,56,0.2)', borderColor: 'rgba(167,1,56,0.4)', color: '#ff6e84' }}
+          >
+            <span className="material-symbols-outlined text-2xl">{micEnabled ? 'mic' : 'mic_off'}</span>
+          </button>
+          <span className="font-label text-[10px] uppercase tracking-widest mt-1" style={{ color: micEnabled ? '#ba9eff' : '#ff6e84' }}>
+            {micEnabled ? 'Mic' : 'Muted'}
+          </span>
+        </div>
+
+        {/* Camera toggle */}
+        <div className="flex flex-col items-center gap-1">
+          <button
+            onClick={toggleCamera}
+            aria-pressed={!cameraEnabled}
+            className="flex items-center justify-center rounded-full p-4 border transition-all duration-200 active:scale-95"
+            style={cameraEnabled
+              ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
+              : { background: 'rgba(167,1,56,0.2)', borderColor: 'rgba(167,1,56,0.4)', color: '#ff6e84' }}
+          >
+            <span className="material-symbols-outlined text-2xl">{cameraEnabled ? 'videocam' : 'videocam_off'}</span>
+          </button>
+          <span className="font-label text-[10px] uppercase tracking-widest mt-1" style={{ color: cameraEnabled ? '#ba9eff' : '#ff6e84' }}>
+            {cameraEnabled ? 'Cam' : 'Off'}
+          </span>
         </div>
 
         {/* End/Stop */}
