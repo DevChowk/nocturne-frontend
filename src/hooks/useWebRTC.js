@@ -10,8 +10,12 @@ export function useWebRTC(socket, roomId, role) {
   const [remoteStream, setRemoteStream] = useState(null);
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [peerMicEnabled, setPeerMicEnabled] = useState(true);
+  const [peerCameraEnabled, setPeerCameraEnabled] = useState(true);
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
+  // Mirror of toggle state so callbacks can read the latest values without stale closures
+  const stateRef = useRef({ mic: true, camera: true });
 
   const cleanup = useCallback(() => {
     if (pcRef.current) {
@@ -24,28 +28,51 @@ export function useWebRTC(socket, roomId, role) {
     }
     setLocalStream(null);
     setRemoteStream(null);
+    // Reset peer state — new match starts fresh
+    setPeerMicEnabled(true);
+    setPeerCameraEnabled(true);
   }, []);
 
   const toggleMic = useCallback(() => {
-    setMicEnabled((prev) => {
-      const next = !prev;
-      localStreamRef.current?.getAudioTracks().forEach((t) => { t.enabled = next; });
-      return next;
-    });
-  }, []);
+    const next = !stateRef.current.mic;
+    stateRef.current.mic = next;
+    setMicEnabled(next);
+    localStreamRef.current?.getAudioTracks().forEach((t) => { t.enabled = next; });
+    if (socket && roomId) {
+      socket.emit('media_state', {
+        roomId,
+        micEnabled: next,
+        cameraEnabled: stateRef.current.camera,
+      });
+    }
+  }, [socket, roomId]);
 
   const toggleCamera = useCallback(() => {
-    setCameraEnabled((prev) => {
-      const next = !prev;
-      localStreamRef.current?.getVideoTracks().forEach((t) => { t.enabled = next; });
-      return next;
-    });
-  }, []);
+    const next = !stateRef.current.camera;
+    stateRef.current.camera = next;
+    setCameraEnabled(next);
+    localStreamRef.current?.getVideoTracks().forEach((t) => { t.enabled = next; });
+    if (socket && roomId) {
+      socket.emit('media_state', {
+        roomId,
+        micEnabled: stateRef.current.mic,
+        cameraEnabled: next,
+      });
+    }
+  }, [socket, roomId]);
 
   useEffect(() => {
     if (!socket || !roomId || !role) return;
 
     let cancelled = false;
+
+    // Listen for peer's media-state updates (registered synchronously so it's
+    // ready before any peer message can arrive).
+    const onPeerMediaState = ({ micEnabled: m, cameraEnabled: c }) => {
+      setPeerMicEnabled(m);
+      setPeerCameraEnabled(c);
+    };
+    socket.on('media_state', onPeerMediaState);
 
     const start = async () => {
       // Get camera + mic
@@ -60,8 +87,8 @@ export function useWebRTC(socket, roomId, role) {
       localStreamRef.current = stream;
       // Apply current toggle state to fresh tracks so the user's
       // mic/camera preference persists across matches in a session.
-      stream.getAudioTracks().forEach((t) => { t.enabled = micEnabled; });
-      stream.getVideoTracks().forEach((t) => { t.enabled = cameraEnabled; });
+      stream.getAudioTracks().forEach((t) => { t.enabled = stateRef.current.mic; });
+      stream.getVideoTracks().forEach((t) => { t.enabled = stateRef.current.camera; });
       setLocalStream(stream);
 
       // Create peer connection
@@ -113,6 +140,14 @@ export function useWebRTC(socket, roomId, role) {
         await pc.setLocalDescription(offer);
         socket.emit('offer', { roomId, offer });
       }
+
+      // Tell the peer our current mic/camera state. Both sides do this so
+      // the other side knows immediately, regardless of who connected first.
+      socket.emit('media_state', {
+        roomId,
+        micEnabled: stateRef.current.mic,
+        cameraEnabled: stateRef.current.camera,
+      });
     };
 
     start().catch((err) => console.error('[WebRTC] start error:', err));
@@ -122,12 +157,9 @@ export function useWebRTC(socket, roomId, role) {
       socket.off('offer');
       socket.off('answer');
       socket.off('ice_candidate');
+      socket.off('media_state', onPeerMediaState);
       cleanup();
     };
-  // micEnabled/cameraEnabled are intentionally excluded — toggles during a
-  // live call mutate tracks directly via the callbacks above, and we don't
-  // want a state change to tear down the peer connection.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, roomId, role, cleanup]);
 
   return {
@@ -138,5 +170,7 @@ export function useWebRTC(socket, roomId, role) {
     cameraEnabled,
     toggleMic,
     toggleCamera,
+    peerMicEnabled,
+    peerCameraEnabled,
   };
 }

@@ -22,6 +22,8 @@ export default function HomePage() {
     cameraEnabled,
     toggleMic,
     toggleCamera,
+    peerMicEnabled,
+    peerCameraEnabled,
   } = useWebRTC(socket, matchInfo?.roomId, matchInfo?.role);
 
   const localVideoRef = useRef(null);
@@ -105,6 +107,8 @@ export default function HomePage() {
       cameraEnabled={cameraEnabled}
       toggleMic={toggleMic}
       toggleCamera={toggleCamera}
+      peerMicEnabled={peerMicEnabled}
+      peerCameraEnabled={peerCameraEnabled}
     />;
   }
 

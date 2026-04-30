@@ -1,11 +1,17 @@
 import { GRADIENT } from '../../constants/theme';
 
-export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera }) {
+export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled }) {
   const username = user?.email?.split('@')[0] ?? 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
-  // When camera is off, overlay avatar on whichever slot is currently showing the local feed
-  const showAvatarOnBig = swapped && !cameraEnabled;
-  const showAvatarOnPip = !swapped && !cameraEnabled;
+  // BIG slot shows local when swapped, remote otherwise. PIP is the inverse.
+  // Avatar overlays follow the LOCAL camera-off state on whichever slot shows it.
+  const showLocalAvatarOnBig = swapped && !cameraEnabled;
+  const showLocalAvatarOnPip = !swapped && !cameraEnabled;
+  // Peer (camera-off + mic-off) indicators follow the REMOTE feed.
+  const showPeerCamOffOnBig = !swapped && !peerCameraEnabled;
+  const showPeerCamOffOnPip = swapped && !peerCameraEnabled;
+  const showPeerMicOffOnBig = !swapped && !peerMicEnabled;
+  const showPeerMicOffOnPip = swapped && !peerMicEnabled;
 
   return (
     <div className="bg-background text-on-background font-body h-screen flex flex-col overflow-hidden">
@@ -18,9 +24,9 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
       </header>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col md:flex-row p-4 md:p-6 gap-6 relative overflow-hidden">
+      <main className="flex-1 flex flex-col md:flex-row p-4 md:p-6 gap-6 relative overflow-hidden pb-24 md:pb-28">
         {/* Video stage */}
-        <div className="flex-1 relative flex flex-col gap-4">
+        <div className="flex-1 relative flex flex-col gap-4 min-w-0">
           {/* Remote (stranger) video - full */}
           <div className="relative w-full h-full bg-surface-container-low rounded-xl overflow-hidden group" style={{boxShadow:'0 0 20px rgba(139,92,246,0.3)'}}>
             <video
@@ -29,12 +35,26 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
               autoPlay playsInline
               muted={swapped}
             />
-            {showAvatarOnBig && (
+            {showLocalAvatarOnBig && (
               <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
                 <div className="flex items-center justify-center rounded-full font-bold font-headline"
                   style={{ width: 120, height: 120, fontSize: 48, background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.15)' }}>
                   {initial}
                 </div>
+              </div>
+            )}
+            {showPeerCamOffOnBig && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-container-high">
+                <div className="flex items-center justify-center rounded-full" style={{ width: 96, height: 96, background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 48 }}>videocam_off</span>
+                </div>
+                <p className="font-headline font-semibold text-white">Stranger turned off camera</p>
+              </div>
+            )}
+            {showPeerMicOffOnBig && (
+              <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(167,1,56,0.6)' }}>
+                <span className="material-symbols-outlined text-white" style={{ fontSize: 16 }}>mic_off</span>
+                <span className="text-white text-xs font-label uppercase tracking-wider">Muted</span>
               </div>
             )}
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
@@ -58,12 +78,24 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
               className="w-full h-full object-cover"
               autoPlay playsInline muted={!swapped}
             />
-            {showAvatarOnPip && (
+            {showLocalAvatarOnPip && (
               <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
                 <div className="flex items-center justify-center rounded-full font-bold font-headline"
                   style={{ width: 56, height: 56, fontSize: 22, background: 'rgba(186,158,255,0.15)', color: '#ba9eff' }}>
                   {initial}
                 </div>
+              </div>
+            )}
+            {showPeerCamOffOnPip && (
+              <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
+                <div className="flex items-center justify-center rounded-full" style={{ width: 44, height: 44, background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>videocam_off</span>
+                </div>
+              </div>
+            )}
+            {showPeerMicOffOnPip && (
+              <div className="absolute top-2 right-2 z-10 flex items-center justify-center rounded-full backdrop-blur-md" style={{ width: 26, height: 26, background: 'rgba(167,1,56,0.7)' }}>
+                <span className="material-symbols-outlined text-white" style={{ fontSize: 14 }}>mic_off</span>
               </div>
             )}
             <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest text-white">
@@ -73,7 +105,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
         </div>
 
         {/* Chat sidebar */}
-        <aside className="w-full md:w-80 h-[300px] md:h-full bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex flex-col overflow-hidden">
+        <aside className="w-full md:w-96 lg:w-[420px] flex-shrink-0 h-[300px] md:h-full bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex flex-col overflow-hidden">
           <div className="p-4 border-b border-white/5 flex items-center justify-between">
             <span className="font-headline font-semibold text-primary">Live Chat</span>
             <span className="material-symbols-outlined text-on-surface-variant text-sm">more_vert</span>
@@ -117,63 +149,63 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
       </main>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-center gap-8 md:gap-12 px-4 pb-6 pt-4 bg-surface-container-low/60 backdrop-blur-xl rounded-t-3xl" style={{boxShadow:'0 -8px 30px rgba(139,92,246,0.15)'}}>
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-center items-center gap-6 md:gap-10 px-4 pb-3 pt-2 bg-surface-container-low/60 backdrop-blur-xl rounded-t-3xl" style={{boxShadow:'0 -8px 30px rgba(139,92,246,0.15)'}}>
         {/* Next */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0.5">
           <button
             onClick={skip}
-            className="flex flex-col items-center justify-center text-black rounded-full p-6 shadow-lg hover:scale-110 transition-transform duration-200"
+            className="flex items-center justify-center text-black rounded-full p-3.5 shadow-lg hover:scale-110 transition-transform duration-200"
             style={{backgroundImage: GRADIENT, boxShadow:'0 4px 20px rgba(186,158,255,0.2)'}}
           >
-            <span className="material-symbols-outlined text-3xl">skip_next</span>
+            <span className="material-symbols-outlined text-2xl">skip_next</span>
           </button>
-          <span className="font-label text-[10px] uppercase tracking-widest text-primary font-bold mt-1">Next</span>
+          <span className="font-label text-[9px] uppercase tracking-widest text-primary font-bold">Next</span>
         </div>
 
         {/* Mic toggle */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0.5">
           <button
             onClick={toggleMic}
             aria-pressed={!micEnabled}
-            className="flex items-center justify-center rounded-full p-4 border transition-all duration-200 active:scale-95"
+            className="flex items-center justify-center rounded-full p-3 border transition-all duration-200 active:scale-95"
             style={micEnabled
               ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
               : { background: 'rgba(167,1,56,0.2)', borderColor: 'rgba(167,1,56,0.4)', color: '#ff6e84' }}
           >
-            <span className="material-symbols-outlined text-2xl">{micEnabled ? 'mic' : 'mic_off'}</span>
+            <span className="material-symbols-outlined text-xl">{micEnabled ? 'mic' : 'mic_off'}</span>
           </button>
-          <span className="font-label text-[10px] uppercase tracking-widest mt-1" style={{ color: micEnabled ? '#ba9eff' : '#ff6e84' }}>
+          <span className="font-label text-[9px] uppercase tracking-widest" style={{ color: micEnabled ? '#ba9eff' : '#ff6e84' }}>
             {micEnabled ? 'Mic' : 'Muted'}
           </span>
         </div>
 
         {/* Camera toggle */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0.5">
           <button
             onClick={toggleCamera}
             aria-pressed={!cameraEnabled}
-            className="flex items-center justify-center rounded-full p-4 border transition-all duration-200 active:scale-95"
+            className="flex items-center justify-center rounded-full p-3 border transition-all duration-200 active:scale-95"
             style={cameraEnabled
               ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
               : { background: 'rgba(167,1,56,0.2)', borderColor: 'rgba(167,1,56,0.4)', color: '#ff6e84' }}
           >
-            <span className="material-symbols-outlined text-2xl">{cameraEnabled ? 'videocam' : 'videocam_off'}</span>
+            <span className="material-symbols-outlined text-xl">{cameraEnabled ? 'videocam' : 'videocam_off'}</span>
           </button>
-          <span className="font-label text-[10px] uppercase tracking-widest mt-1" style={{ color: cameraEnabled ? '#ba9eff' : '#ff6e84' }}>
+          <span className="font-label text-[9px] uppercase tracking-widest" style={{ color: cameraEnabled ? '#ba9eff' : '#ff6e84' }}>
             {cameraEnabled ? 'Cam' : 'Off'}
           </span>
         </div>
 
         {/* End/Stop */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0.5">
           <button
             onClick={endCall}
-            className="flex flex-col items-center justify-center rounded-full p-4 border border-error-container/40 hover:bg-error-container hover:text-on-error transition-all duration-300 active:scale-95"
+            className="flex items-center justify-center rounded-full p-3 border border-error-container/40 hover:bg-error-container hover:text-on-error transition-all duration-300 active:scale-95"
             style={{background:'rgba(167,1,56,0.2)', color:'#ff6e84'}}
           >
-            <span className="material-symbols-outlined text-2xl">stop_circle</span>
+            <span className="material-symbols-outlined text-xl">stop_circle</span>
           </button>
-          <span className="font-label text-[10px] uppercase tracking-widest text-error-dim mt-1">Stop</span>
+          <span className="font-label text-[9px] uppercase tracking-widest text-error-dim">Stop</span>
         </div>
       </nav>
 
