@@ -24,7 +24,7 @@ function SectionHeading({ num, title, accent = 'text-secondary' }) {
 
 export default function TermsModal({ onClose }) {
   return (
-    <ModalBase>
+    <ModalBase onClose={onClose}>
       {/* Header */}
       <header className="p-8 pb-4 flex items-center justify-between">
         <div className="space-y-1">

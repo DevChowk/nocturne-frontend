@@ -15,6 +15,7 @@ export default function SignupPage() {
   const { register } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -99,16 +100,28 @@ export default function SignupPage() {
                 <div className="space-y-2">
                   <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide px-1">PASSWORD</label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">lock</span>
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg" aria-hidden="true">lock</span>
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
+                      minLength={6}
                       required
-                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-12 pr-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-12 pr-12 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(s => !s)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-on-surface-variant hover:text-on-surface transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-xl" aria-hidden="true">
+                        {showPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
                   </div>
+                  <p className="text-xs text-on-surface-variant px-1">Use at least 6 characters.</p>
                 </div>
 
                 <div className="flex items-start gap-3 pt-2">

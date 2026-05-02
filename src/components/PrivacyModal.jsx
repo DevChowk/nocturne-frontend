@@ -26,7 +26,7 @@ function SectionHeader({ icon, iconBg, iconColor, title }) {
 
 export default function PrivacyModal({ onClose }) {
   return (
-    <ModalBase maxWidth="max-w-3xl">
+    <ModalBase maxWidth="max-w-3xl" onClose={onClose}>
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6 border-b border-white/5">
         <div>
@@ -88,9 +88,8 @@ export default function PrivacyModal({ onClose }) {
           <p className="text-on-surface-variant leading-relaxed mb-6">You maintain absolute sovereignty over your digital footprint. Under global privacy frameworks, including GDPR and CCPA, you have the following irrevocable rights:</p>
           <div className="space-y-3">
             {RIGHTS.map(right => (
-              <div key={right} className="flex items-center justify-between p-4 bg-surface-container-low rounded-lg border-l-2 border-primary">
+              <div key={right} className="flex items-center p-4 bg-surface-container-low rounded-lg border-l-2 border-primary">
                 <span className="text-on-surface font-medium">{right}</span>
-                <span className="material-symbols-outlined text-on-surface-variant text-sm">arrow_forward_ios</span>
               </div>
             ))}
           </div>
@@ -101,7 +100,7 @@ export default function PrivacyModal({ onClose }) {
             <span className="material-symbols-outlined text-4xl mb-4" style={{ color: 'rgba(173,170,170,0.2)' }}>security</span>
             <p className="text-center text-sm text-on-surface-variant max-w-sm">
               Questions about your privacy? Our dedicated safety team is available 24/7 at{' '}
-              <span className="text-secondary">privacy@nocturne.io</span>
+              <a href="mailto:privacy@nocturne.io" className="text-secondary hover:underline">privacy@nocturne.io</a>
             </p>
           </div>
         </div>
@@ -110,18 +109,13 @@ export default function PrivacyModal({ onClose }) {
       {/* Footer */}
       <footer className="p-8 bg-surface-container-low/80 backdrop-blur-md border-t border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between">
         <p className="text-xs text-on-surface-variant text-center md:text-left">By continuing to use Nocturne, you acknowledge these terms.</p>
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <button className="flex-1 md:flex-none px-8 py-3 rounded-full bg-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-bright transition-all duration-300 active:scale-95">
-            Download PDF
-          </button>
-          <button
-            onClick={onClose}
-            className="flex-1 md:flex-none px-10 py-3 rounded-full text-black font-bold text-sm transition-all duration-300 active:scale-95"
-            style={{ backgroundImage: GRADIENT, boxShadow: '0 0 20px rgba(186,158,255,0.3)' }}
-          >
-            I Understand
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          className="w-full md:w-auto px-10 py-3 rounded-full text-black font-bold text-sm transition-all duration-300 active:scale-95"
+          style={{ backgroundImage: GRADIENT, boxShadow: '0 0 20px rgba(186,158,255,0.3)' }}
+        >
+          I Understand
+        </button>
       </footer>
     </ModalBase>
   );
