@@ -1,9 +1,38 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useSocket } from '../../hooks/useSocket';
+import { useLocalMedia } from '../../hooks/useLocalMedia';
 import { useWebRTC } from '../../hooks/useWebRTC';
 import LobbyView from './LobbyView';
 import VideoCallView from './VideoCallView';
+
+// Short two-tone chime via Web Audio (no asset). Browsers gate AudioContext
+// behind a user gesture; on initial app load there's none, so the first ping
+// after refresh may be silent. Subsequent matches (same session) play fine.
+function playMatchTone() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    const beep = (freq, start, dur) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, now + start);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + start);
+      osc.stop(now + start + dur);
+    };
+    beep(880, 0, 0.18);
+    beep(1320, 0.12, 0.22);
+  } catch {
+    // ignore — audio is best-effort
+  }
+}
 
 export default function HomePage() {
   const { user, token, logout } = useAuth();
@@ -13,42 +42,87 @@ export default function HomePage() {
   const [swapped, setSwapped] = useState(false);
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
+  const isInCall = status === 'matched' && matchInfo;
 
   const {
-    localStream,
-    remoteStream,
-    cleanup: cleanupWebRTC,
+    stream: localStream,
+    error: mediaError,
     micEnabled,
     cameraEnabled,
     toggleMic,
     toggleCamera,
+  } = useLocalMedia();
+
+  const {
+    remoteStream,
+    remoteConnected,
     peerMicEnabled,
     peerCameraEnabled,
-  } = useWebRTC(socket, matchInfo?.roomId, matchInfo?.role);
+  } = useWebRTC({
+    socket,
+    roomId: matchInfo?.roomId,
+    role: matchInfo?.role,
+    localStream,
+    micEnabled,
+    cameraEnabled,
+  });
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const chatEndRef = useRef(null);
 
+  // Re-bind srcObject whenever the underlying stream changes OR the DOM
+  // element behind the ref changes (LobbyView ↔ VideoCallView transition,
+  // PIP swap, etc.). isInCall + swapped force the effect to run on those
+  // transitions; the equality guards avoid redundant assignments.
   useEffect(() => {
-    if (localVideoRef.current && localStream) localVideoRef.current.srcObject = localStream;
-  }, [localStream]);
+    if (localVideoRef.current && localStream && localVideoRef.current.srcObject !== localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream, isInCall, swapped]);
 
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
-  }, [remoteStream]);
+    if (remoteVideoRef.current && remoteStream && remoteVideoRef.current.srcObject !== remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream, isInCall, swapped]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Tab-title alert when a match arrives while the tab is in the background.
+  useEffect(() => {
+    if (status !== 'matched') return;
+    if (!document.hidden) return;
+    const original = document.title;
+    document.title = '✨ Match found! — Nocturne';
+    const onVisible = () => {
+      if (!document.hidden) {
+        document.title = original;
+        document.removeEventListener('visibilitychange', onVisible);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      document.title = original;
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [status]);
+
   useEffect(() => {
     if (!socket) return;
     const onWaiting = () => setStatus('waiting');
-    const onMatchFound = (data) => { setStatus('matched'); setMatchInfo({ roomId: data.roomId, role: data.role }); setMessages([]); setSwapped(false); };
+    const onMatchFound = (data) => {
+      setStatus('matched');
+      setMatchInfo({ roomId: data.roomId, role: data.role, peerUserId: data.peerUserId });
+      setMessages([]);
+      setSwapped(false);
+      playMatchTone();
+    };
     const onLeftQueue = () => { setStatus('idle'); setMatchInfo(null); };
-    const onPeerDisconnected = () => { cleanupWebRTC(); setStatus('peer_left'); setMatchInfo(null); setMessages([]); };
-    const onCallEnded = () => { cleanupWebRTC(); setStatus('peer_left'); setMatchInfo(null); setMessages([]); };
+    const onPeerDisconnected = () => { setStatus('peer_left'); setMatchInfo(null); setMessages([]); };
+    const onCallEnded = () => { setStatus('peer_left'); setMatchInfo(null); setMessages([]); };
     const onChatMessage = (data) => setMessages(prev => [...prev, { message: data.message, from: data.from, timestamp: data.timestamp, mine: false }]);
 
     socket.on('waiting', onWaiting);
@@ -65,19 +139,19 @@ export default function HomePage() {
       socket.off('call_ended', onCallEnded);
       socket.off('chat_message', onChatMessage);
     };
-  }, [socket, cleanupWebRTC]);
+  }, [socket]);
 
   const findMatch = useCallback(() => { socket?.emit('join_queue'); setStatus('waiting'); }, [socket]);
   const cancel = useCallback(() => { socket?.emit('leave_queue'); }, [socket]);
   const skip = useCallback(() => {
     if (matchInfo?.roomId) socket?.emit('end_call', { roomId: matchInfo.roomId });
-    cleanupWebRTC(); setMatchInfo(null); setMessages([]);
+    setMatchInfo(null); setMessages([]);
     socket?.emit('join_queue'); setStatus('waiting');
-  }, [socket, matchInfo, cleanupWebRTC]);
+  }, [socket, matchInfo]);
   const endCall = useCallback(() => {
     if (matchInfo?.roomId) socket?.emit('end_call', { roomId: matchInfo.roomId });
-    cleanupWebRTC(); setMatchInfo(null); setMessages([]); setStatus('idle');
-  }, [socket, matchInfo, cleanupWebRTC]);
+    setMatchInfo(null); setMessages([]); setStatus('idle');
+  }, [socket, matchInfo]);
   const sendMessage = useCallback((e) => {
     e.preventDefault();
     const text = chatInput.trim();
@@ -87,7 +161,37 @@ export default function HomePage() {
     setChatInput('');
   }, [socket, chatInput, matchInfo, user]);
 
-  const isInCall = status === 'matched' && matchInfo;
+  // Keyboard shortcuts — only active in-call. Skip when typing in chat or other inputs.
+  useEffect(() => {
+    if (!isInCall) return;
+    const onKey = (e) => {
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      switch (e.key.toLowerCase()) {
+        case ' ':
+        case 'n':
+          e.preventDefault();
+          skip();
+          break;
+        case 'escape':
+          e.preventDefault();
+          endCall();
+          break;
+        case 'm':
+          e.preventDefault();
+          toggleMic();
+          break;
+        case 'v':
+          e.preventDefault();
+          toggleCamera();
+          break;
+        default:
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isInCall, skip, endCall, toggleMic, toggleCamera]);
 
   if (isInCall) {
     return <VideoCallView
@@ -109,6 +213,9 @@ export default function HomePage() {
       toggleCamera={toggleCamera}
       peerMicEnabled={peerMicEnabled}
       peerCameraEnabled={peerCameraEnabled}
+      remoteConnected={remoteConnected}
+      roomId={matchInfo?.roomId}
+      peerUserId={matchInfo?.peerUserId}
     />;
   }
 
@@ -120,5 +227,12 @@ export default function HomePage() {
     findMatch={findMatch}
     cancel={cancel}
     logout={logout}
+    localStream={localStream}
+    mediaError={mediaError}
+    micEnabled={micEnabled}
+    cameraEnabled={cameraEnabled}
+    toggleMic={toggleMic}
+    toggleCamera={toggleCamera}
+    localVideoRef={localVideoRef}
   />;
 }

@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { GRADIENT } from '../../constants/theme';
+import ReportModal from '../../components/ReportModal';
 
-export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled }) {
+export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId }) {
+  const [showReport, setShowReport] = useState(false);
+  const [reportConfirmed, setReportConfirmed] = useState(false);
   const username = user?.email?.split('@')[0] ?? 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   // BIG slot shows local when swapped, remote otherwise. PIP is the inverse.
@@ -8,10 +12,14 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
   const showLocalAvatarOnBig = swapped && !cameraEnabled;
   const showLocalAvatarOnPip = !swapped && !cameraEnabled;
   // Peer (camera-off + mic-off) indicators follow the REMOTE feed.
-  const showPeerCamOffOnBig = !swapped && !peerCameraEnabled;
-  const showPeerCamOffOnPip = swapped && !peerCameraEnabled;
-  const showPeerMicOffOnBig = !swapped && !peerMicEnabled;
-  const showPeerMicOffOnPip = swapped && !peerMicEnabled;
+  const showPeerCamOffOnBig = !swapped && !peerCameraEnabled && remoteConnected;
+  const showPeerCamOffOnPip = swapped && !peerCameraEnabled && remoteConnected;
+  const showPeerMicOffOnBig = !swapped && !peerMicEnabled && remoteConnected;
+  const showPeerMicOffOnPip = swapped && !peerMicEnabled && remoteConnected;
+  // Connecting overlay shows on whichever slot is currently displaying the REMOTE feed,
+  // until the first remote track arrives.
+  const showConnectingOnBig = !swapped && !remoteConnected;
+  const showConnectingOnPip = swapped && !remoteConnected;
 
   return (
     <div className="bg-background text-on-background font-body h-screen flex flex-col overflow-hidden">
@@ -53,8 +61,38 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             )}
             {showPeerMicOffOnBig && (
               <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(167,1,56,0.6)' }}>
-                <span className="material-symbols-outlined text-white" style={{ fontSize: 16 }}>mic_off</span>
+                <span className="material-symbols-outlined text-white" aria-hidden="true" style={{ fontSize: 16 }}>mic_off</span>
                 <span className="text-white text-xs font-label uppercase tracking-wider">Muted</span>
+              </div>
+            )}
+            {showConnectingOnBig && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-surface-container-low/90">
+                <div className="flex items-center justify-center rounded-full" style={{ width: 80, height: 80, background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.25)' }}>
+                  <span className="material-symbols-outlined text-primary animate-pulse" aria-hidden="true" style={{ fontSize: 40, fontVariationSettings: "'FILL' 1" }}>cell_tower</span>
+                </div>
+                <div className="text-center">
+                  <h3 className="font-headline font-bold text-white text-lg mb-1">Connecting...</h3>
+                  <p className="text-on-surface-variant text-xs font-label uppercase tracking-widest">Establishing secure link</p>
+                </div>
+              </div>
+            )}
+            {/* Report button — top left of remote slot */}
+            {!swapped && (
+              <button
+                type="button"
+                onClick={() => setShowReport(true)}
+                aria-label="Report stranger"
+                title="Report"
+                className="absolute top-4 left-4 z-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors hover:bg-error/30 active:scale-95"
+                style={{ width: 36, height: 36, background: 'rgba(0,0,0,0.5)', color: '#ff6e84' }}
+              >
+                <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>flag</span>
+              </button>
+            )}
+            {reportConfirmed && (
+              <div className="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(0,207,252,0.2)' }}>
+                <span className="material-symbols-outlined text-secondary" aria-hidden="true" style={{ fontSize: 16 }}>check_circle</span>
+                <span className="text-secondary text-xs font-label uppercase tracking-wider">Reported</span>
               </div>
             )}
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
@@ -68,8 +106,11 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
           </div>
 
           {/* Local (self) video - PIP */}
-          <div
-            className="absolute bottom-4 right-4 md:bottom-8 md:right-8 w-32 h-44 md:w-48 md:h-64 bg-surface-container-high rounded-xl overflow-hidden border border-white/5 shadow-2xl cursor-pointer"
+          <button
+            type="button"
+            aria-label="Swap video positions"
+            title="Click to swap"
+            className="absolute bottom-3 right-3 md:bottom-8 md:right-8 w-32 h-44 md:w-48 md:h-64 bg-surface-container-high rounded-xl overflow-hidden border border-white/5 shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
             style={{boxShadow:'0 0 20px rgba(139,92,246,0.3)'}}
             onClick={() => setSwapped(s => !s)}
           >
@@ -95,20 +136,24 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             )}
             {showPeerMicOffOnPip && (
               <div className="absolute top-2 right-2 z-10 flex items-center justify-center rounded-full backdrop-blur-md" style={{ width: 26, height: 26, background: 'rgba(167,1,56,0.7)' }}>
-                <span className="material-symbols-outlined text-white" style={{ fontSize: 14 }}>mic_off</span>
+                <span className="material-symbols-outlined text-white" aria-hidden="true" style={{ fontSize: 14 }}>mic_off</span>
+              </div>
+            )}
+            {showConnectingOnPip && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-surface-container-low/90">
+                <span className="material-symbols-outlined text-primary animate-pulse" aria-hidden="true" style={{ fontSize: 28 }}>cell_tower</span>
               </div>
             )}
             <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest text-white">
               {swapped ? 'Stranger' : 'You'}
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Chat sidebar */}
         <aside className="w-full md:w-96 lg:w-[420px] flex-shrink-0 h-[300px] md:h-full bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-white/5 flex items-center justify-between">
+          <div className="p-4 border-b border-white/5">
             <span className="font-headline font-semibold text-primary">Live Chat</span>
-            <span className="material-symbols-outlined text-on-surface-variant text-sm">more_vert</span>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {messages.length === 0 && (
@@ -119,7 +164,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
                 <span className={`text-[10px] font-bold uppercase tracking-tighter ${msg.mine ? 'text-primary-fixed' : 'text-secondary'}`}>
                   {msg.mine ? 'You' : 'Stranger'}
                 </span>
-                <div className={`p-3 max-w-[90%] text-sm text-on-surface leading-relaxed ${
+                <div className={`p-3 max-w-[90%] text-sm text-on-surface leading-relaxed break-words [overflow-wrap:anywhere] ${
                   msg.mine
                     ? 'bg-primary/10 border border-primary/20 rounded-tl-xl rounded-br-xl rounded-bl-xl'
                     : 'bg-surface-container-highest rounded-tr-xl rounded-br-xl rounded-bl-xl'
@@ -212,6 +257,18 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
       {/* Ambient glows */}
       <div className="fixed top-1/4 -left-32 w-64 h-64 rounded-full blur-[120px] pointer-events-none" style={{background:'rgba(186,158,255,0.1)'}}></div>
       <div className="fixed bottom-1/4 -right-32 w-96 h-96 rounded-full blur-[150px] pointer-events-none" style={{background:'rgba(0,207,252,0.05)'}}></div>
+
+      {showReport && (
+        <ReportModal
+          onClose={() => setShowReport(false)}
+          reportedUserId={peerUserId}
+          roomId={roomId}
+          onSubmitted={() => {
+            setReportConfirmed(true);
+            setTimeout(() => setReportConfirmed(false), 4000);
+          }}
+        />
+      )}
     </div>
   );
 }

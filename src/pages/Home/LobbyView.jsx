@@ -1,8 +1,16 @@
+import { useEffect } from 'react';
 import { GRADIENT } from '../../constants/theme';
 
-export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout }) {
+export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef }) {
   const username = user?.email?.split('@')[0] ?? 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
+
+  // Wire the persistent local stream into the lobby preview <video>.
+  useEffect(() => {
+    if (localVideoRef?.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream, localVideoRef]);
 
   return (
     <div className="bg-background text-on-surface font-body" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -25,10 +33,10 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-on-surface-variant text-sm hidden md:block font-label">{user?.email}</span>
-          <button onClick={logout} className="text-on-surface-variant hover:text-white transition-colors" title="Logout">
-            <span className="material-symbols-outlined" style={{ fontSize: 22 }}>logout</span>
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-none">{user?.email}</span>
+          <button onClick={logout} aria-label="Log out" className="text-on-surface-variant hover:text-white transition-colors flex-shrink-0" title="Log out">
+            <span className="material-symbols-outlined" style={{ fontSize: 22 }} aria-hidden="true">logout</span>
           </button>
         </div>
       </header>
@@ -55,21 +63,82 @@ export default function LobbyView({ user, isConnected, socketError, status, find
         <main className="flex flex-1 gap-4 p-4 overflow-hidden">
           {/* Local feed panel */}
           <div className="relative flex-1 rounded-xl overflow-hidden" style={{ background: '#131313', border: '1px solid rgba(186,158,255,0.12)' }}>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex items-center justify-center rounded-full font-bold font-headline text-4xl"
-                  style={{ width: 96, height: 96, background: 'rgba(186,158,255,0.1)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.1)' }}>
-                  {initial}
+            <video
+              ref={localVideoRef}
+              className="w-full h-full object-cover"
+              autoPlay playsInline muted
+            />
+            {(!cameraEnabled || !localStream) && (
+              <div className="absolute inset-0 flex items-center justify-center bg-surface-container-low">
+                <div className="flex flex-col items-center gap-3 text-center px-6">
+                  {mediaError ? (
+                    <>
+                      <div className="flex items-center justify-center rounded-full" style={{ width: 80, height: 80, background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
+                        <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 40 }}>videocam_off</span>
+                      </div>
+                      <p className="font-headline font-semibold text-white">Camera unavailable</p>
+                      <p className="text-on-surface-variant text-xs max-w-[260px]">
+                        Grant camera and microphone permission in your browser to start matching.
+                      </p>
+                    </>
+                  ) : !localStream ? (
+                    <>
+                      <span className="material-symbols-outlined text-primary animate-pulse" aria-hidden="true" style={{ fontSize: 40 }}>hourglass</span>
+                      <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">Requesting camera…</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-center rounded-full font-bold font-headline text-4xl"
+                        style={{ width: 96, height: 96, background: 'rgba(186,158,255,0.1)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.1)' }}>
+                        {initial}
+                      </div>
+                      <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">Camera Off</p>
+                    </>
+                  )}
                 </div>
-                <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">Camera Off</p>
               </div>
-            </div>
+            )}
             <div className="absolute bottom-0 left-0 right-0 p-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}>
               <h2 className="text-lg font-bold font-headline text-white">{username} (You)</h2>
               <p className="text-on-surface-variant font-label uppercase tracking-widest" style={{ fontSize: 10 }}>
                 Local Feed • {isConnected ? 'Active' : 'Offline'}
               </p>
             </div>
+            {/* Mic / camera quick toggles in lobby */}
+            {localStream && (
+              <div className="absolute top-4 right-4 flex gap-2">
+                <button
+                  onClick={toggleMic}
+                  aria-pressed={!micEnabled}
+                  aria-label={micEnabled ? 'Mute microphone' : 'Unmute microphone'}
+                  title={micEnabled ? 'Mute' : 'Unmute'}
+                  className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95"
+                  style={{
+                    width: 40, height: 40,
+                    ...(micEnabled
+                      ? { background: 'rgba(19,19,19,0.6)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
+                      : { background: 'rgba(167,1,56,0.5)', borderColor: 'rgba(167,1,56,0.6)', color: '#ff6e84' }),
+                  }}
+                >
+                  <span className="material-symbols-outlined text-lg" aria-hidden="true">{micEnabled ? 'mic' : 'mic_off'}</span>
+                </button>
+                <button
+                  onClick={toggleCamera}
+                  aria-pressed={!cameraEnabled}
+                  aria-label={cameraEnabled ? 'Turn camera off' : 'Turn camera on'}
+                  title={cameraEnabled ? 'Turn off camera' : 'Turn on camera'}
+                  className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95"
+                  style={{
+                    width: 40, height: 40,
+                    ...(cameraEnabled
+                      ? { background: 'rgba(19,19,19,0.6)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
+                      : { background: 'rgba(167,1,56,0.5)', borderColor: 'rgba(167,1,56,0.6)', color: '#ff6e84' }),
+                  }}
+                >
+                  <span className="material-symbols-outlined text-lg" aria-hidden="true">{cameraEnabled ? 'videocam' : 'videocam_off'}</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Searching / idle / peer_left panel */}
@@ -102,7 +171,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             ) : (
               <div className="z-10 text-center px-8">
                 {status === 'peer_left' && <p className="text-error text-sm mb-4 font-label">Your match disconnected.</p>}
-                {socketError && <p className="text-error text-sm mb-4 font-label">Socket error: {socketError}</p>}
+                {socketError && <p className="text-error text-sm mb-4 font-label">Couldn't connect to the server. Check your internet connection.</p>}
                 <div className="flex items-center justify-center mx-auto mb-5 rounded-full"
                   style={{ width: 80, height: 80, background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.2)' }}>
                   <span className="material-symbols-outlined text-primary" style={{ fontSize: 40 }}>people</span>
