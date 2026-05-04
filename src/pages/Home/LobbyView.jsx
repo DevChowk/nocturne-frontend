@@ -33,9 +33,15 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
           <span className="text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-none">{user?.email}</span>
-          <button onClick={logout} aria-label="Log out" className="text-on-surface-variant hover:text-white transition-colors flex-shrink-0" title="Log out">
+          <button
+            onClick={logout}
+            aria-label="Log out"
+            title="Log out"
+            className="flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-surface-container-high rounded-full transition-colors flex-shrink-0"
+            style={{ width: 40, height: 40 }}
+          >
             <span className="material-symbols-outlined" style={{ fontSize: 22 }} aria-hidden="true">logout</span>
           </button>
         </div>
@@ -60,7 +66,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
         </nav>
 
         {/* Main canvas */}
-        <main className="flex flex-1 gap-4 p-4 overflow-hidden">
+        <main className="flex flex-col md:flex-row flex-1 gap-3 md:gap-4 p-3 md:p-4 overflow-hidden">
           {/* Local feed panel */}
           <div className="relative flex-1 rounded-xl overflow-hidden" style={{ background: '#131313', border: '1px solid rgba(186,158,255,0.12)' }}>
             <video
@@ -114,7 +120,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                   title={micEnabled ? 'Mute' : 'Unmute'}
                   className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95"
                   style={{
-                    width: 40, height: 40,
+                    width: 44, height: 44,
                     ...(micEnabled
                       ? { background: 'rgba(19,19,19,0.6)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
                       : { background: 'rgba(167,1,56,0.5)', borderColor: 'rgba(167,1,56,0.6)', color: '#ff6e84' }),
@@ -129,7 +135,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                   title={cameraEnabled ? 'Turn off camera' : 'Turn on camera'}
                   className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95"
                   style={{
-                    width: 40, height: 40,
+                    width: 44, height: 44,
                     ...(cameraEnabled
                       ? { background: 'rgba(19,19,19,0.6)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
                       : { background: 'rgba(167,1,56,0.5)', borderColor: 'rgba(167,1,56,0.6)', color: '#ff6e84' }),

@@ -3,7 +3,7 @@ export default function AuthFooter({ onPrivacy, onTerms }) {
     <footer className="w-full py-8 border-t bg-background" style={{ borderColor: 'rgba(32,32,31,0.3)' }}>
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 px-12 max-w-7xl mx-auto">
         <span className="font-headline font-bold text-primary">Nocturne</span>
-        <p className="font-body text-sm text-on-surface-variant">© 2024 Nocturne. Experience the Electric Pulse.</p>
+        <p className="font-body text-sm text-on-surface-variant">© 2026 Nocturne. All rights reserved.</p>
         <nav className="flex gap-6">
           <button
             type="button"
