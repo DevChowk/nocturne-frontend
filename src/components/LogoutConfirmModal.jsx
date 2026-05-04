@@ -1,0 +1,36 @@
+import ModalBase from './ModalBase';
+import { GRADIENT } from '../constants/theme';
+
+export default function LogoutConfirmModal({ onCancel, onConfirm }) {
+  return (
+    <ModalBase maxWidth="max-w-sm" onClose={onCancel}>
+      <div className="px-6 pt-8 pb-6 text-center">
+        <div className="mx-auto mb-5 flex items-center justify-center rounded-full" style={{ width: 64, height: 64, background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 32 }}>logout</span>
+        </div>
+        <h2 className="font-headline font-bold text-on-surface text-xl mb-2">Log out?</h2>
+        <p className="text-on-surface-variant text-sm">
+          You'll need to sign back in to continue chatting.
+        </p>
+      </div>
+
+      <div className="px-6 pb-6 flex gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 px-5 py-3 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm hover:bg-surface-bright transition-colors active:scale-95"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          className="flex-1 px-5 py-3 rounded-full text-black font-bold text-sm transition-all active:scale-95"
+          style={{ backgroundImage: GRADIENT }}
+        >
+          Log out
+        </button>
+      </div>
+    </ModalBase>
+  );
+}
