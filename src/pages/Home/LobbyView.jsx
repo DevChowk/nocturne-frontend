@@ -1,9 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { GRADIENT } from '../../constants/theme';
+import ProfileModal from '../../components/ProfileModal';
+import LogoutConfirmModal from '../../components/LogoutConfirmModal';
 
 export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef }) {
   const username = user?.email?.split('@')[0] ?? 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
+  const [showProfile, setShowProfile] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Wire the persistent local stream into the lobby preview <video>.
   useEffect(() => {
@@ -34,15 +38,20 @@ export default function LobbyView({ user, isConnected, socketError, status, find
           </div>
         </div>
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-none">{user?.email}</span>
+          <span className="hidden sm:inline text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-[220px]">{user?.email}</span>
           <button
-            onClick={logout}
-            aria-label="Log out"
-            title="Log out"
-            className="flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-surface-container-high rounded-full transition-colors flex-shrink-0"
-            style={{ width: 40, height: 40 }}
+            onClick={() => setShowProfile(true)}
+            aria-label="Open profile menu"
+            title="Profile"
+            className="flex items-center justify-center rounded-full font-bold font-headline transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0"
+            style={{
+              width: 40, height: 40, fontSize: 16,
+              background: 'rgba(186,158,255,0.15)',
+              color: '#ba9eff',
+              boxShadow: '0 0 12px rgba(186,158,255,0.15)',
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 22 }} aria-hidden="true">logout</span>
+            {initial}
           </button>
         </div>
       </header>
@@ -220,6 +229,26 @@ export default function LobbyView({ user, isConnected, socketError, status, find
           <span className="font-label uppercase tracking-widest" style={{ fontSize: 9 }}>Stop</span>
         </button>
       </nav>
+
+      {showProfile && (
+        <ProfileModal
+          user={user}
+          onClose={() => setShowProfile(false)}
+          onLogout={() => {
+            setShowProfile(false);
+            setShowLogoutConfirm(true);
+          }}
+        />
+      )}
+      {showLogoutConfirm && (
+        <LogoutConfirmModal
+          onCancel={() => setShowLogoutConfirm(false)}
+          onConfirm={() => {
+            setShowLogoutConfirm(false);
+            logout();
+          }}
+        />
+      )}
     </div>
   );
 }
