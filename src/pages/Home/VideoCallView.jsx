@@ -52,11 +52,11 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
               </div>
             )}
             {showPeerCamOffOnBig && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-container-high">
-                <div className="flex items-center justify-center rounded-full" style={{ width: 96, height: 96, background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 48 }}>videocam_off</span>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-container-high px-6 text-center">
+                <div className="flex items-center justify-center rounded-full" style={{ background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
+                  <span className="material-symbols-outlined p-5 md:p-6" aria-hidden="true" style={{ fontSize: 36 }}>videocam_off</span>
                 </div>
-                <p className="font-headline font-semibold text-white">Stranger turned off camera</p>
+                <p className="font-headline font-semibold text-white text-sm md:text-base">Stranger turned off camera</p>
               </div>
             )}
             {showPeerMicOffOnBig && (
@@ -96,11 +96,11 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
               </div>
             )}
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
-            <div className="absolute bottom-6 left-6 flex flex-col">
-              <span className="font-headline font-bold text-2xl text-white">{swapped ? `${username} (You)` : 'Stranger'}</span>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-secondary text-sm">location_on</span>
-                <span className="text-on-surface-variant text-sm">{swapped ? 'Local Feed' : 'Anonymous'}</span>
+            <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
+              <span className="font-headline font-bold text-lg md:text-2xl text-white">{swapped ? `${username} (You)` : 'Stranger'}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-secondary text-sm" aria-hidden="true">location_on</span>
+                <span className="text-on-surface-variant text-xs md:text-sm">{swapped ? 'Local Feed' : 'Anonymous'}</span>
               </div>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             type="button"
             aria-label="Swap video positions"
             title="Click to swap"
-            className="absolute bottom-3 right-3 md:bottom-8 md:right-8 w-32 h-44 md:w-48 md:h-64 bg-surface-container-high rounded-xl overflow-hidden border border-white/5 shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="absolute bottom-3 right-3 md:bottom-8 md:right-8 w-24 h-32 sm:w-28 sm:h-40 md:w-48 md:h-64 bg-surface-container-high rounded-xl overflow-hidden border border-white/5 shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
             style={{boxShadow:'0 0 20px rgba(139,92,246,0.3)'}}
             onClick={() => setSwapped(s => !s)}
           >
@@ -151,7 +151,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
         </div>
 
         {/* Chat sidebar */}
-        <aside className="w-full md:w-96 lg:w-[420px] flex-shrink-0 h-[300px] md:h-full bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex flex-col overflow-hidden">
+        <aside className="w-full md:w-96 lg:w-[420px] flex-shrink-0 h-[35vh] min-h-[180px] max-h-[320px] md:h-full md:min-h-0 md:max-h-none bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex flex-col overflow-hidden">
           <div className="p-4 border-b border-white/5">
             <span className="font-headline font-semibold text-primary">Live Chat</span>
           </div>
