@@ -5,6 +5,12 @@ const ICE_SERVERS = [
   { urls: 'stun:stun1.l.google.com:19302' },
 ];
 
+// Lift the encoder's max bitrate above the WebRTC default (~1–1.5 Mbps for
+// 720p). It's a CAP, not a floor — the encoder still adapts down on weak
+// networks. Bumps perceived quality on healthy connections without affecting
+// latency.
+const MAX_VIDEO_BITRATE = 2_500_000; // 2.5 Mbps
+
 // Manages the RTCPeerConnection lifecycle for a matched call. The local
 // stream + mic/camera state live in useLocalMedia (which persists across
 // matches). This hook just consumes them, sets up signaling, and exposes
@@ -46,6 +52,23 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
 
       // Add local tracks to connection
       localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
+
+      // Lift the video sender's bitrate cap. setParameters can throw on
+      // older Safari / unusual browser builds; if it does, we just log and
+      // keep going — the call still works at the default cap.
+      try {
+        const videoSender = pc.getSenders().find((s) => s.track?.kind === 'video');
+        if (videoSender) {
+          const params = videoSender.getParameters();
+          if (!params.encodings || params.encodings.length === 0) {
+            params.encodings = [{}];
+          }
+          params.encodings[0].maxBitrate = MAX_VIDEO_BITRATE;
+          await videoSender.setParameters(params);
+        }
+      } catch (err) {
+        console.warn('[WebRTC] setParameters (bitrate cap) failed:', err.message);
+      }
 
       // Collect remote tracks
       const remote = new MediaStream();
