@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { GRADIENT } from '../../constants/theme';
 import ReportModal from '../../components/ReportModal';
 
-export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId }) {
+export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, mirrorLocal }) {
   const [showReport, setShowReport] = useState(false);
   const [reportConfirmed, setReportConfirmed] = useState(false);
   const username = user?.email?.split('@')[0] ?? 'You';
@@ -40,6 +40,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             <video
               ref={swapped ? localVideoRef : remoteVideoRef}
               className="w-full h-full object-cover"
+              style={swapped && mirrorLocal ? { transform: 'scaleX(-1)' } : undefined}
               autoPlay playsInline
               muted={swapped}
             />
@@ -117,6 +118,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             <video
               ref={swapped ? remoteVideoRef : localVideoRef}
               className="w-full h-full object-cover"
+              style={!swapped && mirrorLocal ? { transform: 'scaleX(-1)' } : undefined}
               autoPlay playsInline muted={!swapped}
             />
             {showLocalAvatarOnPip && (

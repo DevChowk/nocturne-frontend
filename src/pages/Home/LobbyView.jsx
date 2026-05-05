@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { GRADIENT } from '../../constants/theme';
 import ProfileModal from '../../components/ProfileModal';
 import LogoutConfirmModal from '../../components/LogoutConfirmModal';
+import SettingsModal from '../../components/SettingsModal';
 
-export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef }) {
+export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, devices }) {
   const username = user?.email?.split('@')[0] ?? 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   const [showProfile, setShowProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Wire the persistent local stream into the lobby preview <video>.
   useEffect(() => {
@@ -81,6 +83,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             <video
               ref={localVideoRef}
               className="w-full h-full object-cover"
+              style={mirrorLocal ? { transform: 'scaleX(-1)' } : undefined}
               autoPlay playsInline muted
             />
             {(!cameraEnabled || !localStream) && (
@@ -234,6 +237,10 @@ export default function LobbyView({ user, isConnected, socketError, status, find
         <ProfileModal
           user={user}
           onClose={() => setShowProfile(false)}
+          onSettings={() => {
+            setShowProfile(false);
+            setShowSettings(true);
+          }}
           onLogout={() => {
             setShowProfile(false);
             setShowLogoutConfirm(true);
@@ -247,6 +254,12 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             setShowLogoutConfirm(false);
             logout();
           }}
+        />
+      )}
+      {showSettings && (
+        <SettingsModal
+          devices={devices}
+          onClose={() => setShowSettings(false)}
         />
       )}
     </div>

@@ -1,6 +1,6 @@
 import ModalBase from './ModalBase';
 
-export default function ProfileModal({ user, onClose, onLogout }) {
+export default function ProfileModal({ user, onClose, onLogout, onSettings }) {
   const username = user?.email?.split('@')[0] ?? 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
 
@@ -27,15 +27,13 @@ export default function ProfileModal({ user, onClose, onLogout }) {
       <div className="px-4 py-3 space-y-1">
         <button
           type="button"
-          disabled
-          aria-label="Settings — coming soon"
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-on-surface-variant cursor-not-allowed opacity-60"
+          onClick={onSettings}
+          aria-label="Open settings"
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
         >
-          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>settings</span>
-          <span className="flex-1 text-sm font-medium">Settings</span>
-          <span className="text-[10px] font-label uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ background: 'rgba(186,158,255,0.12)', color: '#ba9eff' }}>
-            Soon
-          </span>
+          <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: 22 }}>settings</span>
+          <span className="flex-1 text-sm font-semibold">Settings</span>
+          <span className="material-symbols-outlined opacity-60" aria-hidden="true" style={{ fontSize: 18 }}>chevron_right</span>
         </button>
 
         <button
