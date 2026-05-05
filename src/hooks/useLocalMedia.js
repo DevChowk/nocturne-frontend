@@ -22,9 +22,23 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
   // Acquire / re-acquire stream when device IDs change.
   useEffect(() => {
     let cancelled = false;
+    // 720p @ 30fps is the sweet spot: hardware-accelerated on every modern
+    // device, ~4x more detail than browser-default 480p, no perceptible
+    // latency cost. `ideal` (not `exact`) so cheap webcams that max out
+    // lower silently fall back instead of failing.
     const constraints = {
-      video: videoDeviceId ? { deviceId: { exact: videoDeviceId } } : true,
-      audio: audioDeviceId ? { deviceId: { exact: audioDeviceId } } : true,
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 30 },
+        ...(videoDeviceId && { deviceId: { exact: videoDeviceId } }),
+      },
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        ...(audioDeviceId && { deviceId: { exact: audioDeviceId } }),
+      },
     };
     navigator.mediaDevices
       .getUserMedia(constraints)
