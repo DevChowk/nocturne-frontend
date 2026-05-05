@@ -47,4 +47,16 @@
   .custom-scrollbar::-webkit-scrollbar-thumb { background: #2c2c2c; border-radius: 10px; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Reduce-motion: applied as a class on <html> by the SettingsProvider when
+     either the user opted in OR (if untouched) the OS reports the preference. */
+  .reduce-motion *,
+  .reduce-motion *::before,
+  .reduce-motion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reduce-motion .pulse-ring { animation: none !important; }
+  .reduce-motion .shimmer { animation: none !important; background: #131313 !important; }
 }

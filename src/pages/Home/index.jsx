@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSocket } from '../../hooks/useSocket';
 import { useLocalMedia } from '../../hooks/useLocalMedia';
 import { useWebRTC } from '../../hooks/useWebRTC';
+import { useSettings } from '../../hooks/useSettings';
 import LobbyView from './LobbyView';
 import VideoCallView from './VideoCallView';
 
@@ -37,6 +38,7 @@ function playMatchTone() {
 export default function HomePage() {
   const { user, token, logout } = useAuth();
   const { socket, isConnected, error: socketError } = useSocket(token);
+  const { settings } = useSettings();
   const [status, setStatus] = useState('idle');
   const [matchInfo, setMatchInfo] = useState(null);
   const [swapped, setSwapped] = useState(false);
@@ -47,11 +49,15 @@ export default function HomePage() {
   const {
     stream: localStream,
     error: mediaError,
+    devices,
     micEnabled,
     cameraEnabled,
     toggleMic,
     toggleCamera,
-  } = useLocalMedia();
+  } = useLocalMedia({
+    videoDeviceId: settings.videoDeviceId,
+    audioDeviceId: settings.audioDeviceId,
+  });
 
   const {
     remoteStream,
@@ -91,6 +97,13 @@ export default function HomePage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Apply reduce-motion class on <html> based on user setting (with OS fallback).
+  useEffect(() => {
+    const osPrefers = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const should = settings.reduceMotion === null ? osPrefers : settings.reduceMotion;
+    document.documentElement.classList.toggle('reduce-motion', should);
+  }, [settings.reduceMotion]);
+
   // Tab-title alert when a match arrives while the tab is in the background.
   useEffect(() => {
     if (status !== 'matched') return;
@@ -118,7 +131,7 @@ export default function HomePage() {
       setMatchInfo({ roomId: data.roomId, role: data.role, peerUserId: data.peerUserId });
       setMessages([]);
       setSwapped(false);
-      playMatchTone();
+      if (settings.matchSound) playMatchTone();
     };
     const onLeftQueue = () => { setStatus('idle'); setMatchInfo(null); };
     const onPeerDisconnected = () => { setStatus('peer_left'); setMatchInfo(null); setMessages([]); };
@@ -139,7 +152,7 @@ export default function HomePage() {
       socket.off('call_ended', onCallEnded);
       socket.off('chat_message', onChatMessage);
     };
-  }, [socket]);
+  }, [socket, settings.matchSound]);
 
   const findMatch = useCallback(() => { socket?.emit('join_queue'); setStatus('waiting'); }, [socket]);
   const cancel = useCallback(() => { socket?.emit('leave_queue'); }, [socket]);
@@ -216,6 +229,7 @@ export default function HomePage() {
       remoteConnected={remoteConnected}
       roomId={matchInfo?.roomId}
       peerUserId={matchInfo?.peerUserId}
+      mirrorLocal={settings.mirrorLocal}
     />;
   }
 
@@ -234,5 +248,7 @@ export default function HomePage() {
     toggleMic={toggleMic}
     toggleCamera={toggleCamera}
     localVideoRef={localVideoRef}
+    mirrorLocal={settings.mirrorLocal}
+    devices={devices}
   />;
 }
