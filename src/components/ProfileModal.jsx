@@ -1,12 +1,13 @@
 import ModalBase from './ModalBase';
 
-export default function ProfileModal({ user, onClose, onLogout, onSettings }) {
-  const username = user?.email?.split('@')[0] ?? 'You';
+export default function ProfileModal({ user, onClose, onSettings, onEditProfile, onLogout }) {
+  const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
+  const displayName = user?.displayName || username;
 
   return (
     <ModalBase maxWidth="max-w-md" onClose={onClose}>
-      {/* Header with avatar + email */}
+      {/* Header with avatar + identity */}
       <header className="px-6 pt-8 pb-6 flex flex-col items-center text-center border-b border-white/5">
         <div
           className="flex items-center justify-center rounded-full font-bold font-headline mb-4"
@@ -19,12 +20,25 @@ export default function ProfileModal({ user, onClose, onLogout, onSettings }) {
         >
           {initial}
         </div>
-        <p className="font-headline font-bold text-on-surface text-lg">{username}</p>
-        <p className="text-on-surface-variant text-sm break-all">{user?.email}</p>
+        <p className="font-headline font-bold text-on-surface text-lg">{displayName}</p>
+        {user?.username && <p className="text-primary text-sm font-label">@{user.username}</p>}
+        <p className="text-on-surface-variant text-xs mt-1 break-all">{user?.email}</p>
+        {user?.bio && <p className="text-on-surface-variant text-sm mt-3 max-w-[280px]">{user.bio}</p>}
       </header>
 
       {/* Actions */}
       <div className="px-4 py-3 space-y-1">
+        <button
+          type="button"
+          onClick={onEditProfile}
+          aria-label="Edit profile"
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
+        >
+          <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: 22 }}>person</span>
+          <span className="flex-1 text-sm font-semibold">Edit profile</span>
+          <span className="material-symbols-outlined opacity-60" aria-hidden="true" style={{ fontSize: 18 }}>chevron_right</span>
+        </button>
+
         <button
           type="button"
           onClick={onSettings}

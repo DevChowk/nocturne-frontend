@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { GRADIENT } from '../../constants/theme';
 import ReportModal from '../../components/ReportModal';
 
-export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, mirrorLocal }) {
+export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, mirrorLocal }) {
   const [showReport, setShowReport] = useState(false);
   const [reportConfirmed, setReportConfirmed] = useState(false);
-  const username = user?.email?.split('@')[0] ?? 'You';
+  const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
+  // Peer label: prefer displayName, then @username, then 'Stranger' fallback.
+  const peerLabel = peerDisplayName || (peerUsername ? `@${peerUsername}` : 'Stranger');
   // BIG slot shows local when swapped, remote otherwise. PIP is the inverse.
   // Avatar overlays follow the LOCAL camera-off state on whichever slot shows it.
   const showLocalAvatarOnBig = swapped && !cameraEnabled;
@@ -57,7 +59,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
                 <div className="flex items-center justify-center rounded-full" style={{ background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
                   <span className="material-symbols-outlined p-5 md:p-6" aria-hidden="true" style={{ fontSize: 36 }}>videocam_off</span>
                 </div>
-                <p className="font-headline font-semibold text-white text-sm md:text-base">Stranger turned off camera</p>
+                <p className="font-headline font-semibold text-white text-sm md:text-base">{peerLabel} turned off camera</p>
               </div>
             )}
             {showPeerMicOffOnBig && (
@@ -98,10 +100,10 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             )}
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
-              <span className="font-headline font-bold text-lg md:text-2xl text-white">{swapped ? `${username} (You)` : 'Stranger'}</span>
+              <span className="font-headline font-bold text-lg md:text-2xl text-white">{swapped ? `${username} (You)` : peerLabel}</span>
               <div className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-secondary text-sm" aria-hidden="true">location_on</span>
-                <span className="text-on-surface-variant text-xs md:text-sm">{swapped ? 'Local Feed' : 'Anonymous'}</span>
+                <span className="text-on-surface-variant text-xs md:text-sm">{swapped ? 'Local Feed' : (peerUsername ? `@${peerUsername}` : 'Anonymous')}</span>
               </div>
             </div>
           </div>
@@ -147,7 +149,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
               </div>
             )}
             <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest text-white">
-              {swapped ? 'Stranger' : 'You'}
+              {swapped ? peerLabel : 'You'}
             </div>
           </button>
         </div>
@@ -164,7 +166,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             {messages.map((msg, i) => (
               <div key={i} className={`flex flex-col gap-1 ${msg.mine ? 'items-end' : ''}`}>
                 <span className={`text-[10px] font-bold uppercase tracking-tighter ${msg.mine ? 'text-primary-fixed' : 'text-secondary'}`}>
-                  {msg.mine ? 'You' : 'Stranger'}
+                  {msg.mine ? 'You' : peerLabel}
                 </span>
                 <div className={`p-3 max-w-[90%] text-sm text-on-surface leading-relaxed break-words [overflow-wrap:anywhere] ${
                   msg.mine

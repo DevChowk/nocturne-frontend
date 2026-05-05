@@ -5,6 +5,7 @@ import AuthHeader from '../components/AuthHeader';
 import AuthFooter from '../components/AuthFooter';
 import useAuthModals from '../hooks/useAuthModals';
 import { GRADIENT, gradientTextStyle } from '../constants/theme';
+import { MIN_AGE_YEARS, USERNAME_REGEX, ageInYears } from '../constants/policy';
 
 const FEATURES = [
   { icon: 'videocam', color: 'text-secondary', title: 'Cinema-Grade Video', desc: 'Ultra-low latency streaming for real-time vibe.' },
@@ -15,19 +16,36 @@ export default function SignupPage() {
   const { register } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [dob, setDob] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { openTerms, openPrivacy, modals } = useAuthModals();
 
+  const today = new Date().toISOString().slice(0, 10);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!agreed) { setError('You must accept the Terms of Service and Privacy Policy.'); return; }
+    if (!USERNAME_REGEX.test(username)) {
+      setError('Username must be 3–20 chars: lowercase letters, digits, _ or .');
+      return;
+    }
+    if (!dob) { setError('Please enter your date of birth.'); return; }
+    const dobDate = new Date(dob);
+    if (Number.isNaN(dobDate.getTime())) { setError('Invalid date of birth.'); return; }
+    const age = ageInYears(dobDate);
+    if (age < MIN_AGE_YEARS) {
+      setError(`You must be at least ${MIN_AGE_YEARS} years old to sign up.`);
+      return;
+    }
+    if (age > 120) { setError('Invalid date of birth.'); return; }
     setError('');
     setLoading(true);
     try {
-      await register(email, password);
+      await register({ email, password, username, dateOfBirth: dobDate.toISOString() });
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.error || 'Registration failed');
     } finally {
@@ -86,17 +104,54 @@ export default function SignupPage() {
                 <div className="space-y-2">
                   <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide px-1">EMAIL ADDRESS</label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">mail</span>
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg" aria-hidden="true">mail</span>
                     <input
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="alex@example.com"
+                      autoComplete="email"
                       required
                       className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-12 pr-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide px-1">USERNAME</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" aria-hidden="true">@</span>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={e => setUsername(e.target.value.toLowerCase())}
+                      placeholder="alex.nocturne"
+                      autoComplete="username"
+                      required
+                      minLength={3}
+                      maxLength={20}
+                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-9 pr-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                    />
+                  </div>
+                  <p className="text-xs text-on-surface-variant px-1">3–20 characters. Lowercase letters, digits, underscore, or dot.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide px-1">DATE OF BIRTH</label>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg" aria-hidden="true">cake</span>
+                    <input
+                      type="date"
+                      value={dob}
+                      onChange={e => setDob(e.target.value)}
+                      max={today}
+                      required
+                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-12 pr-4 text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                    />
+                  </div>
+                  <p className="text-xs text-on-surface-variant px-1">You must be at least {MIN_AGE_YEARS}.</p>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide px-1">PASSWORD</label>
                   <div className="relative">
@@ -133,7 +188,7 @@ export default function SignupPage() {
                     className="w-5 h-5 rounded bg-surface-container-highest cursor-pointer mt-0.5 accent-primary"
                   />
                   <label htmlFor="terms" className="text-sm text-on-surface-variant leading-snug cursor-pointer">
-                    I am 18 years of age or older and I agree to the{' '}
+                    I agree to the{' '}
                     <button type="button" onClick={openTerms} className="text-secondary hover:underline">Terms of Service</button>
                     {' '}and{' '}
                     <button type="button" onClick={openPrivacy} className="text-secondary hover:underline">Privacy Policy</button>.
