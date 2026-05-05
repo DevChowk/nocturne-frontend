@@ -3,13 +3,15 @@ import { GRADIENT } from '../../constants/theme';
 import ProfileModal from '../../components/ProfileModal';
 import LogoutConfirmModal from '../../components/LogoutConfirmModal';
 import SettingsModal from '../../components/SettingsModal';
+import ProfileEditModal from '../../components/ProfileEditModal';
 
 export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, devices }) {
-  const username = user?.email?.split('@')[0] ?? 'You';
+  const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   const [showProfile, setShowProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
 
   // Wire the persistent local stream into the lobby preview <video>.
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
           </div>
         </div>
         <div className="flex items-center gap-2 min-w-0">
-          <span className="hidden sm:inline text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-[220px]">{user?.email}</span>
+          <span className="hidden sm:inline text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-[220px]">{user?.username ? `@${user.username}` : user?.email}</span>
           <button
             onClick={() => setShowProfile(true)}
             aria-label="Open profile menu"
@@ -241,11 +243,18 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             setShowProfile(false);
             setShowSettings(true);
           }}
+          onEditProfile={() => {
+            setShowProfile(false);
+            setShowProfileEdit(true);
+          }}
           onLogout={() => {
             setShowProfile(false);
             setShowLogoutConfirm(true);
           }}
         />
+      )}
+      {showProfileEdit && (
+        <ProfileEditModal onClose={() => setShowProfileEdit(false)} />
       )}
       {showLogoutConfirm && (
         <LogoutConfirmModal

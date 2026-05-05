@@ -45,8 +45,8 @@ export function AuthProvider({ children }) {
     setUser(data.user);
   }, []);
 
-  const register = useCallback(async (email, password) => {
-    const { data } = await api.post('/api/auth/register', { email, password });
+  const register = useCallback(async ({ email, password, username, dateOfBirth }) => {
+    const { data } = await api.post('/api/auth/register', { email, password, username, dateOfBirth });
     saveAuth(data);
     navigate('/home');
   }, [saveAuth, navigate]);
@@ -71,8 +71,21 @@ export function AuthProvider({ children }) {
     navigate('/login');
   }, [navigate]);
 
+  // Profile updates (username, displayName, bio, dateOfBirth). Refreshes
+  // the cached user on success and bubbles errors so callers can show
+  // validation messages.
+  const updateProfile = useCallback(async (patch) => {
+    const { data } = await api.patch('/api/auth/me', patch);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setUser(data.user);
+    return data.user;
+  }, []);
+
+  // True when the user is authed but hasn't completed onboarding (no username yet).
+  const needsOnboarding = !!token && !loading && !!user && !user.username;
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, googleLogin, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, needsOnboarding, login, googleLogin, register, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

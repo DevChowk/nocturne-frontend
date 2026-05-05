@@ -4,6 +4,7 @@ import { useSocket } from '../../hooks/useSocket';
 import { useLocalMedia } from '../../hooks/useLocalMedia';
 import { useWebRTC } from '../../hooks/useWebRTC';
 import { useSettings } from '../../hooks/useSettings';
+import OnboardingModal from '../../components/OnboardingModal';
 import LobbyView from './LobbyView';
 import VideoCallView from './VideoCallView';
 
@@ -36,7 +37,7 @@ function playMatchTone() {
 }
 
 export default function HomePage() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, needsOnboarding } = useAuth();
   const { socket, isConnected, error: socketError } = useSocket(token);
   const { settings } = useSettings();
   const [status, setStatus] = useState('idle');
@@ -128,7 +129,13 @@ export default function HomePage() {
     const onWaiting = () => setStatus('waiting');
     const onMatchFound = (data) => {
       setStatus('matched');
-      setMatchInfo({ roomId: data.roomId, role: data.role, peerUserId: data.peerUserId });
+      setMatchInfo({
+        roomId: data.roomId,
+        role: data.role,
+        peerUserId: data.peerUserId,
+        peerUsername: data.peerUsername,
+        peerDisplayName: data.peerDisplayName,
+      });
       setMessages([]);
       setSwapped(false);
       if (settings.matchSound) playMatchTone();
@@ -206,8 +213,14 @@ export default function HomePage() {
     return () => document.removeEventListener('keydown', onKey);
   }, [isInCall, skip, endCall, toggleMic, toggleCamera]);
 
+  // Forced onboarding gate. When the user has no username yet, render the
+  // lobby behind a non-dismissable OnboardingModal so they can't proceed
+  // without picking a username + DOB. Re-renders normally once the modal
+  // finishes (needsOnboarding becomes false after the PATCH).
+  const onboardingGate = needsOnboarding ? <OnboardingModal /> : null;
+
   if (isInCall) {
-    return <VideoCallView
+    return <>{onboardingGate}<VideoCallView
       user={user}
       swapped={swapped}
       setSwapped={setSwapped}
@@ -229,11 +242,13 @@ export default function HomePage() {
       remoteConnected={remoteConnected}
       roomId={matchInfo?.roomId}
       peerUserId={matchInfo?.peerUserId}
+      peerUsername={matchInfo?.peerUsername}
+      peerDisplayName={matchInfo?.peerDisplayName}
       mirrorLocal={settings.mirrorLocal}
-    />;
+    /></>;
   }
 
-  return <LobbyView
+  return <>{onboardingGate}<LobbyView
     user={user}
     isConnected={isConnected}
     socketError={socketError}
@@ -250,5 +265,5 @@ export default function HomePage() {
     localVideoRef={localVideoRef}
     mirrorLocal={settings.mirrorLocal}
     devices={devices}
-  />;
+  /></>;
 }
