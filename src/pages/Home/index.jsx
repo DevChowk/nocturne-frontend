@@ -45,6 +45,9 @@ export default function HomePage() {
   const [swapped, setSwapped] = useState(false);
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
+  // Per-match friend state. Resets to 'none' on each new match.
+  // Values: 'none' | 'sent' | 'received' | 'accepted'
+  const [friendStatus, setFriendStatus] = useState('none');
   const isInCall = status === 'matched' && matchInfo;
 
   const {
@@ -77,6 +80,10 @@ export default function HomePage() {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const chatEndRef = useRef(null);
+  // Mirror of current matchInfo so socket-listener closures (registered once
+  // per `socket`) can read the latest peer ID without re-subscribing.
+  const matchInfoRef = useRef(null);
+  useEffect(() => { matchInfoRef.current = matchInfo; }, [matchInfo]);
 
   // Re-bind srcObject whenever the underlying stream changes OR the DOM
   // element behind the ref changes (LobbyView ↔ VideoCallView transition,
@@ -138,12 +145,29 @@ export default function HomePage() {
       });
       setMessages([]);
       setSwapped(false);
+      setFriendStatus('none');
       if (settings.matchSound) playMatchTone();
     };
     const onLeftQueue = () => { setStatus('idle'); setMatchInfo(null); };
     const onPeerDisconnected = () => { setStatus('peer_left'); setMatchInfo(null); setMessages([]); };
     const onCallEnded = () => { setStatus('peer_left'); setMatchInfo(null); setMessages([]); };
     const onChatMessage = (data) => setMessages(prev => [...prev, { message: data.message, from: data.from, timestamp: data.timestamp, mine: false }]);
+    // Peer hit Add Friend during the call. If we're matched with them, light
+    // up the in-call CTA. Outside a call this is harmless (the badge in the
+    // profile menu refreshes via /me on the next mount).
+    const onFriendRequestReceived = (data) => {
+      const fromId = data?.user?.id;
+      if (fromId && matchInfoRef.current?.peerUserId === fromId) {
+        // Don't downgrade if we already accepted/sent.
+        setFriendStatus((prev) => (prev === 'accepted' || prev === 'sent') ? prev : 'received');
+      }
+    };
+    const onFriendAccepted = (data) => {
+      const peerId = data?.user?.id;
+      if (peerId && matchInfoRef.current?.peerUserId === peerId) {
+        setFriendStatus('accepted');
+      }
+    };
 
     socket.on('waiting', onWaiting);
     socket.on('match_found', onMatchFound);
@@ -151,6 +175,8 @@ export default function HomePage() {
     socket.on('peer_disconnected', onPeerDisconnected);
     socket.on('call_ended', onCallEnded);
     socket.on('chat_message', onChatMessage);
+    socket.on('friend_request_received', onFriendRequestReceived);
+    socket.on('friend_accepted', onFriendAccepted);
     return () => {
       socket.off('waiting', onWaiting);
       socket.off('match_found', onMatchFound);
@@ -158,6 +184,8 @@ export default function HomePage() {
       socket.off('peer_disconnected', onPeerDisconnected);
       socket.off('call_ended', onCallEnded);
       socket.off('chat_message', onChatMessage);
+      socket.off('friend_request_received', onFriendRequestReceived);
+      socket.off('friend_accepted', onFriendAccepted);
     };
   }, [socket, settings.matchSound]);
 
@@ -245,6 +273,8 @@ export default function HomePage() {
       peerUsername={matchInfo?.peerUsername}
       peerDisplayName={matchInfo?.peerDisplayName}
       mirrorLocal={settings.mirrorLocal}
+      friendStatus={friendStatus}
+      onFriendStatusChange={setFriendStatus}
     /></>;
   }
 

@@ -1,9 +1,25 @@
 import { useState } from 'react';
 import { GRADIENT } from '../../constants/theme';
 import ReportModal from '../../components/ReportModal';
+import api from '../../api/axios';
 
-export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, mirrorLocal }) {
+export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, mirrorLocal, friendStatus, onFriendStatusChange }) {
   const [showReport, setShowReport] = useState(false);
+  const [friendBusy, setFriendBusy] = useState(false);
+
+  const handleAddFriend = async () => {
+    if (!peerUserId || friendBusy || friendStatus === 'accepted' || friendStatus === 'sent') return;
+    setFriendBusy(true);
+    try {
+      const { data } = await api.post(`/api/friends/${peerUserId}/request`);
+      // 'pending' if peer hasn't tapped yet; 'accepted' if mutual.
+      onFriendStatusChange?.(data.status === 'accepted' ? 'accepted' : 'sent');
+    } catch {
+      // Silent failure — keep the button tappable so user can retry.
+    } finally {
+      setFriendBusy(false);
+    }
+  };
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   // Peer label: prefer displayName, then @username, then 'Stranger' fallback.
@@ -235,6 +251,44 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
           </button>
           <span className="font-label text-[9px] uppercase tracking-widest" style={{ color: cameraEnabled ? '#ba9eff' : '#ff6e84' }}>
             {cameraEnabled ? 'Cam' : 'Off'}
+          </span>
+        </div>
+
+        {/* Add Friend */}
+        <div className="flex flex-col items-center gap-0.5">
+          <button
+            onClick={handleAddFriend}
+            disabled={friendBusy || friendStatus === 'accepted' || friendStatus === 'sent'}
+            aria-label={
+              friendStatus === 'accepted' ? 'Friends'
+              : friendStatus === 'sent' ? 'Friend request sent'
+              : friendStatus === 'received' ? 'Accept friend request'
+              : 'Add friend'
+            }
+            className="flex items-center justify-center rounded-full p-3 border transition-all duration-200 active:scale-95 disabled:cursor-default"
+            style={
+              friendStatus === 'accepted' ? { background: 'rgba(0,207,252,0.15)', borderColor: 'rgba(0,207,252,0.4)', color: '#00cffc' }
+              : friendStatus === 'sent' ? { background: 'rgba(186,158,255,0.18)', borderColor: 'rgba(186,158,255,0.35)', color: '#ba9eff' }
+              : friendStatus === 'received' ? { background: 'rgba(255,151,181,0.15)', borderColor: 'rgba(255,151,181,0.35)', color: '#ff97b5' }
+              : { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
+            }
+          >
+            <span className="material-symbols-outlined text-xl" aria-hidden="true">
+              {friendStatus === 'accepted' ? 'check_circle'
+               : friendStatus === 'sent' ? 'hourglass_top'
+               : friendStatus === 'received' ? 'person_add_alt'
+               : 'person_add'}
+            </span>
+          </button>
+          <span className="font-label text-[9px] uppercase tracking-widest" style={{
+            color: friendStatus === 'accepted' ? '#00cffc'
+                 : friendStatus === 'received' ? '#ff97b5'
+                 : '#ba9eff'
+          }}>
+            {friendStatus === 'accepted' ? 'Friends'
+             : friendStatus === 'sent' ? 'Sent'
+             : friendStatus === 'received' ? 'Add Back'
+             : 'Friend'}
           </span>
         </div>
 

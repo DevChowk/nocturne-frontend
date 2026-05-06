@@ -1,9 +1,10 @@
 import ModalBase from './ModalBase';
 
-export default function ProfileModal({ user, onClose, onSettings, onEditProfile, onLogout }) {
+export default function ProfileModal({ user, onClose, onSettings, onEditProfile, onFriends, onLogout }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   const displayName = user?.displayName || username;
+  const pendingCount = user?.pendingFriendCount || 0;
 
   return (
     <ModalBase maxWidth="max-w-md" onClose={onClose}>
@@ -36,6 +37,26 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
         >
           <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: 22 }}>person</span>
           <span className="flex-1 text-sm font-semibold">Edit profile</span>
+          <span className="material-symbols-outlined opacity-60" aria-hidden="true" style={{ fontSize: 18 }}>chevron_right</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onFriends}
+          aria-label={pendingCount > 0 ? `Friends — ${pendingCount} pending requests` : 'Friends'}
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
+        >
+          <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: 22 }}>group</span>
+          <span className="flex-1 text-sm font-semibold">Friends</span>
+          {pendingCount > 0 && (
+            <span
+              className="flex items-center justify-center text-[10px] font-bold rounded-full px-2 min-w-[20px] h-5"
+              style={{ background: '#ff97b5', color: '#380018' }}
+              aria-label={`${pendingCount} pending`}
+            >
+              {pendingCount > 99 ? '99+' : pendingCount}
+            </span>
+          )}
           <span className="material-symbols-outlined opacity-60" aria-hidden="true" style={{ fontSize: 18 }}>chevron_right</span>
         </button>
 
