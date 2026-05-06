@@ -253,6 +253,10 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             setShowProfile(false);
             navigate('/friends');
           }}
+          onMessages={() => {
+            setShowProfile(false);
+            navigate('/messages');
+          }}
           onLogout={() => {
             setShowProfile(false);
             setShowLogoutConfirm(true);

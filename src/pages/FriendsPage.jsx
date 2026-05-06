@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
 import { GRADIENT } from '../constants/theme';
@@ -21,7 +21,7 @@ function Avatar({ user }) {
   );
 }
 
-function FriendRow({ entry, busy, onPrimary, primaryLabel, primaryIcon, onSecondary, secondaryLabel }) {
+function FriendRow({ entry, busy, onPrimary, primaryLabel, primaryIcon, onSecondary, secondaryLabel, onMessage }) {
   const { user } = entry;
   return (
     <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container-low border border-white/5">
@@ -35,6 +35,17 @@ function FriendRow({ entry, busy, onPrimary, primaryLabel, primaryIcon, onSecond
         )}
       </div>
       <div className="flex gap-2 flex-shrink-0">
+        {onMessage && (
+          <button
+            type="button"
+            onClick={onMessage}
+            aria-label="Message"
+            title="Message"
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-high text-primary hover:bg-surface-bright transition-colors active:scale-95"
+          >
+            <span className="material-symbols-outlined text-lg" aria-hidden="true">chat_bubble</span>
+          </button>
+        )}
         {onSecondary && (
           <button
             type="button"
@@ -77,6 +88,7 @@ function Section({ title, count, children }) {
 
 export default function FriendsPage() {
   const { refreshUser } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState({ friends: [], pendingReceived: [], pendingSent: [] });
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
@@ -176,6 +188,7 @@ export default function FriendsPage() {
                       key={entry.id}
                       entry={entry}
                       busy={busyId === entry.user.id}
+                      onMessage={() => navigate(`/messages/${entry.user.id}`)}
                       onSecondary={() => remove(entry.user.id)}
                       secondaryLabel="Remove"
                     />

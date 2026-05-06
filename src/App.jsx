@@ -9,6 +9,8 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import HomePage from './pages/Home';
 import FriendsPage from './pages/FriendsPage';
+import MessagesPage from './pages/MessagesPage';
+import ConversationPage from './pages/ConversationPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -34,6 +36,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <FriendsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <MessagesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages/:friendId"
+            element={
+              <ProtectedRoute>
+                <ConversationPage />
               </ProtectedRoute>
             }
           />
