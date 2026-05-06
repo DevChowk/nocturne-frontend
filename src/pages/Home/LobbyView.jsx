@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { GRADIENT } from '../../constants/theme';
 import ProfileModal from '../../components/ProfileModal';
 import LogoutConfirmModal from '../../components/LogoutConfirmModal';
@@ -12,6 +13,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const navigate = useNavigate();
 
   // Wire the persistent local stream into the lobby preview <video>.
   useEffect(() => {
@@ -246,6 +248,10 @@ export default function LobbyView({ user, isConnected, socketError, status, find
           onEditProfile={() => {
             setShowProfile(false);
             setShowProfileEdit(true);
+          }}
+          onFriends={() => {
+            setShowProfile(false);
+            navigate('/friends');
           }}
           onLogout={() => {
             setShowProfile(false);

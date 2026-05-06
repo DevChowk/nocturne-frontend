@@ -84,11 +84,26 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  // Re-fetch the cached user. Useful after side-effect actions like
+  // accepting a friend request that change pendingFriendCount.
+  const refreshUser = useCallback(async () => {
+    try {
+      const { data } = await api.get('/api/auth/me');
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
+      return data.user;
+    } catch {
+      // 401/403 are auto-handled by the axios interceptor; other errors
+      // we just swallow — the cached user is still good.
+      return null;
+    }
+  }, []);
+
   // True when the user is authed but hasn't completed onboarding (no username yet).
   const needsOnboarding = !!token && !loading && !!user && !user.username;
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, needsOnboarding, login, googleLogin, register, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, token, loading, needsOnboarding, login, googleLogin, register, logout, updateProfile, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
