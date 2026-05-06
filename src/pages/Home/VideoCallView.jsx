@@ -4,7 +4,6 @@ import ReportModal from '../../components/ReportModal';
 
 export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, mirrorLocal }) {
   const [showReport, setShowReport] = useState(false);
-  const [reportConfirmed, setReportConfirmed] = useState(false);
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   // Peer label: prefer displayName, then @username, then 'Stranger' fallback.
@@ -91,12 +90,6 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
               >
                 <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>flag</span>
               </button>
-            )}
-            {reportConfirmed && (
-              <div className="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(0,207,252,0.2)' }}>
-                <span className="material-symbols-outlined text-secondary" aria-hidden="true" style={{ fontSize: 16 }}>check_circle</span>
-                <span className="text-secondary text-xs font-label uppercase tracking-wider">Reported</span>
-              </div>
             )}
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
@@ -268,8 +261,11 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
           reportedUserId={peerUserId}
           roomId={roomId}
           onSubmitted={() => {
-            setReportConfirmed(true);
-            setTimeout(() => setReportConfirmed(false), 4000);
+            // End the call immediately — user shouldn't have to keep
+            // talking to someone they just flagged. The peer just sees a
+            // normal "peer disconnected" so they can't tell they were
+            // reported (deliberately silent feedback).
+            endCall();
           }}
         />
       )}

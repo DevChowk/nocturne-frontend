@@ -25,9 +25,12 @@ export function AuthProvider({ children }) {
         setUser(data.user);
       })
       .catch((err) => {
-        // 401 is handled by the axios interceptor (auto-logout + redirect).
+        // 401 (token dead) and 403 (suspension) are both handled by the
+        // axios interceptor — it clears auth, persists suspendedUntil to
+        // localStorage when present, and redirects to /login.
         // Other errors (server down, network) keep the cached user.
-        if (err.response?.status !== 401) {
+        const status = err.response?.status;
+        if (status !== 401 && status !== 403) {
           console.warn('[auth] /me failed, keeping cached user:', err.message);
         }
       })

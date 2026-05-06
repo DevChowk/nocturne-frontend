@@ -6,6 +6,33 @@ import AuthFooter from '../components/AuthFooter';
 import useAuthModals from '../hooks/useAuthModals';
 import { GRADIENT } from '../constants/theme';
 
+// Read once on mount: if the user got bounced here from a 403 mid-session,
+// the axios interceptor stored the date in localStorage. Render the banner,
+// clear stale entries automatically.
+function readStoredSuspension() {
+  try {
+    const raw = localStorage.getItem('suspendedUntil');
+    if (!raw) return null;
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime()) || d <= new Date()) {
+      localStorage.removeItem('suspendedUntil');
+      return null;
+    }
+    return d;
+  } catch {
+    return null;
+  }
+}
+
+function formatSuspensionUntil(d) {
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const opts = sameDay
+    ? { hour: 'numeric', minute: '2-digit' }
+    : { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+  return d.toLocaleString(undefined, opts);
+}
+
 export default function LoginPage() {
   const { login, googleLogin } = useAuth();
   const [email, setEmail] = useState('');
@@ -13,7 +40,20 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [suspendedUntil, setSuspendedUntil] = useState(readStoredSuspension);
   const { openTerms, openPrivacy, modals } = useAuthModals();
+
+  const handleSuspensionFromError = (err) => {
+    const until = err.response?.data?.suspendedUntil;
+    if (err.response?.status === 403 && until) {
+      try { localStorage.setItem('suspendedUntil', until); } catch { /* quota */ }
+      const d = new Date(until);
+      setSuspendedUntil(d);
+      setError('');
+      return true;
+    }
+    return false;
+  };
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -22,7 +62,9 @@ export default function LoginPage() {
         setLoading(true);
         await googleLogin(tokenResponse.access_token);
       } catch (err) {
-        setError(err.response?.data?.message || 'Google sign-in failed');
+        if (!handleSuspensionFromError(err)) {
+          setError(err.response?.data?.message || 'Google sign-in failed');
+        }
       } finally {
         setLoading(false);
       }
@@ -36,8 +78,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
+      // Successful login means we're not suspended; clear any stale banner.
+      try { localStorage.removeItem('suspendedUntil'); } catch { /* quota */ }
+      setSuspendedUntil(null);
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.error || 'Invalid credentials');
+      if (!handleSuspensionFromError(err)) {
+        setError(err.response?.data?.message || err.response?.data?.error || 'Invalid credentials');
+      }
     } finally {
       setLoading(false);
     }
@@ -55,6 +102,25 @@ export default function LoginPage() {
           style={{ background: 'rgba(0,207,252,0.1)' }} />
 
         <div className="w-full max-w-[480px] z-10">
+          {/* Suspension banner — shown when the user just got bounced or
+              their account is currently restricted. Persists across the
+              redirect via localStorage. */}
+          {suspendedUntil && (
+            <div
+              role="alert"
+              className="mb-6 flex items-start gap-3 rounded-xl border p-4"
+              style={{ background: 'rgba(167,1,56,0.12)', borderColor: 'rgba(255,110,132,0.3)' }}
+            >
+              <span className="material-symbols-outlined text-error mt-0.5" aria-hidden="true">block</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-headline font-bold text-error text-sm">Account suspended</p>
+                <p className="text-on-surface-variant text-xs mt-1">
+                  Try again after <span className="text-on-surface font-semibold">{formatSuspensionUntil(suspendedUntil)}</span>.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Login card */}
           <div className="glass-panel border border-outline-variant/10 rounded-xl p-8 md:p-10"
             style={{ boxShadow: '0 0 24px rgba(186,158,255,0.15)' }}>
