@@ -1,10 +1,11 @@
 import ModalBase from './ModalBase';
 
-export default function ProfileModal({ user, onClose, onSettings, onEditProfile, onFriends, onLogout }) {
+export default function ProfileModal({ user, onClose, onSettings, onEditProfile, onFriends, onMessages, onLogout }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   const displayName = user?.displayName || username;
   const pendingCount = user?.pendingFriendCount || 0;
+  const unreadCount = user?.unreadMessageCount || 0;
 
   return (
     <ModalBase maxWidth="max-w-md" onClose={onClose}>
@@ -55,6 +56,26 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
               aria-label={`${pendingCount} pending`}
             >
               {pendingCount > 99 ? '99+' : pendingCount}
+            </span>
+          )}
+          <span className="material-symbols-outlined opacity-60" aria-hidden="true" style={{ fontSize: 18 }}>chevron_right</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onMessages}
+          aria-label={unreadCount > 0 ? `Messages — ${unreadCount} unread` : 'Messages'}
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
+        >
+          <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: 22 }}>chat_bubble</span>
+          <span className="flex-1 text-sm font-semibold">Messages</span>
+          {unreadCount > 0 && (
+            <span
+              className="flex items-center justify-center text-[10px] font-bold rounded-full px-2 min-w-[20px] h-5"
+              style={{ background: '#ba9eff', color: '#000' }}
+              aria-label={`${unreadCount} unread`}
+            >
+              {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
           <span className="material-symbols-outlined opacity-60" aria-hidden="true" style={{ fontSize: 18 }}>chevron_right</span>
