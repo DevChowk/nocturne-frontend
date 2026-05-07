@@ -61,16 +61,15 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
     try {
       await api.delete(`/api/friends/${peerUserId}`);
       onFriendStatusChange?.('none');
+      // Banner hides automatically because friendStatus is no longer 'received'.
     } catch {
       // ignore
     } finally {
       setFriendBusy(false);
-      setBannerDismissed(true);
     }
   };
 
   const peerInitial = (peerDisplayName?.[0] || peerUsername?.[0] || '?').toUpperCase();
-  const peerShort = peerDisplayName || (peerUsername ? `@${peerUsername}` : 'Stranger');
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   // Peer label: prefer displayName, then @username, then 'Stranger' fallback.
@@ -118,7 +117,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
               {peerInitial}
             </div>
             <span className="text-xs text-on-surface font-semibold truncate max-w-[110px] sm:max-w-[180px]">
-              {peerShort} <span className="font-normal text-on-surface-variant">wants to be friends</span>
+              {peerLabel} <span className="font-normal text-on-surface-variant">wants to be friends</span>
             </span>
             <button
               type="button"

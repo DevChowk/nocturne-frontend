@@ -1,8 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 
+// STUN handles the easy 70–80% of NAT setups. Open Relay Project provides
+// free TURN relays for symmetric-NAT users (mobile carriers, some routers,
+// some corporate networks) who otherwise can't establish a peer connection
+// at all. Public credentials — fine for low-volume; for production reliability
+// at scale, swap in Twilio / Cloudflare Calls / self-hosted coturn.
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  {
+    urls: [
+      'turn:openrelay.metered.ca:80',
+      'turn:openrelay.metered.ca:443',
+      'turn:openrelay.metered.ca:443?transport=tcp',
+    ],
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
 ];
 
 // Lift the encoder's max bitrate above the WebRTC default (~1–1.5 Mbps for
@@ -21,6 +35,9 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
   const [peerMicEnabled, setPeerMicEnabled] = useState(true);
   const [peerCameraEnabled, setPeerCameraEnabled] = useState(true);
   const pcRef = useRef(null);
+  // Captures the named signaling handlers so cleanup removes only this
+  // connection's listeners (and not concurrent instances' during StrictMode).
+  const handlerRefs = useRef(null);
 
   // Emit media_state when local toggles change (and we're in a call).
   useEffect(() => {
@@ -49,6 +66,24 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
       // Create peer connection
       const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
       pcRef.current = pc;
+
+      // ICE candidate buffer. Remote candidates can arrive before we've
+      // called setRemoteDescription (the offer/answer exchange races
+      // against the trickle ICE stream). Without buffering, addIceCandidate
+      // throws and the connection silently degrades. Queue them, drain
+      // after setRemoteDescription resolves.
+      const pendingRemoteIce = [];
+      let remoteDescriptionSet = false;
+      const flushPendingIce = async () => {
+        while (pendingRemoteIce.length) {
+          const candidate = pendingRemoteIce.shift();
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (err) {
+            console.error('[WebRTC] queued ICE error:', err);
+          }
+        }
+      };
 
       // Add local tracks to connection
       localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
@@ -88,25 +123,39 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
         }
       };
 
-      // Signaling listeners
-      socket.on('offer', async ({ offer }) => {
+      // Signaling listeners — assigned to named refs so the cleanup
+      // function below can `socket.off(event, handler)` and remove ONLY
+      // this connection's listeners, not any concurrent useWebRTC instance
+      // (e.g. during React StrictMode double-mount).
+      const onOffer = async ({ offer }) => {
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        remoteDescriptionSet = true;
+        await flushPendingIce();
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socket.emit('answer', { roomId, answer });
-      });
-
-      socket.on('answer', async ({ answer }) => {
+      };
+      const onAnswer = async ({ answer }) => {
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
-      });
-
-      socket.on('ice_candidate', async ({ candidate }) => {
+        remoteDescriptionSet = true;
+        await flushPendingIce();
+      };
+      const onIceCandidate = async ({ candidate }) => {
+        if (!remoteDescriptionSet) {
+          pendingRemoteIce.push(candidate);
+          return;
+        }
         try {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (err) {
           console.error('[WebRTC] ICE error:', err);
         }
-      });
+      };
+      socket.on('offer', onOffer);
+      socket.on('answer', onAnswer);
+      socket.on('ice_candidate', onIceCandidate);
+      // Stash handler refs so the effect's cleanup can remove just these.
+      handlerRefs.current = { onOffer, onAnswer, onIceCandidate };
 
       // Initiator creates offer
       if (role === 'initiator') {
@@ -129,10 +178,14 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
 
     return () => {
       cancelled = true;
-      socket.off('offer');
-      socket.off('answer');
-      socket.off('ice_candidate');
+      const refs = handlerRefs.current;
+      if (refs) {
+        socket.off('offer', refs.onOffer);
+        socket.off('answer', refs.onAnswer);
+        socket.off('ice_candidate', refs.onIceCandidate);
+      }
       socket.off('media_state', onPeerMediaState);
+      handlerRefs.current = null;
       if (pcRef.current) {
         pcRef.current.close();
         pcRef.current = null;

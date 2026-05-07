@@ -66,7 +66,12 @@ export function AuthProvider({ children }) {
     navigate('/home');
   }, [saveAuth, navigate]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Tell the server to blocklist the token so it can't be reused if it
+    // ever leaks. Fire-and-forget — even if the request fails (network /
+    // server down), we still clear local state and navigate; the token
+    // would only stay valid until its natural 7d expiry.
+    try { await api.post('/api/auth/logout'); } catch { /* ignore */ }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setToken(null);

@@ -151,8 +151,22 @@ export default function HomePage() {
       if (settings.matchSound) playMatchTone();
     };
     const onLeftQueue = () => { setStatus('idle'); setMatchInfo(null); };
-    const onPeerDisconnected = () => { setStatus('peer_left'); setMatchInfo(null); setMessages([]); };
-    const onCallEnded = () => { setStatus('peer_left'); setMatchInfo(null); setMessages([]); };
+    // Both handlers ignore stale events: if the event's roomId doesn't match
+    // our current matchInfo (e.g. user already skipped to a new room), drop
+    // it. Without this, a peer disconnect that races with our own skip
+    // can yank us out of the freshly-joined queue back to 'peer_left'.
+    const isStaleRoomEvent = (data) => {
+      if (!data?.roomId) return false; // legacy / payloadless event — process
+      return matchInfoRef.current?.roomId !== data.roomId;
+    };
+    const onPeerDisconnected = (data) => {
+      if (isStaleRoomEvent(data)) return;
+      setStatus('peer_left'); setMatchInfo(null); setMessages([]);
+    };
+    const onCallEnded = (data) => {
+      if (isStaleRoomEvent(data)) return;
+      setStatus('peer_left'); setMatchInfo(null); setMessages([]);
+    };
     const onChatMessage = (data) => setMessages(prev => [...prev, { message: data.message, from: data.from, timestamp: data.timestamp, mine: false }]);
     // Peer hit Add Friend during the call. If we're matched with them, light
     // up the in-call CTA. Outside a call this is harmless (the badge in the
@@ -171,6 +185,25 @@ export default function HomePage() {
       }
     };
 
+    // Match-lost — the server says the room we thought we were in no longer
+    // exists (e.g. backend restarted mid-call, in-memory activeRooms wiped).
+    // Bounce to the peer-left state so the UI doesn't sit in a stale call.
+    const onMatchLost = () => {
+      setStatus('peer_left');
+      setMatchInfo(null);
+      setMessages([]);
+    };
+
+    // After any socket reconnect, if we still locally believe we're in a
+    // call, ask the server whether the room is still alive. If not, the
+    // server fires match_lost and we clean up.
+    const onConnect = () => {
+      const current = matchInfoRef.current;
+      if (current?.roomId) {
+        socket.emit('check_room', { roomId: current.roomId });
+      }
+    };
+
     socket.on('waiting', onWaiting);
     socket.on('match_found', onMatchFound);
     socket.on('left_queue', onLeftQueue);
@@ -179,6 +212,8 @@ export default function HomePage() {
     socket.on('chat_message', onChatMessage);
     socket.on('friend_request_received', onFriendRequestReceived);
     socket.on('friend_accepted', onFriendAccepted);
+    socket.on('match_lost', onMatchLost);
+    socket.on('connect', onConnect);
     return () => {
       socket.off('waiting', onWaiting);
       socket.off('match_found', onMatchFound);
@@ -188,6 +223,8 @@ export default function HomePage() {
       socket.off('chat_message', onChatMessage);
       socket.off('friend_request_received', onFriendRequestReceived);
       socket.off('friend_accepted', onFriendAccepted);
+      socket.off('match_lost', onMatchLost);
+      socket.off('connect', onConnect);
     };
   }, [socket, settings.matchSound]);
 
