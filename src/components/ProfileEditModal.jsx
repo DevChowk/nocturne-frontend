@@ -3,14 +3,40 @@ import ModalBase from './ModalBase';
 import { GRADIENT } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
 import { USERNAME_REGEX, DISPLAY_NAME_MAX, BIO_MAX } from '../constants/policy';
+import {
+  LANGUAGE_CODES,
+  COUNTRY_CODES,
+  languageName,
+  countryName,
+  countryFlag,
+  MAX_LANGUAGES,
+} from '../constants/locale';
+
+const sortedLanguages = LANGUAGE_CODES
+  .map((code) => ({ code, name: languageName(code) }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const sortedCountries = COUNTRY_CODES
+  .map((code) => ({ code, name: countryName(code) }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 export default function ProfileEditModal({ onClose }) {
   const { user, updateProfile } = useAuth();
   const [username, setUsername] = useState(user?.username || '');
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [bio, setBio] = useState(user?.bio || '');
+  const [country, setCountry] = useState(user?.country || '');
+  const [languages, setLanguages] = useState(Array.isArray(user?.languages) ? user.languages : []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const toggleLanguage = (code) => {
+    setLanguages((prev) =>
+      prev.includes(code)
+        ? prev.filter((l) => l !== code)
+        : prev.length >= MAX_LANGUAGES ? prev : [...prev, code]
+    );
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +55,7 @@ export default function ProfileEditModal({ onClose }) {
     }
     setSubmitting(true);
     try {
-      await updateProfile({ username, displayName, bio });
+      await updateProfile({ username, displayName, bio, country: country || '', languages });
       onClose();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save. Try again.');
@@ -105,6 +131,52 @@ export default function ProfileEditModal({ onClose }) {
             className="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 resize-none"
           />
           <p className="text-xs text-on-surface-variant text-right">{bio.length}/{BIO_MAX}</p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide uppercase" htmlFor="pe-country">
+            Country <span className="text-on-surface-variant/60 normal-case">(optional)</span>
+          </label>
+          <select
+            id="pe-country"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary/30"
+          >
+            <option value="">Not set</option>
+            {sortedCountries.map((c) => (
+              <option key={c.code} value={c.code}>{countryFlag(c.code)} {c.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-between">
+            <span className="text-xs font-label font-bold text-on-surface-variant tracking-wide uppercase">
+              Languages <span className="text-on-surface-variant/60 normal-case">(used for matching)</span>
+            </span>
+            <span className="text-[10px] text-on-surface-variant">{languages.length}/{MAX_LANGUAGES}</span>
+          </div>
+          <p className="text-xs text-on-surface-variant">Pick what you'd like to chat in. We'll prefer matches who share at least one.</p>
+          <div className="flex flex-wrap gap-2">
+            {sortedLanguages.map((l) => {
+              const selected = languages.includes(l.code);
+              return (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => toggleLanguage(l.code)}
+                  aria-pressed={selected}
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95"
+                  style={selected
+                    ? { background: 'rgba(186,158,255,0.18)', borderColor: 'rgba(186,158,255,0.45)', color: '#ba9eff' }
+                    : { background: 'rgba(38,38,38,0.6)', borderColor: 'rgba(72,72,71,0.4)', color: '#adaaaa' }}
+                >
+                  {l.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {error && <p className="text-error text-sm" role="alert">{error}</p>}
