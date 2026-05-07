@@ -12,6 +12,7 @@ import {
   MAX_LANGUAGES,
 } from '../constants/locale';
 import { INTERESTS, MAX_INTERESTS } from '../constants/interests';
+import SearchableSelect from './SearchableSelect';
 
 const sortedLanguages = LANGUAGE_CODES
   .map((code) => ({ code, name: languageName(code) }))
@@ -147,17 +148,15 @@ export default function ProfileEditModal({ onClose }) {
           <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide uppercase" htmlFor="pe-country">
             Country <span className="text-on-surface-variant/60 normal-case">(optional)</span>
           </label>
-          <select
+          <SearchableSelect
             id="pe-country"
             value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            className="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary/30"
-          >
-            <option value="">Not set</option>
-            {sortedCountries.map((c) => (
-              <option key={c.code} value={c.code}>{countryFlag(c.code)} {c.name}</option>
-            ))}
-          </select>
+            onChange={setCountry}
+            options={sortedCountries}
+            placeholder="Search countries…"
+            formatOption={(c) => `${countryFlag(c.code)}  ${c.name}`}
+            emptyLabel="Not set"
+          />
         </div>
 
         <div className="space-y-2">
