@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GRADIENT } from '../../constants/theme';
 import { countryFlag, countryName } from '../../constants/locale';
 import { interestByCode } from '../../constants/interests';
@@ -6,10 +6,25 @@ import ReportModal from '../../components/ReportModal';
 import api from '../../api/axios';
 
 const MAX_PEER_CHIPS = 3;
+const BANNER_AUTO_DISMISS_MS = 20000;
 
 export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
+  // Banner is shown when peer requested first AND user hasn't dismissed it
+  // for this match. friendStatus resets on new match → banner re-arms.
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  useEffect(() => { setBannerDismissed(false); }, [peerUserId]);
+
+  // Auto-dismiss the banner after a while so it doesn't camp forever during
+  // a call. Request stays pending — user can act later from /friends.
+  useEffect(() => {
+    if (friendStatus !== 'received' || bannerDismissed) return;
+    const t = setTimeout(() => setBannerDismissed(true), BANNER_AUTO_DISMISS_MS);
+    return () => clearTimeout(t);
+  }, [friendStatus, bannerDismissed]);
+
+  const showFriendBanner = friendStatus === 'received' && !bannerDismissed && !!peerUserId;
 
   const handleAddFriend = async () => {
     if (!peerUserId || friendBusy || friendStatus === 'accepted' || friendStatus === 'sent') return;
@@ -24,6 +39,36 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
       setFriendBusy(false);
     }
   };
+
+  const handleAcceptFriend = async () => {
+    if (!peerUserId || friendBusy) return;
+    setFriendBusy(true);
+    try {
+      await api.post(`/api/friends/${peerUserId}/accept`);
+      onFriendStatusChange?.('accepted');
+    } catch {
+      // ignore — request still pending if it fails
+    } finally {
+      setFriendBusy(false);
+    }
+  };
+
+  const handleDeclineFriend = async () => {
+    if (!peerUserId || friendBusy) return;
+    setFriendBusy(true);
+    try {
+      await api.delete(`/api/friends/${peerUserId}`);
+      onFriendStatusChange?.('none');
+    } catch {
+      // ignore
+    } finally {
+      setFriendBusy(false);
+      setBannerDismissed(true);
+    }
+  };
+
+  const peerInitial = (peerDisplayName?.[0] || peerUsername?.[0] || '?').toUpperCase();
+  const peerShort = peerDisplayName || (peerUsername ? `@${peerUsername}` : 'Stranger');
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   // Peer label: prefer displayName, then @username, then 'Stranger' fallback.
@@ -54,6 +99,60 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
 
       {/* Main */}
       <main className="flex-1 flex flex-col md:flex-row p-4 md:p-6 gap-6 relative overflow-hidden pb-24 md:pb-28">
+        {/* Friend-request banner. Compact pill, shown only when peer
+            hit Add Friend first. Floats above the video stage; auto-
+            dismisses after 20s if user does nothing. */}
+        {showFriendBanner && (
+          <div
+            role="alert"
+            className="absolute top-2 md:top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-1.5 py-1 rounded-full backdrop-blur-md border border-white/10 shadow-lg max-w-[92vw]"
+            style={{ background: 'rgba(19,19,19,0.85)' }}
+          >
+            <div
+              className="flex-shrink-0 flex items-center justify-center rounded-full font-bold font-headline"
+              style={{ width: 26, height: 26, fontSize: 12, background: 'rgba(186,158,255,0.18)', color: '#ba9eff' }}
+              aria-hidden="true"
+            >
+              {peerInitial}
+            </div>
+            <span className="text-xs text-on-surface font-semibold truncate max-w-[110px] sm:max-w-[180px]">
+              {peerShort} <span className="font-normal text-on-surface-variant">wants to be friends</span>
+            </span>
+            <button
+              type="button"
+              onClick={handleAcceptFriend}
+              disabled={friendBusy}
+              aria-label="Accept friend request"
+              title="Accept"
+              className="flex items-center justify-center rounded-full transition-transform active:scale-90 disabled:opacity-50"
+              style={{ width: 28, height: 28, background: 'rgba(0,207,252,0.18)', color: '#00cffc' }}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>check</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleDeclineFriend}
+              disabled={friendBusy}
+              aria-label="Decline friend request"
+              title="Decline"
+              className="flex items-center justify-center rounded-full transition-transform active:scale-90 disabled:opacity-50"
+              style={{ width: 28, height: 28, background: 'rgba(167,1,56,0.22)', color: '#ff6e84' }}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>close</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setBannerDismissed(true)}
+              aria-label="Dismiss for now"
+              title="Dismiss"
+              className="flex-shrink-0 flex items-center justify-center text-on-surface-variant/70 hover:text-on-surface-variant ml-0.5"
+              style={{ width: 20, height: 20 }}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 14 }}>close_small</span>
+            </button>
+          </div>
+        )}
+
         {/* Video stage */}
         <div className="flex-1 relative flex flex-col gap-4 min-w-0">
           {/* Remote (stranger) video - full */}
