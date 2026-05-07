@@ -11,6 +11,7 @@ import HomePage from './pages/Home';
 import FriendsPage from './pages/FriendsPage';
 import MessagesPage from './pages/MessagesPage';
 import ConversationPage from './pages/ConversationPage';
+import VerifyPage from './pages/VerifyPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/verify/:token" element={<VerifyPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         </SettingsProvider>

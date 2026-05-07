@@ -5,6 +5,7 @@ import ProfileModal from '../../components/ProfileModal';
 import LogoutConfirmModal from '../../components/LogoutConfirmModal';
 import SettingsModal from '../../components/SettingsModal';
 import ProfileEditModal from '../../components/ProfileEditModal';
+import EmailVerifyBanner from '../../components/EmailVerifyBanner';
 
 export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, devices }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
@@ -28,6 +29,11 @@ export default function LobbyView({ user, isConnected, socketError, status, find
       {/* Ambient glows */}
       <div className="pointer-events-none fixed rounded-full blur-3xl" style={{ width: 400, height: 400, top: '15%', left: '-8%', background: 'rgba(186,158,255,0.08)', zIndex: 0 }} />
       <div className="pointer-events-none fixed rounded-full blur-3xl" style={{ width: 350, height: 350, bottom: '10%', right: '-6%', background: 'rgba(0,207,252,0.05)', zIndex: 0 }} />
+
+      {/* Email-verify nag banner. Self-renders only when user.emailVerified === false. */}
+      <div className="relative z-10 flex-shrink-0">
+        <EmailVerifyBanner />
+      </div>
 
       {/* Header */}
       <header className="relative z-10 flex justify-between items-center px-6 py-4 flex-shrink-0" style={{ background: '#0e0e0e' }}>
