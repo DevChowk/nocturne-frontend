@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { GRADIENT } from '../../constants/theme';
 import { countryFlag, countryName } from '../../constants/locale';
+import { interestByCode } from '../../constants/interests';
 import ReportModal from '../../components/ReportModal';
 import api from '../../api/axios';
 
-export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, mirrorLocal, friendStatus, onFriendStatusChange }) {
+const MAX_PEER_CHIPS = 3;
+
+export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
 
@@ -125,6 +128,28 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
                   </span>
                 )}
               </div>
+              {!swapped && Array.isArray(peerInterests) && peerInterests.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                  {peerInterests.slice(0, MAX_PEER_CHIPS).map((code) => {
+                    const it = interestByCode(code);
+                    if (!it) return null;
+                    return (
+                      <span
+                        key={code}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label backdrop-blur-md"
+                        title={it.label}
+                        style={{ background: 'rgba(186,158,255,0.18)', color: '#ba9eff' }}
+                      >
+                        <span className="material-symbols-outlined text-xs" aria-hidden="true">{it.icon}</span>
+                        <span>{it.label}</span>
+                      </span>
+                    );
+                  })}
+                  {peerInterests.length > MAX_PEER_CHIPS && (
+                    <span className="text-[10px] text-on-surface-variant/70">+{peerInterests.length - MAX_PEER_CHIPS}</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

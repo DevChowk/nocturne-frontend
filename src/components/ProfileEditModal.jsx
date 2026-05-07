@@ -11,6 +11,7 @@ import {
   countryFlag,
   MAX_LANGUAGES,
 } from '../constants/locale';
+import { INTERESTS, MAX_INTERESTS } from '../constants/interests';
 
 const sortedLanguages = LANGUAGE_CODES
   .map((code) => ({ code, name: languageName(code) }))
@@ -27,6 +28,7 @@ export default function ProfileEditModal({ onClose }) {
   const [bio, setBio] = useState(user?.bio || '');
   const [country, setCountry] = useState(user?.country || '');
   const [languages, setLanguages] = useState(Array.isArray(user?.languages) ? user.languages : []);
+  const [interests, setInterests] = useState(Array.isArray(user?.interests) ? user.interests : []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,6 +37,14 @@ export default function ProfileEditModal({ onClose }) {
       prev.includes(code)
         ? prev.filter((l) => l !== code)
         : prev.length >= MAX_LANGUAGES ? prev : [...prev, code]
+    );
+  };
+
+  const toggleInterest = (code) => {
+    setInterests((prev) =>
+      prev.includes(code)
+        ? prev.filter((i) => i !== code)
+        : prev.length >= MAX_INTERESTS ? prev : [...prev, code]
     );
   };
 
@@ -55,7 +65,7 @@ export default function ProfileEditModal({ onClose }) {
     }
     setSubmitting(true);
     try {
-      await updateProfile({ username, displayName, bio, country: country || '', languages });
+      await updateProfile({ username, displayName, bio, country: country || '', languages, interests });
       onClose();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save. Try again.');
@@ -173,6 +183,36 @@ export default function ProfileEditModal({ onClose }) {
                     : { background: 'rgba(38,38,38,0.6)', borderColor: 'rgba(72,72,71,0.4)', color: '#adaaaa' }}
                 >
                   {l.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-between">
+            <span className="text-xs font-label font-bold text-on-surface-variant tracking-wide uppercase">
+              Interests <span className="text-on-surface-variant/60 normal-case">(softly preferred in matches)</span>
+            </span>
+            <span className="text-[10px] text-on-surface-variant">{interests.length}/{MAX_INTERESTS}</span>
+          </div>
+          <p className="text-xs text-on-surface-variant">Pick a few. We'll prefer matches who share at least one — and fall back to anyone after 10s.</p>
+          <div className="flex flex-wrap gap-2">
+            {INTERESTS.map((it) => {
+              const selected = interests.includes(it.code);
+              return (
+                <button
+                  key={it.code}
+                  type="button"
+                  onClick={() => toggleInterest(it.code)}
+                  aria-pressed={selected}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95"
+                  style={selected
+                    ? { background: 'rgba(0,207,252,0.16)', borderColor: 'rgba(0,207,252,0.45)', color: '#00cffc' }
+                    : { background: 'rgba(38,38,38,0.6)', borderColor: 'rgba(72,72,71,0.4)', color: '#adaaaa' }}
+                >
+                  <span className="material-symbols-outlined text-base" aria-hidden="true">{it.icon}</span>
+                  {it.label}
                 </button>
               );
             })}
