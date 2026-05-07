@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { GRADIENT } from '../../constants/theme';
+import { countryFlag, countryName } from '../../constants/locale';
 import ReportModal from '../../components/ReportModal';
 import api from '../../api/axios';
 
-export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, mirrorLocal, friendStatus, onFriendStatusChange }) {
+export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, mirrorLocal, friendStatus, onFriendStatusChange }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
 
@@ -110,9 +111,19 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
               <span className="font-headline font-bold text-lg md:text-2xl text-white">{swapped ? `${username} (You)` : peerLabel}</span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="material-symbols-outlined text-secondary text-sm" aria-hidden="true">location_on</span>
                 <span className="text-on-surface-variant text-xs md:text-sm">{swapped ? 'Local Feed' : (peerUsername ? `@${peerUsername}` : 'Anonymous')}</span>
+                {!swapped && peerCountry && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label uppercase tracking-wider backdrop-blur-md"
+                    title={countryName(peerCountry)}
+                    style={{ background: 'rgba(0,207,252,0.18)', color: '#00cffc' }}
+                  >
+                    <span aria-hidden="true">{countryFlag(peerCountry)}</span>
+                    <span>{peerCountry}</span>
+                  </span>
+                )}
               </div>
             </div>
           </div>

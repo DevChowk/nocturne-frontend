@@ -142,6 +142,7 @@ export default function HomePage() {
         peerUserId: data.peerUserId,
         peerUsername: data.peerUsername,
         peerDisplayName: data.peerDisplayName,
+        peerCountry: data.peerCountry,
       });
       setMessages([]);
       setSwapped(false);
@@ -272,6 +273,7 @@ export default function HomePage() {
       peerUserId={matchInfo?.peerUserId}
       peerUsername={matchInfo?.peerUsername}
       peerDisplayName={matchInfo?.peerDisplayName}
+      peerCountry={matchInfo?.peerCountry}
       mirrorLocal={settings.mirrorLocal}
       friendStatus={friendStatus}
       onFriendStatusChange={setFriendStatus}
