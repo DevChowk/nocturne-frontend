@@ -3,6 +3,7 @@ import { GRADIENT } from '../../constants/theme';
 import { countryFlag, countryName } from '../../constants/locale';
 import { interestByCode } from '../../constants/interests';
 import ReportModal from '../../components/ReportModal';
+import EmojiPicker from '../../components/EmojiPicker';
 import api from '../../api/axios';
 
 const MAX_PEER_CHIPS = 3;
@@ -11,6 +12,7 @@ const BANNER_AUTO_DISMISS_MS = 20000;
 export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
+  const [chatEmojiOpen, setChatEmojiOpen] = useState(false);
   // Banner is shown when peer requested first AND user hasn't dismissed it
   // for this match. friendStatus resets on new match → banner re-arms.
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -331,10 +333,26 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
                 onChange={e => setChatInput(e.target.value)}
                 placeholder="Type a message..."
                 autoComplete="off"
-                className="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                className="w-full bg-surface-container-highest border-none rounded-lg py-3 pl-4 pr-20 md:pr-20 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
               />
-              <button type="submit" className="absolute right-2 p-1.5 text-primary hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined">send</span>
+              {/* Emoji picker — desktop only. */}
+              <button
+                type="button"
+                onClick={() => setChatEmojiOpen((o) => !o)}
+                aria-label="Pick emoji"
+                className="hidden md:inline-flex absolute right-10 items-center justify-center w-8 h-8 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/60 transition-colors"
+              >
+                <span className="material-symbols-outlined text-lg" aria-hidden="true">mood</span>
+              </button>
+              {chatEmojiOpen && (
+                <EmojiPicker
+                  onPick={(emoji) => setChatInput((d) => d + emoji)}
+                  onClose={() => setChatEmojiOpen(false)}
+                  anchor="top"
+                />
+              )}
+              <button type="submit" aria-label="Send" className="absolute right-2 p-1.5 text-primary hover:scale-110 transition-transform">
+                <span className="material-symbols-outlined" aria-hidden="true">send</span>
               </button>
             </form>
           </div>

@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
 import { useSocket } from '../hooks/useSocket';
 import { GRADIENT } from '../constants/theme';
+import EmojiPicker from '../components/EmojiPicker';
 
 function MessageBubble({ msg, peerLabel }) {
   const time = new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -36,6 +37,7 @@ export default function ConversationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [peer, setPeer] = useState(null);
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const endRef = useRef(null);
 
   // Load history + peer profile + mark-as-read on mount.
@@ -190,8 +192,24 @@ export default function ConversationPage() {
             placeholder="Type a message..."
             maxLength={2000}
             autoComplete="off"
-            className="w-full bg-surface-container-highest border-none rounded-full py-3 pl-5 pr-14 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+            className="w-full bg-surface-container-highest border-none rounded-full py-3 pl-5 pr-24 md:pr-24 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
           />
+          {/* Emoji picker — desktop only. Mobile keyboards ship with one. */}
+          <button
+            type="button"
+            onClick={() => setEmojiOpen((o) => !o)}
+            aria-label="Pick emoji"
+            className="hidden md:inline-flex absolute right-12 items-center justify-center w-9 h-9 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors"
+          >
+            <span className="material-symbols-outlined text-xl" aria-hidden="true">mood</span>
+          </button>
+          {emojiOpen && (
+            <EmojiPicker
+              onPick={(emoji) => setDraft((d) => d + emoji)}
+              onClose={() => setEmojiOpen(false)}
+              anchor="top"
+            />
+          )}
           <button
             type="submit"
             aria-label="Send"
