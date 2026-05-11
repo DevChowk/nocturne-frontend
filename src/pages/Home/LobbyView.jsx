@@ -7,7 +7,7 @@ import SettingsModal from '../../components/SettingsModal';
 import ProfileEditModal from '../../components/ProfileEditModal';
 import EmailVerifyBanner from '../../components/EmailVerifyBanner';
 
-export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, devices, lastEndReason }) {
+export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, devices, lastEndReason, onlineCount }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   const [showProfile, setShowProfile] = useState(false);
@@ -48,6 +48,15 @@ export default function LobbyView({ user, isConnected, socketError, status, find
               {isConnected ? 'Online' : 'Disconnected'}
             </span>
           </div>
+          {isConnected && typeof onlineCount === 'number' && (
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ background: '#131313' }} title="People online now">
+              <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" style={{ boxShadow: '0 0 6px #00cffc' }} />
+              <span className="text-on-surface font-label tabular-nums" style={{ fontSize: 11 }}>
+                <span className="font-semibold">{onlineCount.toLocaleString()}</span>
+                <span className="text-on-surface-variant ml-1 uppercase tracking-wider hidden sm:inline">online</span>
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2 min-w-0">
           <span className="hidden sm:inline text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-[220px]">{user?.username ? `@${user.username}` : user?.email}</span>

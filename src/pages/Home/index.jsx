@@ -54,6 +54,7 @@ export default function HomePage() {
   // afterwards. 'nsfw' surfaces the moderation-end message; 'peer_left'
   // (the default behavior) keeps the existing "Your match disconnected."
   const [lastEndReason, setLastEndReason] = useState(null);
+  const [onlineCount, setOnlineCount] = useState(null);
   const isInCall = status === 'matched' && matchInfo;
 
   const {
@@ -211,6 +212,10 @@ export default function HomePage() {
       }
     };
 
+    const onOnlineCount = (data) => {
+      if (typeof data?.count === 'number') setOnlineCount(data.count);
+    };
+
     socket.on('waiting', onWaiting);
     socket.on('match_found', onMatchFound);
     socket.on('left_queue', onLeftQueue);
@@ -221,6 +226,7 @@ export default function HomePage() {
     socket.on('friend_accepted', onFriendAccepted);
     socket.on('match_lost', onMatchLost);
     socket.on('connect', onConnect);
+    socket.on('online_count', onOnlineCount);
     return () => {
       socket.off('waiting', onWaiting);
       socket.off('match_found', onMatchFound);
@@ -232,6 +238,7 @@ export default function HomePage() {
       socket.off('friend_accepted', onFriendAccepted);
       socket.off('match_lost', onMatchLost);
       socket.off('connect', onConnect);
+      socket.off('online_count', onOnlineCount);
     };
   }, [socket, settings.matchSound]);
 
@@ -373,5 +380,6 @@ export default function HomePage() {
     mirrorLocal={settings.mirrorLocal}
     devices={devices}
     lastEndReason={lastEndReason}
+    onlineCount={onlineCount}
   /></>;
 }
