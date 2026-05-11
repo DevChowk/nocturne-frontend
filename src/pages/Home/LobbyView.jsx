@@ -7,6 +7,50 @@ import SettingsModal from '../../components/SettingsModal';
 import ProfileEditModal from '../../components/ProfileEditModal';
 import EmailVerifyBanner from '../../components/EmailVerifyBanner';
 
+// Shown after WAITING_FALLBACK_MS of an empty queue. Pool of variants keeps
+// the experience from feeling robotic when someone hits the dry-spell more
+// than once. Picked at random when the fallback triggers.
+const QUIET_MESSAGES = [
+  {
+    icon: 'bedtime',
+    heading: "Oops — looks like everyone's sleeping",
+    subtitle: "No one's free to chat right now. We'll keep looking — you'll connect the moment someone joins.",
+  },
+  {
+    icon: 'nights_stay',
+    heading: "The night's a little quiet...",
+    subtitle: "Nobody's online to bump into yet. Hang tight — we'll match you the second someone shows up.",
+  },
+  {
+    icon: 'coffee',
+    heading: "Everyone's out for coffee",
+    subtitle: "The room's empty for the moment. We're still listening for new arrivals.",
+  },
+  {
+    icon: 'sentiment_calm',
+    heading: "Shhh... it's pretty calm out there",
+    subtitle: "Looks like the rest of the world is busy. We'll let you know the moment someone shows up.",
+  },
+  {
+    icon: 'volume_off',
+    heading: "All quiet on the Bump front",
+    subtitle: "No takers right now. We'll connect you as soon as anyone joins the queue.",
+  },
+  {
+    icon: 'weekend',
+    heading: "Empty couches everywhere",
+    subtitle: "You're early — stick around. Someone'll bump in any moment now.",
+  },
+  {
+    icon: 'hourglass_empty',
+    heading: "A patient soul, we see",
+    subtitle: "Nobody else is looking right now. Stay with us — your match could be one second away.",
+  },
+];
+
+const pickQuietMessage = () =>
+  QUIET_MESSAGES[Math.floor(Math.random() * QUIET_MESSAGES.length)];
+
 export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, devices, lastEndReason, onlineCount }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
@@ -22,6 +66,27 @@ export default function LobbyView({ user, isConnected, socketError, status, find
       localVideoRef.current.srcObject = localStream;
     }
   }, [localStream, localVideoRef]);
+
+  // After 30s of waiting with no match, swap to a quiet-pool fallback.
+  // Backend keeps searching — this is purely a UI change so the user isn't
+  // staring at a forever-radar when the app is empty. A random message from
+  // QUIET_MESSAGES is picked at the moment the fallback triggers, so the
+  // same user hitting a dry spell twice in a row sees different copy.
+  const WAITING_FALLBACK_MS = 30000;
+  const [waitingLong, setWaitingLong] = useState(false);
+  const [quietMessage, setQuietMessage] = useState(null);
+  useEffect(() => {
+    if (status !== 'waiting') {
+      setWaitingLong(false);
+      setQuietMessage(null);
+      return;
+    }
+    const t = setTimeout(() => {
+      setQuietMessage(pickQuietMessage());
+      setWaitingLong(true);
+    }, WAITING_FALLBACK_MS);
+    return () => clearTimeout(t);
+  }, [status]);
 
   return (
     <div className="bg-background text-on-surface font-body" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -180,7 +245,22 @@ export default function LobbyView({ user, isConnected, socketError, status, find
 
           {/* Searching / idle / peer_left panel */}
           <div className="relative flex-1 rounded-xl overflow-hidden flex flex-col items-center justify-center" style={{ background: '#131313' }}>
-            {status === 'waiting' ? (
+            {status === 'waiting' && waitingLong && quietMessage ? (
+              <div className="z-10 text-center px-8 py-10 max-w-sm">
+                <div className="flex items-center justify-center mx-auto mb-5 rounded-full"
+                  style={{ width: 80, height: 80, background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.18)' }}>
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 40, fontVariationSettings: "'FILL' 1" }}>{quietMessage.icon}</span>
+                </div>
+                <h3 className="text-xl font-bold font-headline text-white mb-2">{quietMessage.heading}</h3>
+                <p className="text-on-surface-variant font-label mb-6 text-sm leading-relaxed">
+                  {quietMessage.subtitle}
+                </p>
+                <div className="flex items-center justify-center gap-2 text-on-surface-variant" style={{ fontSize: 11 }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="font-label uppercase tracking-widest">Still searching</span>
+                </div>
+              </div>
+            ) : status === 'waiting' ? (
               <div className="relative flex items-center justify-center w-full h-full shimmer">
                 <div className="absolute w-40 h-40 rounded-full border border-primary/30 pulse-ring" />
                 <div className="absolute w-56 h-56 rounded-full border border-primary/20 pulse-ring" style={{ animationDelay: '0.5s' }} />
