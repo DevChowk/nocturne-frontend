@@ -4,6 +4,8 @@ import { useSocket } from '../../hooks/useSocket';
 import { useLocalMedia } from '../../hooks/useLocalMedia';
 import { useWebRTC } from '../../hooks/useWebRTC';
 import { useSettings } from '../../hooks/useSettings';
+import { useNsfwScanner } from '../../hooks/useNsfwScanner';
+import api from '../../api/axios';
 import OnboardingModal from '../../components/OnboardingModal';
 import LobbyView from './LobbyView';
 import VideoCallView from './VideoCallView';
@@ -48,6 +50,10 @@ export default function HomePage() {
   // Per-match friend state. Resets to 'none' on each new match.
   // Values: 'none' | 'sent' | 'received' | 'accepted'
   const [friendStatus, setFriendStatus] = useState('none');
+  // Why the last call ended — drives the message the lobby shows
+  // afterwards. 'nsfw' surfaces the moderation-end message; 'peer_left'
+  // (the default behavior) keeps the existing "Your match disconnected."
+  const [lastEndReason, setLastEndReason] = useState(null);
   const isInCall = status === 'matched' && matchInfo;
 
   const {
@@ -148,6 +154,7 @@ export default function HomePage() {
       setMessages([]);
       setSwapped(false);
       setFriendStatus('none');
+      setLastEndReason(null);
       if (settings.matchSound) playMatchTone();
     };
     const onLeftQueue = () => { setStatus('idle'); setMatchInfo(null); };
@@ -248,6 +255,35 @@ export default function HomePage() {
     setChatInput('');
   }, [socket, chatInput, matchInfo, user]);
 
+  // Inbound NSFW scanner. Runs while in-call; when the peer's video trips
+  // the threshold (debounced over two scans), end the call and file a
+  // synthetic auto_nsfw report against the peer. Backend dedupes per
+  // (reporter, roomId, 'auto_nsfw') so this can't repeat-trigger inside
+  // the same call.
+  const onNsfwFlag = useCallback(async () => {
+    const info = matchInfoRef.current;
+    if (!info?.roomId) return;
+    // Fire-and-forget the report; don't block end-call on it.
+    if (info.peerUserId) {
+      api.post('/api/reports', {
+        reportedUserId: info.peerUserId,
+        roomId: info.roomId,
+        reason: 'auto_nsfw',
+      }).catch((err) => console.warn('[nsfw] report failed:', err.message));
+    }
+    setLastEndReason('nsfw');
+    if (info.roomId) socket?.emit('end_call', { roomId: info.roomId });
+    setMatchInfo(null);
+    setMessages([]);
+    setStatus('peer_left');
+  }, [socket]);
+
+  useNsfwScanner({
+    videoRef: remoteVideoRef,
+    enabled: isInCall && !!remoteConnected,
+    onFlag: onNsfwFlag,
+  });
+
   // Keyboard shortcuts — only active in-call. Skip when typing in chat or other inputs.
   useEffect(() => {
     if (!isInCall) return;
@@ -336,5 +372,6 @@ export default function HomePage() {
     localVideoRef={localVideoRef}
     mirrorLocal={settings.mirrorLocal}
     devices={devices}
+    lastEndReason={lastEndReason}
   /></>;
 }

@@ -7,7 +7,7 @@ import SettingsModal from '../../components/SettingsModal';
 import ProfileEditModal from '../../components/ProfileEditModal';
 import EmailVerifyBanner from '../../components/EmailVerifyBanner';
 
-export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, devices }) {
+export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, devices, lastEndReason }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
   const [showProfile, setShowProfile] = useState(false);
@@ -198,7 +198,12 @@ export default function LobbyView({ user, isConnected, socketError, status, find
               </div>
             ) : (
               <div className="z-10 text-center px-8">
-                {status === 'peer_left' && <p className="text-error text-sm mb-4 font-label">Your match disconnected.</p>}
+                {status === 'peer_left' && lastEndReason === 'nsfw' && (
+                  <p className="text-error text-sm mb-4 font-label">Call ended — inappropriate content detected.</p>
+                )}
+                {status === 'peer_left' && lastEndReason !== 'nsfw' && (
+                  <p className="text-error text-sm mb-4 font-label">Your match disconnected.</p>
+                )}
                 {socketError && <p className="text-error text-sm mb-4 font-label">Couldn't connect to the server. Check your internet connection.</p>}
                 <div className="flex items-center justify-center mx-auto mb-5 rounded-full"
                   style={{ width: 80, height: 80, background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.2)' }}>
