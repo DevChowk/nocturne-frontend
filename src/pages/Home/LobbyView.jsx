@@ -322,11 +322,16 @@ export default function LobbyView({ user, isConnected, socketError, status, find
         style={{ background: 'rgba(19,19,19,0.85)', backdropFilter: 'blur(20px)', boxShadow: '0 -8px 32px rgba(139,92,246,0.12)' }}>
         <button
           onClick={status === 'waiting' ? undefined : findMatch}
-          disabled={!isConnected}
-          className="flex flex-col items-center gap-1 rounded-full p-3 transition-transform hover:scale-105 disabled:opacity-40"
+          disabled={!isConnected || status === 'waiting'}
+          aria-label={status === 'waiting' ? 'Searching for a match' : 'Find next match'}
+          className={`flex flex-col items-center gap-1 rounded-full p-3 transition-transform disabled:cursor-not-allowed ${status === 'waiting' ? 'opacity-70' : 'hover:scale-105 disabled:opacity-40'}`}
           style={{ backgroundImage: GRADIENT, color: '#000' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>skip_next</span>
-          <span className="font-label uppercase tracking-widest" style={{ fontSize: 9 }}>Next</span>
+          <span className={`material-symbols-outlined ${status === 'waiting' ? 'animate-spin' : ''}`} style={{ fontSize: 22 }}>
+            {status === 'waiting' ? 'progress_activity' : 'skip_next'}
+          </span>
+          <span className="font-label uppercase tracking-widest" style={{ fontSize: 9 }}>
+            {status === 'waiting' ? 'Searching' : 'Next'}
+          </span>
         </button>
         <button
           onClick={status === 'waiting' ? cancel : undefined}
