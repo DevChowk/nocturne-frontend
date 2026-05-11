@@ -2,7 +2,7 @@ import { useState } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
 
-const SESSION_DISMISS_KEY = 'nocturne.emailBannerDismissed';
+const SESSION_DISMISS_KEY = 'bump.emailBannerDismissed';
 
 // Slim banner shown to users whose email isn't verified yet. Soft nag —
 // nothing's actually blocked. Persists dismissal for the browser session

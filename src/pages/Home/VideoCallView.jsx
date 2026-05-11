@@ -93,8 +93,8 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
       {/* Header */}
       <header className="bg-background flex items-center px-6 py-4 w-full z-40">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-2xl" style={{fontVariationSettings:"'FILL' 1"}}>bedroom_parent</span>
-          <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Nocturne</span>
+          <img src="/favicon.png" alt="Bump" className="w-7 h-7 rounded-lg object-cover" />
+          <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bump</span>
         </div>
       </header>
 

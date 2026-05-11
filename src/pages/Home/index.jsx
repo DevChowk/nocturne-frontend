@@ -123,7 +123,7 @@ export default function HomePage() {
     if (status !== 'matched') return;
     if (!document.hidden) return;
     const original = document.title;
-    document.title = '✨ Match found! — Nocturne';
+    document.title = '✨ Match found! — Bump';
     const onVisible = () => {
       if (!document.hidden) {
         document.title = original;

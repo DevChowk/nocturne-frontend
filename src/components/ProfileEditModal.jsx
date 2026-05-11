@@ -123,7 +123,7 @@ export default function ProfileEditModal({ onClose }) {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={DISPLAY_NAME_MAX}
-            placeholder="Alex Nocturne"
+            placeholder="Alex Bump"
             className="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30"
           />
         </div>

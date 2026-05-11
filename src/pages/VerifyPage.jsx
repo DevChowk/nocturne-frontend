@@ -54,7 +54,7 @@ export default function VerifyPage() {
               className="inline-flex items-center gap-2 font-headline font-bold rounded-full transition-all duration-200 active:scale-95 text-black px-8 py-3.5"
               style={{ backgroundImage: GRADIENT }}
             >
-              {authToken ? 'Go to Nocturne' : 'Sign in'}
+              {authToken ? 'Go to Bump' : 'Sign in'}
               <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>arrow_forward</span>
             </Link>
           </>

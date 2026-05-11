@@ -10,4 +10,4 @@ export const DEFAULT_SETTINGS = {
   audioDeviceId: null,      // S5 — null = system default
 };
 
-export const SETTINGS_STORAGE_KEY = 'nocturneSettings';
+export const SETTINGS_STORAGE_KEY = 'bumpSettings';

@@ -161,7 +161,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="name@nocturne.com"
+                  placeholder="name@bump.app"
                   required
                   className="w-full bg-surface-container-highest border-none rounded-lg py-4 px-5 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all duration-300"
                 />

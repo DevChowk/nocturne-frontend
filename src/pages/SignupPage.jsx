@@ -125,7 +125,7 @@ export default function SignupPage() {
                       type="text"
                       value={username}
                       onChange={e => setUsername(e.target.value.toLowerCase())}
-                      placeholder="alex.nocturne"
+                      placeholder="alex.bump"
                       autoComplete="username"
                       required
                       minLength={3}

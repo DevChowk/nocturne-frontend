@@ -39,8 +39,8 @@ export default function LobbyView({ user, isConnected, socketError, status, find
       <header className="relative z-10 flex justify-between items-center px-6 py-4 flex-shrink-0" style={{ background: '#0e0e0e' }}>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary" style={{ fontSize: 26, fontVariationSettings: "'FILL' 1" }}>bedroom_parent</span>
-            <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Nocturne</span>
+            <img src="/favicon.png" alt="Bump" className="w-7 h-7 rounded-lg object-cover" />
+            <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bump</span>
           </div>
           <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full" style={{ background: '#131313' }}>
             <span className="w-2 h-2 rounded-full" style={{ background: isConnected ? '#00cffc' : '#ff6e84', boxShadow: isConnected ? '0 0 6px #00cffc' : 'none' }} />
@@ -193,7 +193,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}>
                   <h2 className="text-base font-bold font-headline text-on-surface-variant">Incoming Connection...</h2>
-                  <p className="text-on-surface-variant font-label uppercase tracking-widest" style={{ fontSize: 10 }}>Secure Nocturne Pulse</p>
+                  <p className="text-on-surface-variant font-label uppercase tracking-widest" style={{ fontSize: 10 }}>Secure Bump Pulse</p>
                 </div>
               </div>
             ) : (
