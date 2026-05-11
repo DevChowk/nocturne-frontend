@@ -107,21 +107,31 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             <img src="/favicon.png" alt="Bump" className="w-7 h-7 rounded-lg object-cover" />
             <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bump</span>
           </div>
-          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full" style={{ background: '#131313' }}>
-            <span className="w-2 h-2 rounded-full" style={{ background: isConnected ? '#00cffc' : '#ff6e84', boxShadow: isConnected ? '0 0 6px #00cffc' : 'none' }} />
-            <span className="text-on-surface-variant font-label uppercase tracking-wider" style={{ fontSize: 11 }}>
-              {isConnected ? 'Online' : 'Disconnected'}
+          <div
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full"
+            style={{ background: '#131313' }}
+            title={isConnected ? 'People online now' : 'Disconnected from server'}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'animate-pulse' : ''}`}
+              style={{
+                background: isConnected ? '#00cffc' : '#ff6e84',
+                boxShadow: isConnected ? '0 0 6px #00cffc' : 'none',
+              }}
+            />
+            <span className="font-label tabular-nums" style={{ fontSize: 11 }}>
+              {!isConnected ? (
+                <span className="text-on-surface-variant uppercase tracking-wider">Disconnected</span>
+              ) : typeof onlineCount === 'number' ? (
+                <>
+                  <span className="font-semibold text-on-surface">{onlineCount.toLocaleString()}</span>
+                  <span className="text-on-surface-variant ml-1 uppercase tracking-wider hidden sm:inline">online</span>
+                </>
+              ) : (
+                <span className="text-on-surface-variant uppercase tracking-wider">Online</span>
+              )}
             </span>
           </div>
-          {isConnected && typeof onlineCount === 'number' && (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ background: '#131313' }} title="People online now">
-              <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" style={{ boxShadow: '0 0 6px #00cffc' }} />
-              <span className="text-on-surface font-label tabular-nums" style={{ fontSize: 11 }}>
-                <span className="font-semibold">{onlineCount.toLocaleString()}</span>
-                <span className="text-on-surface-variant ml-1 uppercase tracking-wider hidden sm:inline">online</span>
-              </span>
-            </div>
-          )}
         </div>
         <div className="flex items-center gap-2 min-w-0">
           <span className="hidden sm:inline text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-[220px]">{user?.username ? `@${user.username}` : user?.email}</span>
