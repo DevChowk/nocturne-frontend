@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../hooks/useAuth';
 import AuthHeader from '../components/AuthHeader';
@@ -167,7 +168,12 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="font-label text-sm font-semibold text-on-surface-variant ml-1" htmlFor="password">Password</label>
+                <div className="flex items-baseline justify-between ml-1">
+                  <label className="font-label text-sm font-semibold text-on-surface-variant" htmlFor="password">Password</label>
+                  <Link to="/forgot" className="text-xs text-primary hover:text-primary-fixed font-semibold transition-colors">
+                    Forgot password?
+                  </Link>
+                </div>
                 <div className="relative">
                   <input
                     id="password"

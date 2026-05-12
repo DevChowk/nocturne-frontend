@@ -7,6 +7,8 @@ import PublicOnlyRoute from './components/PublicOnlyRoute';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import HomePage from './pages/Home';
 import FriendsPage from './pages/FriendsPage';
 import MessagesPage from './pages/MessagesPage';
@@ -24,6 +26,8 @@ function App() {
           <Route path="/" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />
           <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
           <Route path="/signup" element={<PublicOnlyRoute><SignupPage /></PublicOnlyRoute>} />
+          <Route path="/forgot" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
+          <Route path="/reset/:token" element={<ResetPasswordPage />} />
           <Route
             path="/home"
             element={
