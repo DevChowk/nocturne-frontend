@@ -5,7 +5,6 @@ import ProfileModal from '../../components/ProfileModal';
 import LogoutConfirmModal from '../../components/LogoutConfirmModal';
 import SettingsModal from '../../components/SettingsModal';
 import ProfileEditModal from '../../components/ProfileEditModal';
-import EmailVerifyBanner from '../../components/EmailVerifyBanner';
 
 // Shown after WAITING_FALLBACK_MS of an empty queue. Pool of variants keeps
 // the experience from feeling robotic when someone hits the dry-spell more
@@ -89,16 +88,11 @@ export default function LobbyView({ user, isConnected, socketError, status, find
   }, [status]);
 
   return (
-    <div className="bg-background text-on-surface font-body" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="bg-background text-on-surface font-body flex-1 min-h-0" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
       {/* Ambient glows */}
       <div className="pointer-events-none fixed rounded-full blur-3xl" style={{ width: 400, height: 400, top: '15%', left: '-8%', background: 'rgba(186,158,255,0.08)', zIndex: 0 }} />
       <div className="pointer-events-none fixed rounded-full blur-3xl" style={{ width: 350, height: 350, bottom: '10%', right: '-6%', background: 'rgba(0,207,252,0.05)', zIndex: 0 }} />
-
-      {/* Email-verify nag banner. Self-renders only when user.emailVerified === false. */}
-      <div className="relative z-10 flex-shrink-0">
-        <EmailVerifyBanner />
-      </div>
 
       {/* Header */}
       <header className="relative z-10 flex justify-between items-center px-6 py-4 flex-shrink-0" style={{ background: '#0e0e0e' }}>

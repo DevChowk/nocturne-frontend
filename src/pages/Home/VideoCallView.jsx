@@ -89,7 +89,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
   const showConnectingOnPip = swapped && !remoteConnected;
 
   return (
-    <div className="bg-background text-on-background font-body h-screen flex flex-col overflow-hidden">
+    <div className="bg-background text-on-background font-body flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* Header */}
       <header className="bg-background flex items-center px-6 py-4 w-full z-40">
         <div className="flex items-center gap-2">
