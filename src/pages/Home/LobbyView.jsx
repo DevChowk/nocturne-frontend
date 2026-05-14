@@ -333,16 +333,17 @@ export default function LobbyView({ user, isConnected, socketError, status, find
           <span className={`material-symbols-outlined ${status === 'waiting' ? 'animate-spin' : ''}`} style={{ fontSize: 22 }}>
             {status === 'waiting' ? 'progress_activity' : 'skip_next'}
           </span>
-          <span className="font-label uppercase tracking-widest" style={{ fontSize: 9 }}>
+          <span className="hidden md:block font-label uppercase tracking-widest" style={{ fontSize: 9 }}>
             {status === 'waiting' ? 'Searching' : 'Next'}
           </span>
         </button>
         <button
           onClick={status === 'waiting' ? cancel : undefined}
+          aria-label="Stop"
           className="flex flex-col items-center gap-1 p-3 rounded-xl transition-colors"
           style={{ color: status === 'waiting' ? '#ff6e84' : 'rgba(173,170,170,0.3)', cursor: status === 'waiting' ? 'pointer' : 'not-allowed' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 22 }}>stop_circle</span>
-          <span className="font-label uppercase tracking-widest" style={{ fontSize: 9 }}>Stop</span>
+          <span className="hidden md:block font-label uppercase tracking-widest" style={{ fontSize: 9 }}>Stop</span>
         </button>
       </nav>
 
