@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
 import { useSocket } from '../hooks/useSocket';
@@ -39,6 +39,7 @@ export default function ConversationPage() {
   const [peer, setPeer] = useState(null);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const endRef = useRef(null);
+  const navigate = useNavigate();
 
   // Load history + peer profile + mark-as-read on mount.
   useEffect(() => {
@@ -138,9 +139,14 @@ export default function ConversationPage() {
         className="px-4 py-3 flex items-center gap-3 border-b border-white/5 sticky top-0 z-10"
         style={{ background: '#0e0e0e' }}
       >
-        <Link to="/messages" aria-label="Back" className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-surface-container-high transition-colors">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          aria-label="Back"
+          className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-surface-container-high transition-colors"
+        >
           <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-        </Link>
+        </button>
         <div className="flex items-center gap-3 min-w-0">
           <div
             className="flex-shrink-0 flex items-center justify-center rounded-full font-bold font-headline"

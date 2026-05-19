@@ -1,10 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { GRADIENT } from '../../constants/theme';
-import ProfileModal from '../../components/ProfileModal';
-import LogoutConfirmModal from '../../components/LogoutConfirmModal';
-import SettingsModal from '../../components/SettingsModal';
-import ProfileEditModal from '../../components/ProfileEditModal';
 
 // Shown after WAITING_FALLBACK_MS of an empty queue. Pool of variants keeps
 // the experience from feeling robotic when someone hits the dry-spell more
@@ -50,14 +45,9 @@ const QUIET_MESSAGES = [
 const pickQuietMessage = () =>
   QUIET_MESSAGES[Math.floor(Math.random() * QUIET_MESSAGES.length)];
 
-export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, logout, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, devices, lastEndReason, onlineCount }) {
+export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, lastEndReason, onlineCount, onProfileClick }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
-  const [showProfile, setShowProfile] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showProfileEdit, setShowProfileEdit] = useState(false);
-  const navigate = useNavigate();
 
   // Wire the persistent local stream into the lobby preview <video>.
   useEffect(() => {
@@ -88,84 +78,16 @@ export default function LobbyView({ user, isConnected, socketError, status, find
   }, [status]);
 
   return (
-    <div className="bg-background text-on-surface font-body flex-1 min-h-0" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="bg-background text-on-surface font-body flex-1 min-h-0 min-w-0" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
       {/* Ambient glows */}
       <div className="pointer-events-none fixed rounded-full blur-3xl" style={{ width: 400, height: 400, top: '15%', left: '-8%', background: 'rgba(186,158,255,0.08)', zIndex: 0 }} />
       <div className="pointer-events-none fixed rounded-full blur-3xl" style={{ width: 350, height: 350, bottom: '10%', right: '-6%', background: 'rgba(0,207,252,0.05)', zIndex: 0 }} />
 
-      {/* Header */}
-      <header className="relative z-10 flex justify-between items-center px-6 py-4 flex-shrink-0" style={{ background: '#0e0e0e' }}>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <img src="/favicon.png" alt="Bump" className="w-7 h-7 rounded-lg object-cover" />
-            <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bump</span>
-          </div>
-          <div
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full"
-            style={{ background: '#131313' }}
-            title={isConnected ? 'People online now' : 'Disconnected from server'}
-          >
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'animate-pulse' : ''}`}
-              style={{
-                background: isConnected ? '#00cffc' : '#ff6e84',
-                boxShadow: isConnected ? '0 0 6px #00cffc' : 'none',
-              }}
-            />
-            <span className="font-label tabular-nums" style={{ fontSize: 11 }}>
-              {!isConnected ? (
-                <span className="text-on-surface-variant uppercase tracking-wider">Disconnected</span>
-              ) : typeof onlineCount === 'number' ? (
-                <>
-                  <span className="font-semibold text-on-surface">{onlineCount.toLocaleString()}</span>
-                  <span className="text-on-surface-variant ml-1 uppercase tracking-wider hidden sm:inline">online</span>
-                </>
-              ) : (
-                <span className="text-on-surface-variant uppercase tracking-wider">Online</span>
-              )}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="hidden sm:inline text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-[220px]">{user?.username ? `@${user.username}` : user?.email}</span>
-          <button
-            onClick={() => setShowProfile(true)}
-            aria-label="Open profile menu"
-            title="Profile"
-            className="flex items-center justify-center rounded-full font-bold font-headline transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0"
-            style={{
-              width: 40, height: 40, fontSize: 16,
-              background: 'rgba(186,158,255,0.15)',
-              color: '#ba9eff',
-              boxShadow: '0 0 12px rgba(186,158,255,0.15)',
-            }}
-          >
-            {initial}
-          </button>
-        </div>
-      </header>
-
-      {/* Body: sidebar + main */}
+      {/* Body */}
       <div className="relative z-10 flex flex-1 overflow-hidden" style={{ paddingBottom: 80 }}>
-        {/* Sidebar */}
-        <nav className="hidden md:flex flex-col flex-shrink-0 pt-6 pb-6" style={{ width: 240, background: '#131313' }}>
-          {/* User info */}
-          <div className="flex items-center gap-3 px-5 mb-8">
-            <div className="flex-shrink-0 flex items-center justify-center rounded-xl font-bold font-headline text-lg"
-              style={{ width: 42, height: 42, background: 'rgba(186,158,255,0.15)', color: '#ba9eff' }}>
-              {initial}
-            </div>
-            <div>
-              <p className="text-white font-bold font-headline text-sm leading-tight">{isConnected ? 'Connected' : 'Offline'}</p>
-              <p className="text-on-surface-variant font-label" style={{ fontSize: 11 }}>{username}</p>
-            </div>
-          </div>
-
-        </nav>
-
         {/* Main canvas */}
-        <main className="flex flex-col md:flex-row flex-1 gap-3 md:gap-4 p-3 md:p-4 overflow-hidden">
+        <main className="flex flex-col md:flex-row flex-1 gap-3 md:gap-4 px-3 md:px-4 pb-3 md:pb-4 overflow-hidden">
           {/* Local feed panel */}
           <div className="relative flex-1 rounded-xl overflow-hidden" style={{ background: '#131313', border: '1px solid rgba(186,158,255,0.12)' }}>
             <video
@@ -248,7 +170,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
           </div>
 
           {/* Searching / idle / peer_left panel */}
-          <div className="relative flex-1 rounded-xl overflow-hidden flex flex-col items-center justify-center" style={{ background: '#131313' }}>
+          <div className="relative flex-1 rounded-xl overflow-hidden flex flex-col items-center justify-center" style={{ background: '#131313', border: '1px solid rgba(186,158,255,0.12)' }}>
             {status === 'waiting' && waitingLong && quietMessage ? (
               <div className="z-10 text-center px-8 py-10 max-w-sm">
                 <div className="flex items-center justify-center mx-auto mb-5 rounded-full"
@@ -322,7 +244,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
       </div>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-20 flex justify-center items-center gap-8 px-4 pb-5 pt-3 rounded-t-3xl"
+      <nav className="fixed bottom-0 left-0 right-0 md:left-64 lg:left-72 z-20 flex justify-center items-center gap-8 px-4 pb-5 pt-3 rounded-t-3xl"
         style={{ background: 'rgba(19,19,19,0.85)', backdropFilter: 'blur(20px)', boxShadow: '0 -8px 32px rgba(139,92,246,0.12)' }}>
         <button
           onClick={status === 'waiting' ? undefined : findMatch}
@@ -347,50 +269,6 @@ export default function LobbyView({ user, isConnected, socketError, status, find
         </button>
       </nav>
 
-      {showProfile && (
-        <ProfileModal
-          user={user}
-          onClose={() => setShowProfile(false)}
-          onSettings={() => {
-            setShowProfile(false);
-            setShowSettings(true);
-          }}
-          onEditProfile={() => {
-            setShowProfile(false);
-            setShowProfileEdit(true);
-          }}
-          onFriends={() => {
-            setShowProfile(false);
-            navigate('/friends');
-          }}
-          onMessages={() => {
-            setShowProfile(false);
-            navigate('/messages');
-          }}
-          onLogout={() => {
-            setShowProfile(false);
-            setShowLogoutConfirm(true);
-          }}
-        />
-      )}
-      {showProfileEdit && (
-        <ProfileEditModal onClose={() => setShowProfileEdit(false)} />
-      )}
-      {showLogoutConfirm && (
-        <LogoutConfirmModal
-          onCancel={() => setShowLogoutConfirm(false)}
-          onConfirm={() => {
-            setShowLogoutConfirm(false);
-            logout();
-          }}
-        />
-      )}
-      {showSettings && (
-        <SettingsModal
-          devices={devices}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
     </div>
   );
 }

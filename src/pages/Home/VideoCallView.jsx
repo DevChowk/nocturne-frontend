@@ -89,15 +89,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
   const showConnectingOnPip = swapped && !remoteConnected;
 
   return (
-    <div className="bg-background text-on-background font-body h-[100dvh] min-h-[100dvh] flex flex-col overflow-hidden">
-      {/* Header */}
-      <header className="bg-background flex items-center px-6 py-4 w-full z-40">
-        <div className="flex items-center gap-2">
-          <img src="/favicon.png" alt="Bump" className="w-7 h-7 rounded-lg object-cover" />
-          <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bump</span>
-        </div>
-      </header>
-
+    <div className="bg-background text-on-background font-body flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
       {/* Main */}
       <main className="flex-1 min-h-0 flex flex-col md:flex-row p-2 md:p-6 gap-2 md:gap-6 relative overflow-hidden">
         {/* Friend-request banner. Compact pill, shown only when peer

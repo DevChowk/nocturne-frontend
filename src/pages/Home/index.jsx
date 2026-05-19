@@ -5,8 +5,15 @@ import { useLocalMedia } from '../../hooks/useLocalMedia';
 import { useWebRTC } from '../../hooks/useWebRTC';
 import { useSettings } from '../../hooks/useSettings';
 import { useNsfwScanner } from '../../hooks/useNsfwScanner';
+import { useFriends } from '../../hooks/useFriends';
 import api from '../../api/axios';
+import { useNavigate } from 'react-router-dom';
 import OnboardingModal from '../../components/OnboardingModal';
+import FriendsSidebar from '../../components/FriendsSidebar';
+import ProfileModal from '../../components/ProfileModal';
+import ProfileEditModal from '../../components/ProfileEditModal';
+import LogoutConfirmModal from '../../components/LogoutConfirmModal';
+import SettingsModal from '../../components/SettingsModal';
 import LobbyView from './LobbyView';
 import VideoCallView from './VideoCallView';
 
@@ -55,6 +62,15 @@ export default function HomePage() {
   // (the default behavior) keeps the existing "Your match disconnected."
   const [lastEndReason, setLastEndReason] = useState(null);
   const [onlineCount, setOnlineCount] = useState(null);
+  const { friends, loading: friendsLoading } = useFriends(socket);
+  // Lifted from LobbyView so FriendsSidebar (always rendered) can also
+  // trigger the profile menu, regardless of whether we're in the lobby
+  // or in a call.
+  const [showProfile, setShowProfile] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const navigate = useNavigate();
   const isInCall = status === 'matched' && matchInfo;
 
   const {
@@ -329,8 +345,8 @@ export default function HomePage() {
   // finishes (needsOnboarding becomes false after the PATCH).
   const onboardingGate = needsOnboarding ? <OnboardingModal /> : null;
 
-  if (isInCall) {
-    return <>{onboardingGate}<VideoCallView
+  const mainView = isInCall ? (
+    <VideoCallView
       user={user}
       swapped={swapped}
       setSwapped={setSwapped}
@@ -359,27 +375,106 @@ export default function HomePage() {
       mirrorLocal={settings.mirrorLocal}
       friendStatus={friendStatus}
       onFriendStatusChange={setFriendStatus}
-    /></>;
-  }
+    />
+  ) : (
+    <LobbyView
+      user={user}
+      isConnected={isConnected}
+      socketError={socketError}
+      status={status}
+      findMatch={findMatch}
+      cancel={cancel}
+      localStream={localStream}
+      mediaError={mediaError}
+      micEnabled={micEnabled}
+      cameraEnabled={cameraEnabled}
+      toggleMic={toggleMic}
+      toggleCamera={toggleCamera}
+      localVideoRef={localVideoRef}
+      mirrorLocal={settings.mirrorLocal}
+      lastEndReason={lastEndReason}
+      onlineCount={onlineCount}
+      onProfileClick={() => setShowProfile(true)}
+    />
+  );
 
-  return <>{onboardingGate}<LobbyView
-    user={user}
-    isConnected={isConnected}
-    socketError={socketError}
-    status={status}
-    findMatch={findMatch}
-    cancel={cancel}
-    logout={logout}
-    localStream={localStream}
-    mediaError={mediaError}
-    micEnabled={micEnabled}
-    cameraEnabled={cameraEnabled}
-    toggleMic={toggleMic}
-    toggleCamera={toggleCamera}
-    localVideoRef={localVideoRef}
-    mirrorLocal={settings.mirrorLocal}
-    devices={devices}
-    lastEndReason={lastEndReason}
-    onlineCount={onlineCount}
-  /></>;
+  const username = user?.username || user?.email?.split('@')[0] || 'You';
+  const initial = (user?.displayName?.[0] || user?.username?.[0] || user?.email?.[0] || '?').toUpperCase();
+
+  return (
+    <>
+      {onboardingGate}
+      <div className="flex flex-col h-[100dvh] min-h-[100dvh] overflow-hidden">
+        {/* Top bar — spans full width across the sidebar and main area. */}
+        <header className="relative z-30 flex items-center justify-between px-6 py-4 flex-shrink-0" style={{ background: '#0e0e0e' }}>
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <img src="/favicon.png" alt="Bump" className="w-7 h-7 rounded-lg object-cover" />
+              <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bump</span>
+            </div>
+            <div
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full flex-shrink-0"
+              style={{ background: '#131313' }}
+              title={isConnected ? 'People online now' : 'Disconnected from server'}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'animate-pulse' : ''}`}
+                style={{ background: isConnected ? '#00cffc' : '#ff6e84', boxShadow: isConnected ? '0 0 6px #00cffc' : 'none' }}
+              />
+              <span className="font-label tabular-nums" style={{ fontSize: 11 }}>
+                {!isConnected ? (
+                  <span className="text-on-surface-variant uppercase tracking-wider">Disconnected</span>
+                ) : typeof onlineCount === 'number' ? (
+                  <>
+                    <span className="font-semibold text-on-surface">{onlineCount.toLocaleString()}</span>
+                    <span className="text-on-surface-variant ml-1 uppercase tracking-wider hidden sm:inline">online</span>
+                  </>
+                ) : (
+                  <span className="text-on-surface-variant uppercase tracking-wider">Online</span>
+                )}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="hidden sm:inline text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-[220px]">{user?.username ? `@${user.username}` : user?.email}</span>
+            <button
+              onClick={() => setShowProfile(true)}
+              aria-label="Open profile menu"
+              title="Profile"
+              className="flex items-center justify-center rounded-full font-bold font-headline transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0"
+              style={{ width: 40, height: 40, fontSize: 16, background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 12px rgba(186,158,255,0.15)' }}
+            >
+              {initial}
+            </button>
+          </div>
+        </header>
+
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          <FriendsSidebar friends={friends} loading={friendsLoading} />
+          {mainView}
+        </div>
+      </div>
+      {showProfile && (
+        <ProfileModal
+          user={user}
+          onClose={() => setShowProfile(false)}
+          onSettings={() => { setShowProfile(false); setShowSettings(true); }}
+          onEditProfile={() => { setShowProfile(false); setShowProfileEdit(true); }}
+          onLogout={() => { setShowProfile(false); setShowLogoutConfirm(true); }}
+        />
+      )}
+      {showProfileEdit && (
+        <ProfileEditModal onClose={() => setShowProfileEdit(false)} />
+      )}
+      {showLogoutConfirm && (
+        <LogoutConfirmModal
+          onCancel={() => setShowLogoutConfirm(false)}
+          onConfirm={() => { setShowLogoutConfirm(false); logout(); }}
+        />
+      )}
+      {showSettings && (
+        <SettingsModal devices={devices} onClose={() => setShowSettings(false)} />
+      )}
+    </>
+  );
 }

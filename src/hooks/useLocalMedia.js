@@ -22,6 +22,13 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
   // Acquire / re-acquire stream when device IDs change.
   useEffect(() => {
     let cancelled = false;
+    // navigator.mediaDevices is only exposed in a secure context (HTTPS or
+    // localhost). On plain http://lan-ip access, it's undefined — surface
+    // a friendly error instead of crashing the render tree.
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError(new Error('Camera requires HTTPS. Open the app over https:// or via localhost.'));
+      return;
+    }
     // 720p @ 30fps is the sweet spot: hardware-accelerated on every modern
     // device, ~4x more detail than browser-default 480p, no perceptible
     // latency cost. `ideal` (not `exact`) so cheap webcams that max out
