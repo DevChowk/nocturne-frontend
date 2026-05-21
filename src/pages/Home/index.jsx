@@ -9,6 +9,7 @@ import { useFriends } from '../../hooks/useFriends';
 import api from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import OnboardingModal from '../../components/OnboardingModal';
+import AppHeader from '../../components/AppHeader';
 import FriendsSidebar from '../../components/FriendsSidebar';
 import ProfileModal from '../../components/ProfileModal';
 import ProfileEditModal from '../../components/ProfileEditModal';
@@ -103,6 +104,10 @@ export default function HomePage() {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const chatEndRef = useRef(null);
+  // Mirror of the friends list so the match_found handler (registered once
+  // per socket) can read the latest list without re-subscribing.
+  const friendsRef = useRef(friends);
+  useEffect(() => { friendsRef.current = friends; }, [friends]);
   // Mirror of current matchInfo so socket-listener closures (registered once
   // per `socket`) can read the latest peer ID without re-subscribing.
   const matchInfoRef = useRef(null);
@@ -170,7 +175,15 @@ export default function HomePage() {
       });
       setMessages([]);
       setSwapped(false);
-      setFriendStatus('none');
+      // Server-authoritative: backend includes `isFriend` in the match
+      // payload (single indexed lookup at pair time), so we don't depend
+      // on /api/friends having resolved before match_found arrives. We
+      // still fall back to the local friends list when the flag is absent
+      // (older server / dev environment).
+      const alreadyFriend = typeof data.isFriend === 'boolean'
+        ? data.isFriend
+        : friendsRef.current.some((f) => String(f.user.id) === String(data.peerUserId));
+      setFriendStatus(alreadyFriend ? 'accepted' : 'none');
       setLastEndReason(null);
       if (settings.matchSound) playMatchTone();
     };
@@ -348,8 +361,6 @@ export default function HomePage() {
   const mainView = isInCall ? (
     <VideoCallView
       user={user}
-      swapped={swapped}
-      setSwapped={setSwapped}
       localVideoRef={localVideoRef}
       remoteVideoRef={remoteVideoRef}
       messages={messages}
@@ -398,59 +409,27 @@ export default function HomePage() {
     />
   );
 
-  const username = user?.username || user?.email?.split('@')[0] || 'You';
-  const initial = (user?.displayName?.[0] || user?.username?.[0] || user?.email?.[0] || '?').toUpperCase();
-
   return (
     <>
       {onboardingGate}
-      <div className="flex flex-col h-[100dvh] min-h-[100dvh] overflow-hidden">
-        {/* Top bar — spans full width across the sidebar and main area. */}
-        <header className="relative z-30 flex items-center justify-between px-6 py-4 flex-shrink-0" style={{ background: '#0e0e0e' }}>
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <img src="/favicon.png" alt="Bump" className="w-7 h-7 rounded-lg object-cover" />
-              <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bump</span>
-            </div>
-            <div
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full flex-shrink-0"
-              style={{ background: '#131313' }}
-              title={isConnected ? 'People online now' : 'Disconnected from server'}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'animate-pulse' : ''}`}
-                style={{ background: isConnected ? '#00cffc' : '#ff6e84', boxShadow: isConnected ? '0 0 6px #00cffc' : 'none' }}
-              />
-              <span className="font-label tabular-nums" style={{ fontSize: 11 }}>
-                {!isConnected ? (
-                  <span className="text-on-surface-variant uppercase tracking-wider">Disconnected</span>
-                ) : typeof onlineCount === 'number' ? (
-                  <>
-                    <span className="font-semibold text-on-surface">{onlineCount.toLocaleString()}</span>
-                    <span className="text-on-surface-variant ml-1 uppercase tracking-wider hidden sm:inline">online</span>
-                  </>
-                ) : (
-                  <span className="text-on-surface-variant uppercase tracking-wider">Online</span>
-                )}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="hidden sm:inline text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[140px] md:max-w-[220px]">{user?.username ? `@${user.username}` : user?.email}</span>
-            <button
-              onClick={() => setShowProfile(true)}
-              aria-label="Open profile menu"
-              title="Profile"
-              className="flex items-center justify-center rounded-full font-bold font-headline transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0"
-              style={{ width: 40, height: 40, fontSize: 16, background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 12px rgba(186,158,255,0.15)' }}
-            >
-              {initial}
-            </button>
-          </div>
-        </header>
+      <div
+        className="flex flex-col h-[100dvh] min-h-[100dvh] overflow-hidden"
+        style={{
+          background:
+            'radial-gradient(circle at 12% 22%, rgba(186,158,255,0.18) 0%, transparent 45%),' +
+            'radial-gradient(circle at 88% 78%, rgba(0,207,252,0.14) 0%, transparent 45%),' +
+            '#0e0e0e',
+        }}
+      >
+        <AppHeader
+          user={user}
+          isConnected={isConnected}
+          onlineCount={onlineCount}
+          onProfileClick={() => setShowProfile(true)}
+        />
 
         <div className="flex flex-1 min-h-0 overflow-hidden">
-          <FriendsSidebar friends={friends} loading={friendsLoading} />
+          {!isInCall && <FriendsSidebar friends={friends} loading={friendsLoading} />}
           {mainView}
         </div>
       </div>

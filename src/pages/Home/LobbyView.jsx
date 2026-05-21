@@ -78,14 +78,14 @@ export default function LobbyView({ user, isConnected, socketError, status, find
   }, [status]);
 
   return (
-    <div className="bg-background text-on-surface font-body flex-1 min-h-0 min-w-0" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="text-on-surface font-body flex-1 min-h-0 min-w-0" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
       {/* Ambient glows */}
       <div className="pointer-events-none fixed rounded-full blur-3xl" style={{ width: 400, height: 400, top: '15%', left: '-8%', background: 'rgba(186,158,255,0.08)', zIndex: 0 }} />
       <div className="pointer-events-none fixed rounded-full blur-3xl" style={{ width: 350, height: 350, bottom: '10%', right: '-6%', background: 'rgba(0,207,252,0.05)', zIndex: 0 }} />
 
       {/* Body */}
-      <div className="relative z-10 flex flex-1 overflow-hidden" style={{ paddingBottom: 80 }}>
+      <div className="relative z-10 flex flex-1 overflow-hidden" style={{paddingTop: 10, paddingBottom: 70 }}>
         {/* Main canvas */}
         <main className="flex flex-col md:flex-row flex-1 gap-3 md:gap-4 px-3 md:px-4 pb-3 md:pb-4 overflow-hidden">
           {/* Local feed panel */}
@@ -101,8 +101,8 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                 <div className="flex flex-col items-center gap-3 text-center px-6">
                   {mediaError ? (
                     <>
-                      <div className="flex items-center justify-center rounded-full" style={{ width: 80, height: 80, background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
-                        <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 40 }}>videocam_off</span>
+                      <div className="flex items-center justify-center rounded-full w-14 h-14 md:w-20 md:h-20" style={{ background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
+                        <span className="material-symbols-outlined text-[28px] md:text-[40px]" aria-hidden="true">videocam_off</span>
                       </div>
                       <p className="font-headline font-semibold text-white">Camera unavailable</p>
                       <p className="text-on-surface-variant text-xs max-w-[260px]">
@@ -111,13 +111,13 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                     </>
                   ) : !localStream ? (
                     <>
-                      <span className="material-symbols-outlined text-primary animate-pulse" aria-hidden="true" style={{ fontSize: 40 }}>hourglass</span>
+                      <span className="material-symbols-outlined text-primary animate-pulse text-[28px] md:text-[40px]" aria-hidden="true">hourglass</span>
                       <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">Requesting camera…</p>
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center justify-center rounded-full font-bold font-headline text-4xl"
-                        style={{ width: 96, height: 96, background: 'rgba(186,158,255,0.1)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.1)' }}>
+                      <div className="flex items-center justify-center rounded-full font-bold font-headline w-24 h-24 text-4xl md:w-[120px] md:h-[120px] md:text-5xl"
+                        style={{ background: 'rgba(186,158,255,0.1)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.1)' }}>
                         {initial}
                       </div>
                       <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">Camera Off</p>
@@ -126,11 +126,8 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                 </div>
               </div>
             )}
-            <div className="absolute bottom-0 left-0 right-0 p-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}>
-              <h2 className="text-lg font-bold font-headline text-white">{username} (You)</h2>
-              <p className="text-on-surface-variant font-label uppercase tracking-widest" style={{ fontSize: 10 }}>
-                Local Feed • {isConnected ? 'Active' : 'Offline'}
-              </p>
+            <div className="absolute bottom-0 left-0 right-0 p-3 md:p-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}>
+              <h2 className="text-lg md:text-2xl font-bold font-headline text-white">You</h2>
             </div>
             {/* Mic / camera quick toggles in lobby */}
             {localStream && (
@@ -140,9 +137,8 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                   aria-pressed={!micEnabled}
                   aria-label={micEnabled ? 'Mute microphone' : 'Unmute microphone'}
                   title={micEnabled ? 'Mute' : 'Unmute'}
-                  className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95"
+                  className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95 w-9 h-9 md:w-11 md:h-11"
                   style={{
-                    width: 44, height: 44,
                     ...(micEnabled
                       ? { background: 'rgba(19,19,19,0.6)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
                       : { background: 'rgba(167,1,56,0.5)', borderColor: 'rgba(167,1,56,0.6)', color: '#ff6e84' }),
@@ -155,9 +151,8 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                   aria-pressed={!cameraEnabled}
                   aria-label={cameraEnabled ? 'Turn camera off' : 'Turn camera on'}
                   title={cameraEnabled ? 'Turn off camera' : 'Turn on camera'}
-                  className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95"
+                  className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95 w-9 h-9 md:w-11 md:h-11"
                   style={{
-                    width: 44, height: 44,
                     ...(cameraEnabled
                       ? { background: 'rgba(19,19,19,0.6)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
                       : { background: 'rgba(167,1,56,0.5)', borderColor: 'rgba(167,1,56,0.6)', color: '#ff6e84' }),
@@ -173,12 +168,12 @@ export default function LobbyView({ user, isConnected, socketError, status, find
           <div className="relative flex-1 rounded-xl overflow-hidden flex flex-col items-center justify-center" style={{ background: '#131313', border: '1px solid rgba(186,158,255,0.12)' }}>
             {status === 'waiting' && waitingLong && quietMessage ? (
               <div className="z-10 text-center px-8 py-10 max-w-sm">
-                <div className="flex items-center justify-center mx-auto mb-5 rounded-full"
-                  style={{ width: 80, height: 80, background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.18)' }}>
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 40, fontVariationSettings: "'FILL' 1" }}>{quietMessage.icon}</span>
+                <div className="flex items-center justify-center mx-auto mb-3 md:mb-5 rounded-full w-14 h-14 md:w-20 md:h-20"
+                  style={{ background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.18)' }}>
+                  <span className="material-symbols-outlined text-primary text-[28px] md:text-[40px]" style={{ fontVariationSettings: "'FILL' 1" }}>{quietMessage.icon}</span>
                 </div>
-                <h3 className="text-xl font-bold font-headline text-white mb-2">{quietMessage.heading}</h3>
-                <p className="text-on-surface-variant font-label mb-6 text-sm leading-relaxed">
+                <h3 className="text-base md:text-xl font-bold font-headline text-white mb-1.5 md:mb-2">{quietMessage.heading}</h3>
+                <p className="text-on-surface-variant font-label mb-4 md:mb-6 text-xs md:text-sm leading-relaxed">
                   {quietMessage.subtitle}
                 </p>
                 <div className="flex items-center justify-center gap-2 text-on-surface-variant" style={{ fontSize: 11 }}>
@@ -192,11 +187,11 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                 <div className="absolute w-56 h-56 rounded-full border border-primary/20 pulse-ring" style={{ animationDelay: '0.5s' }} />
                 <div className="absolute w-72 h-72 rounded-full border border-primary/10 pulse-ring" style={{ animationDelay: '1s' }} />
                 <div className="z-10 text-center px-6">
-                  <div className="flex items-center justify-center mx-auto mb-5 rounded-full"
-                    style={{ width: 80, height: 80, background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.25)' }}>
-                    <span className="material-symbols-outlined text-primary" style={{ fontSize: 40, fontVariationSettings: "'FILL' 1" }}>radar</span>
+                  <div className="flex items-center justify-center mx-auto mb-3 md:mb-5 rounded-full w-14 h-14 md:w-20 md:h-20"
+                    style={{ background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.25)' }}>
+                    <span className="material-symbols-outlined text-primary text-[28px] md:text-[40px]" style={{ fontVariationSettings: "'FILL' 1" }}>radar</span>
                   </div>
-                  <h3 className="text-xl font-bold font-headline text-white mb-2">Searching for Stranger...</h3>
+                  <h3 className="text-base md:text-xl font-bold font-headline text-white mb-1.5 md:mb-2">Searching for Stranger...</h3>
                   <div className="flex items-center justify-center gap-2">
                     <span className="text-on-surface-variant font-label uppercase tracking-widest" style={{ fontSize: 10 }}>Scanning nodes</span>
                     <span className="flex gap-1">
@@ -220,21 +215,21 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                   <p className="text-error text-sm mb-4 font-label">Your match disconnected.</p>
                 )}
                 {socketError && <p className="text-error text-sm mb-4 font-label">Couldn't connect to the server. Check your internet connection.</p>}
-                <div className="flex items-center justify-center mx-auto mb-5 rounded-full"
-                  style={{ width: 80, height: 80, background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.2)' }}>
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 40 }}>people</span>
+                <div className="flex items-center justify-center mx-auto mb-3 md:mb-5 rounded-full w-14 h-14 md:w-20 md:h-20"
+                  style={{ background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.2)' }}>
+                  <span className="material-symbols-outlined text-primary text-[28px] md:text-[40px]">people</span>
                 </div>
-                <h3 className="text-xl font-bold font-headline text-white mb-2">
+                <h3 className="text-base md:text-xl font-bold font-headline text-white mb-1.5 md:mb-2">
                   {status === 'peer_left' ? 'Match Ended' : 'Ready to Connect'}
                 </h3>
-                <p className="text-on-surface-variant font-label mb-6 text-sm">
+                <p className="text-on-surface-variant font-label mb-4 md:mb-6 text-xs md:text-sm">
                   {status === 'peer_left' ? 'Find a new connection below.' : 'Start a random video chat.'}
                 </p>
                 <button
                   onClick={findMatch}
                   disabled={!isConnected}
-                  className="px-8 py-3.5 rounded-full text-black font-bold font-headline transition-all duration-300 active:scale-95 disabled:opacity-50"
-                  style={{ backgroundImage: GRADIENT, fontSize: '0.95rem' }}>
+                  className="px-6 py-2.5 md:px-8 md:py-3.5 rounded-full text-black font-bold font-headline transition-all duration-300 active:scale-95 disabled:opacity-50 text-sm md:text-[0.95rem]"
+                  style={{ backgroundImage: GRADIENT }}>
                   {status === 'peer_left' ? 'Find New Match' : 'Find Match'}
                 </button>
               </div>
@@ -244,7 +239,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
       </div>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 md:left-64 lg:left-72 z-20 flex justify-center items-center gap-8 px-4 pb-5 pt-3 rounded-t-3xl"
+      <nav className="fixed bottom-0 left-0 right-0 md:left-64 lg:left-72 z-20 flex justify-center items-center gap-8 px-4 py-3 rounded-t-3xl"
         style={{ background: 'rgba(19,19,19,0.85)', backdropFilter: 'blur(20px)', boxShadow: '0 -8px 32px rgba(139,92,246,0.12)' }}>
         <button
           onClick={status === 'waiting' ? undefined : findMatch}

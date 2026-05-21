@@ -4,12 +4,13 @@ import { countryFlag, countryName } from '../../constants/locale';
 import { interestByCode } from '../../constants/interests';
 import ReportModal from '../../components/ReportModal';
 import EmojiPicker from '../../components/EmojiPicker';
+import MobileLiveChat from '../../components/MobileLiveChat';
 import api from '../../api/axios';
 
 const MAX_PEER_CHIPS = 3;
 const BANNER_AUTO_DISMISS_MS = 20000;
 
-export default function VideoCallView({ user, swapped, setSwapped, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange }) {
+export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
   const [chatEmojiOpen, setChatEmojiOpen] = useState(false);
@@ -74,24 +75,11 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
   const initial = username[0]?.toUpperCase() ?? '?';
   // Peer label: prefer displayName, then @username, then 'Stranger' fallback.
   const peerLabel = peerDisplayName || (peerUsername ? `@${peerUsername}` : 'Stranger');
-  // BIG slot shows local when swapped, remote otherwise. PIP is the inverse.
-  // Avatar overlays follow the LOCAL camera-off state on whichever slot shows it.
-  const showLocalAvatarOnBig = swapped && !cameraEnabled;
-  const showLocalAvatarOnPip = !swapped && !cameraEnabled;
-  // Peer (camera-off + mic-off) indicators follow the REMOTE feed.
-  const showPeerCamOffOnBig = !swapped && !peerCameraEnabled && remoteConnected;
-  const showPeerCamOffOnPip = swapped && !peerCameraEnabled && remoteConnected;
-  const showPeerMicOffOnBig = !swapped && !peerMicEnabled && remoteConnected;
-  const showPeerMicOffOnPip = swapped && !peerMicEnabled && remoteConnected;
-  // Connecting overlay shows on whichever slot is currently displaying the REMOTE feed,
-  // until the first remote track arrives.
-  const showConnectingOnBig = !swapped && !remoteConnected;
-  const showConnectingOnPip = swapped && !remoteConnected;
 
   return (
-    <div className="bg-background text-on-background font-body flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
+    <div className="text-on-background font-body flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
       {/* Main */}
-      <main className="flex-1 min-h-0 flex flex-col md:flex-row p-2 md:p-6 gap-2 md:gap-6 relative overflow-hidden">
+      <main className="flex-1 min-h-0 flex flex-col md:flex-row px-2 md:px-6 pb-2 md:pb-6 gap-2 md:gap-6 relative overflow-hidden">
         {/* Friend-request banner. Compact pill, shown only when peer
             hit Add Friend first. Floats above the video stage; auto-
             dismisses after 20s if user does nothing. */}
@@ -146,26 +134,19 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
           </div>
         )}
 
-        {/* Video stage */}
-        <div className="flex-1 relative flex flex-col gap-4 min-w-0">
-          {/* Remote (stranger) video - full */}
-          <div className="relative w-full h-full bg-surface-container-low rounded-xl overflow-hidden group" style={{boxShadow:'0 0 20px rgba(139,92,246,0.3)'}}>
+        {/* Video stage — two equal panels: stacked on mobile, side-by-side
+            on desktop. `md:flex-row-reverse` keeps the DOM order (remote
+            first) but renders the local panel on the LEFT on desktop, so
+            "you" is always on the left and the stranger on the right. */}
+        <div className="flex-1 relative flex flex-col md:flex-row-reverse gap-2 md:gap-4 min-w-0 min-h-0 pt-[10px]">
+          {/* Remote (stranger) panel */}
+          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-low rounded-xl overflow-hidden" style={{boxShadow:'0 0 20px rgba(139,92,246,0.3)'}}>
             <video
-              ref={swapped ? localVideoRef : remoteVideoRef}
+              ref={remoteVideoRef}
               className="w-full h-full object-cover"
-              style={swapped && mirrorLocal ? { transform: 'scaleX(-1)' } : undefined}
               autoPlay playsInline
-              muted={swapped}
             />
-            {showLocalAvatarOnBig && (
-              <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
-                <div className="flex items-center justify-center rounded-full font-bold font-headline"
-                  style={{ width: 120, height: 120, fontSize: 48, background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.15)' }}>
-                  {initial}
-                </div>
-              </div>
-            )}
-            {showPeerCamOffOnBig && (
+            {!peerCameraEnabled && remoteConnected && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-container-high px-6 text-center">
                 <div className="flex items-center justify-center rounded-full" style={{ background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
                   <span className="material-symbols-outlined p-5 md:p-6" aria-hidden="true" style={{ fontSize: 36 }}>videocam_off</span>
@@ -173,16 +154,16 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
                 <p className="font-headline font-semibold text-white text-sm md:text-base">{peerLabel} turned off camera</p>
               </div>
             )}
-            {showPeerMicOffOnBig && (
+            {!peerMicEnabled && remoteConnected && (
               <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(167,1,56,0.6)' }}>
                 <span className="material-symbols-outlined text-white" aria-hidden="true" style={{ fontSize: 16 }}>mic_off</span>
                 <span className="text-white text-xs font-label uppercase tracking-wider">Muted</span>
               </div>
             )}
-            {showConnectingOnBig && (
+            {!remoteConnected && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-surface-container-low/90">
-                <div className="flex items-center justify-center rounded-full" style={{ width: 80, height: 80, background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.25)' }}>
-                  <span className="material-symbols-outlined text-primary animate-pulse" aria-hidden="true" style={{ fontSize: 40, fontVariationSettings: "'FILL' 1" }}>cell_tower</span>
+                <div className="flex items-center justify-center rounded-full w-14 h-14 md:w-20 md:h-20" style={{ background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.25)' }}>
+                  <span className="material-symbols-outlined text-primary animate-pulse text-[28px] md:text-[40px]" aria-hidden="true" style={{ fontVariationSettings: "'FILL' 1" }}>cell_tower</span>
                 </div>
                 <div className="text-center">
                   <h3 className="font-headline font-bold text-white text-lg mb-1">Connecting...</h3>
@@ -190,26 +171,23 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
                 </div>
               </div>
             )}
-            {/* Report button — top left of remote slot */}
-            {!swapped && (
-              <button
-                type="button"
-                onClick={() => setShowReport(true)}
-                aria-label="Report stranger"
-                title="Report"
-                className="absolute top-4 left-4 z-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors hover:bg-error/30 active:scale-95"
-                style={{ width: 36, height: 36, background: 'rgba(0,0,0,0.5)', color: '#ff6e84' }}
-              >
-                <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>flag</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowReport(true)}
+              aria-label="Report stranger"
+              title="Report"
+              className="absolute top-4 left-4 z-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors hover:bg-error/30 active:scale-95"
+              style={{ width: 36, height: 36, background: 'rgba(0,0,0,0.5)', color: '#ff6e84' }}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>flag</span>
+            </button>
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
-              <span className="font-headline font-bold text-lg md:text-2xl text-white">{swapped ? `${username} (You)` : peerLabel}</span>
+              <span className="font-headline font-bold text-lg md:text-2xl text-white">{peerLabel}</span>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="material-symbols-outlined text-secondary text-sm" aria-hidden="true">location_on</span>
-                <span className="text-on-surface-variant text-xs md:text-sm">{swapped ? 'Local Feed' : (peerUsername ? `@${peerUsername}` : 'Anonymous')}</span>
-                {!swapped && peerCountry && (
+                <span className="text-on-surface-variant text-xs md:text-sm">{peerUsername ? `@${peerUsername}` : 'Anonymous'}</span>
+                {peerCountry && (
                   <span
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label uppercase tracking-wider backdrop-blur-md"
                     title={countryName(peerCountry)}
@@ -220,7 +198,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
                   </span>
                 )}
               </div>
-              {!swapped && Array.isArray(peerInterests) && peerInterests.length > 0 && (
+              {Array.isArray(peerInterests) && peerInterests.length > 0 && (
                 <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
                   {peerInterests.slice(0, MAX_PEER_CHIPS).map((code) => {
                     const it = interestByCode(code);
@@ -245,54 +223,61 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             </div>
           </div>
 
-          {/* Local (self) video - PIP */}
-          <button
-            type="button"
-            aria-label="Swap video positions"
-            title="Click to swap"
-            className="absolute bottom-3 right-3 md:bottom-8 md:right-8 w-24 h-32 sm:w-28 sm:h-40 md:w-48 md:h-64 bg-surface-container-high rounded-xl overflow-hidden border border-white/5 shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
-            style={{boxShadow:'0 0 20px rgba(139,92,246,0.3)'}}
-            onClick={() => setSwapped(s => !s)}
-          >
+          {/* Local (self) panel */}
+          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-high rounded-xl overflow-hidden border border-white/5" style={{boxShadow:'0 0 20px rgba(139,92,246,0.3)'}}>
             <video
-              ref={swapped ? remoteVideoRef : localVideoRef}
+              ref={localVideoRef}
               className="w-full h-full object-cover"
-              style={!swapped && mirrorLocal ? { transform: 'scaleX(-1)' } : undefined}
-              autoPlay playsInline muted={!swapped}
+              style={mirrorLocal ? { transform: 'scaleX(-1)' } : undefined}
+              autoPlay playsInline muted
             />
-            {showLocalAvatarOnPip && (
+            {!cameraEnabled && (
               <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
-                <div className="flex items-center justify-center rounded-full font-bold font-headline"
-                  style={{ width: 56, height: 56, fontSize: 22, background: 'rgba(186,158,255,0.15)', color: '#ba9eff' }}>
-                  {initial}
+                <div className="flex flex-col items-center gap-3 text-center px-6">
+                  <div
+                    className="flex items-center justify-center rounded-full font-bold font-headline w-24 h-24 text-4xl md:w-[120px] md:h-[120px] md:text-5xl"
+                    style={{ background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.15)' }}
+                  >
+                    {initial}
+                  </div>
+                  <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">Camera Off</p>
                 </div>
               </div>
             )}
-            {showPeerCamOffOnPip && (
-              <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
-                <div className="flex items-center justify-center rounded-full" style={{ width: 44, height: 44, background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>videocam_off</span>
-                </div>
-              </div>
-            )}
-            {showPeerMicOffOnPip && (
-              <div className="absolute top-2 right-2 z-10 flex items-center justify-center rounded-full backdrop-blur-md" style={{ width: 26, height: 26, background: 'rgba(167,1,56,0.7)' }}>
-                <span className="material-symbols-outlined text-white" aria-hidden="true" style={{ fontSize: 14 }}>mic_off</span>
-              </div>
-            )}
-            {showConnectingOnPip && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-surface-container-low/90">
-                <span className="material-symbols-outlined text-primary animate-pulse" aria-hidden="true" style={{ fontSize: 28 }}>cell_tower</span>
-              </div>
-            )}
-            <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest text-white">
-              {swapped ? peerLabel : 'You'}
+            <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
+            <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
+              <span className="font-headline font-bold text-lg md:text-2xl text-white">You</span>
             </div>
-          </button>
+          </div>
+
+          {/* Phone-only live chat overlay — fading messages on the right
+              edge of the video stage. Lives inside the video stage so its
+              `bottom-0` aligns with the bottom of the user's panel. */}
+          <MobileLiveChat messages={messages} peerLabel={peerLabel} />
         </div>
 
-        {/* Chat sidebar */}
-        <aside className="w-full md:w-96 lg:w-[420px] flex-shrink-0 h-[26vh] min-h-[140px] max-h-[240px] md:h-full md:min-h-0 md:max-h-none bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex flex-col overflow-hidden">
+        {/* Phone-only chat input bar — inline, sits just below the user's
+            panel and above the bottom nav. */}
+        <form className="md:hidden flex-shrink-0 relative flex items-center" onSubmit={sendMessage}>
+          <input
+            type="text"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            placeholder="Type a message..."
+            autoComplete="off"
+            className="w-full bg-black/40 backdrop-blur-md border border-white/10 rounded-full py-2 pl-4 pr-11 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary/40"
+          />
+          <button
+            type="submit"
+            aria-label="Send"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-primary hover:scale-110 transition-transform"
+          >
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>send</span>
+          </button>
+        </form>
+
+        {/* Desktop chat sidebar — phones use the MobileLiveChat overlay instead. */}
+        <aside className="hidden md:flex w-full md:w-96 lg:w-[420px] flex-shrink-0 md:h-full bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex-col overflow-hidden">
           <div className="p-4 border-b border-white/5">
             <span className="font-headline font-semibold text-primary">Live Chat</span>
           </div>
@@ -300,18 +285,30 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             {messages.length === 0 && (
               <p className="text-on-surface-variant text-sm text-center mt-4 font-label">No messages yet. Say hi!</p>
             )}
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex flex-col gap-1 ${msg.mine ? 'items-end' : ''}`}>
-                <span className={`text-[10px] font-bold uppercase tracking-tighter ${msg.mine ? 'text-primary-fixed' : 'text-secondary'}`}>
-                  {msg.mine ? 'You' : peerLabel}
+            {messages.reduce((blocks, msg) => {
+              // Collapse consecutive messages from the same sender into one
+              // block so the YOU / @peer label only shows once per run.
+              const last = blocks[blocks.length - 1];
+              if (last && last.mine === msg.mine) last.messages.push(msg);
+              else blocks.push({ mine: msg.mine, messages: [msg] });
+              return blocks;
+            }, []).map((block, b) => (
+              <div key={b} className={`flex flex-col gap-1 ${block.mine ? 'items-end' : ''}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-tighter ${block.mine ? 'text-primary-fixed' : 'text-secondary'}`}>
+                  {block.mine ? 'You' : peerLabel}
                 </span>
-                <div className={`p-3 max-w-[90%] text-sm text-on-surface leading-relaxed break-words [overflow-wrap:anywhere] ${
-                  msg.mine
-                    ? 'bg-primary/10 border border-primary/20 rounded-tl-xl rounded-br-xl rounded-bl-xl'
-                    : 'bg-surface-container-highest rounded-tr-xl rounded-br-xl rounded-bl-xl'
-                }`}>
-                  {msg.message}
-                </div>
+                {block.messages.map((msg, m) => (
+                  <div
+                    key={m}
+                    className={`p-3 max-w-[90%] text-sm text-on-surface leading-relaxed break-words [overflow-wrap:anywhere] ${
+                      block.mine
+                        ? 'bg-primary/10 border border-primary/20 rounded-tl-xl rounded-br-xl rounded-bl-xl'
+                        : 'bg-surface-container-highest rounded-tr-xl rounded-br-xl rounded-bl-xl'
+                    }`}
+                  >
+                    {msg.message}
+                  </div>
+                ))}
               </div>
             ))}
             <div ref={chatEndRef} />
@@ -331,7 +328,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
                 type="button"
                 onClick={() => setChatEmojiOpen((o) => !o)}
                 aria-label="Pick emoji"
-                className="hidden md:inline-flex absolute right-10 items-center justify-center w-8 h-8 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/60 transition-colors"
+                className="hidden md:inline-flex absolute right-10 top-1/2 -translate-y-1/2 items-center justify-center w-8 h-8 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/60 transition-colors"
               >
                 <span className="material-symbols-outlined text-lg" aria-hidden="true">mood</span>
               </button>
@@ -342,7 +339,7 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
                   anchor="top"
                 />
               )}
-              <button type="submit" aria-label="Send" className="absolute right-2 p-1.5 text-primary hover:scale-110 transition-transform">
+              <button type="submit" aria-label="Send" className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-primary hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined" aria-hidden="true">send</span>
               </button>
             </form>
@@ -352,18 +349,18 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
 
       {/* Bottom nav */}
       <nav
-        className="flex-shrink-0 w-full flex justify-center items-center gap-3 sm:gap-5 md:gap-10 px-3 md:px-4 pt-1.5 pb-1.5 md:pt-2 md:pb-3 bg-surface-container-low/60 backdrop-blur-xl rounded-t-2xl md:rounded-t-3xl"
-        style={{ boxShadow: '0 -8px 30px rgba(139,92,246,0.15)', paddingBottom: 'max(0.375rem, env(safe-area-inset-bottom))' }}
+        className="flex-shrink-0 w-full grid grid-cols-5 items-start md:flex md:justify-center md:items-center md:gap-10 px-4 py-3 bg-surface-container-low/60 backdrop-blur-xl rounded-t-2xl md:rounded-t-3xl"
+        style={{ boxShadow: '0 -8px 30px rgba(139,92,246,0.15)' }}
       >
         {/* Next */}
         <div className="flex flex-col items-center gap-0.5">
           <button
             onClick={skip}
             aria-label="Next"
-            className="flex items-center justify-center text-black rounded-full p-2.5 md:p-3.5 shadow-lg hover:scale-110 transition-transform duration-200"
+            className="flex items-center justify-center text-black rounded-full p-3 shadow-lg hover:scale-110 transition-transform duration-200"
             style={{backgroundImage: GRADIENT, boxShadow:'0 4px 20px rgba(186,158,255,0.2)'}}
           >
-            <span className="material-symbols-outlined text-xl md:text-2xl">skip_next</span>
+            <span className="material-symbols-outlined text-[22px]">skip_next</span>
           </button>
           <span className="hidden md:block font-label text-[9px] uppercase tracking-widest text-primary font-bold">Next</span>
         </div>
@@ -374,12 +371,12 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             onClick={toggleMic}
             aria-pressed={!micEnabled}
             aria-label={micEnabled ? 'Mute mic' : 'Unmute mic'}
-            className="flex items-center justify-center rounded-full p-2 md:p-3 border transition-all duration-200 active:scale-95"
+            className="flex items-center justify-center rounded-full p-3 border transition-all duration-200 active:scale-95"
             style={micEnabled
               ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
               : { background: 'rgba(167,1,56,0.2)', borderColor: 'rgba(167,1,56,0.4)', color: '#ff6e84' }}
           >
-            <span className="material-symbols-outlined text-lg md:text-xl">{micEnabled ? 'mic' : 'mic_off'}</span>
+            <span className="material-symbols-outlined text-[22px]">{micEnabled ? 'mic' : 'mic_off'}</span>
           </button>
           <span className="hidden md:block font-label text-[9px] uppercase tracking-widest" style={{ color: micEnabled ? '#ba9eff' : '#ff6e84' }}>
             {micEnabled ? 'Mic' : 'Muted'}
@@ -392,12 +389,12 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
             onClick={toggleCamera}
             aria-pressed={!cameraEnabled}
             aria-label={cameraEnabled ? 'Turn off camera' : 'Turn on camera'}
-            className="flex items-center justify-center rounded-full p-2 md:p-3 border transition-all duration-200 active:scale-95"
+            className="flex items-center justify-center rounded-full p-3 border transition-all duration-200 active:scale-95"
             style={cameraEnabled
               ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
               : { background: 'rgba(167,1,56,0.2)', borderColor: 'rgba(167,1,56,0.4)', color: '#ff6e84' }}
           >
-            <span className="material-symbols-outlined text-lg md:text-xl">{cameraEnabled ? 'videocam' : 'videocam_off'}</span>
+            <span className="material-symbols-outlined text-[22px]">{cameraEnabled ? 'videocam' : 'videocam_off'}</span>
           </button>
           <span className="hidden md:block font-label text-[9px] uppercase tracking-widest" style={{ color: cameraEnabled ? '#ba9eff' : '#ff6e84' }}>
             {cameraEnabled ? 'Cam' : 'Off'}
@@ -415,15 +412,18 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
               : friendStatus === 'received' ? 'Accept friend request'
               : 'Add friend'
             }
-            className="flex items-center justify-center rounded-full p-2 md:p-3 border transition-all duration-200 active:scale-95 disabled:cursor-default"
-            style={
-              friendStatus === 'accepted' ? { background: 'rgba(0,207,252,0.15)', borderColor: 'rgba(0,207,252,0.4)', color: '#00cffc' }
+            className="flex items-center justify-center rounded-full p-3 border transition-all duration-200 active:scale-95 disabled:cursor-default disabled:opacity-100"
+            style={{
+              ...(friendStatus === 'accepted' ? { background: 'rgba(0,207,252,0.15)', borderColor: 'rgba(0,207,252,0.4)', color: '#00cffc' }
               : friendStatus === 'sent' ? { background: 'rgba(186,158,255,0.18)', borderColor: 'rgba(186,158,255,0.35)', color: '#ba9eff' }
               : friendStatus === 'received' ? { background: 'rgba(255,151,181,0.15)', borderColor: 'rgba(255,151,181,0.35)', color: '#ff97b5' }
-              : { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
-            }
+              : { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }),
+              opacity: 1,
+              WebkitAppearance: 'none',
+              appearance: 'none',
+            }}
           >
-            <span className="material-symbols-outlined text-lg md:text-xl" aria-hidden="true">
+            <span className="material-symbols-outlined text-[22px]" aria-hidden="true">
               {friendStatus === 'accepted' ? 'check_circle'
                : friendStatus === 'sent' ? 'hourglass_top'
                : friendStatus === 'received' ? 'person_add_alt'
@@ -447,10 +447,10 @@ export default function VideoCallView({ user, swapped, setSwapped, localVideoRef
           <button
             onClick={endCall}
             aria-label="End call"
-            className="flex items-center justify-center rounded-full p-2 md:p-3 border border-error-container/40 hover:bg-error-container hover:text-on-error transition-all duration-300 active:scale-95"
+            className="flex items-center justify-center rounded-full p-3 border border-error-container/40 hover:bg-error-container hover:text-on-error transition-all duration-300 active:scale-95"
             style={{background:'rgba(167,1,56,0.2)', color:'#ff6e84'}}
           >
-            <span className="material-symbols-outlined text-lg md:text-xl">stop_circle</span>
+            <span className="material-symbols-outlined text-[22px]">stop_circle</span>
           </button>
           <span className="hidden md:block font-label text-[9px] uppercase tracking-widest text-error-dim">Stop</span>
         </div>
