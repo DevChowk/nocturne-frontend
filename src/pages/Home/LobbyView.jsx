@@ -121,7 +121,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                         style={{ background: 'rgba(186,158,255,0.1)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.1)' }}>
                         {initial}
                       </div>
-                      <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">Camera Off</p>
+                      <p className="hidden md:block text-on-surface-variant font-label text-xs uppercase tracking-widest">Camera Off</p>
                     </>
                   )}
                 </div>

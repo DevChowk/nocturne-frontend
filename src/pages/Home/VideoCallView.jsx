@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { countryFlag, countryName } from '../../constants/locale';
-import { interestByCode } from '../../constants/interests';
 import ReportModal from '../../components/ReportModal';
 import EmojiPicker from '../../components/EmojiPicker';
 import MobileLiveChat from '../../components/MobileLiveChat';
 import CallControlsBar from '../../components/CallControlsBar';
 import api from '../../api/axios';
 
-const MAX_PEER_CHIPS = 3;
 const BANNER_AUTO_DISMISS_MS = 20000;
 
 export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange }) {
@@ -79,7 +77,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
   return (
     <div className="text-on-background font-body flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
       {/* Main */}
-      <main className="flex-1 min-h-0 flex flex-col md:flex-row px-2 md:px-4 gap-2 md:gap-4 relative overflow-hidden">
+      <main className="flex-1 min-h-0 flex flex-col md:flex-row md:items-stretch px-2 md:px-4 gap-2 md:gap-4 relative overflow-hidden">
         {/* Friend-request banner. Compact pill, shown only when peer
             hit Add Friend first. Floats above the video stage; auto-
             dismisses after 20s if user does nothing. */}
@@ -138,7 +136,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             on desktop. `md:flex-row-reverse` keeps the DOM order (remote
             first) but renders the local panel on the LEFT on desktop, so
             "you" is always on the left and the stranger on the right. */}
-        <div className="flex-1 relative flex flex-col md:flex-row-reverse gap-2 md:gap-4 min-w-0 min-h-0 pt-[10px]">
+        <div className="flex-1 relative flex flex-col md:flex-row-reverse gap-2 md:gap-4 min-w-0 min-h-0">
           {/* Remote (stranger) panel */}
           <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-low rounded-xl overflow-hidden" style={{ border: '1px solid rgba(186,158,255,0.12)' }}>
             <video
@@ -183,10 +181,8 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             </button>
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
-              <span className="font-headline font-bold text-lg md:text-2xl text-white">{peerLabel}</span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="material-symbols-outlined text-secondary text-sm" aria-hidden="true">location_on</span>
-                <span className="text-on-surface-variant text-xs md:text-sm">{peerUsername ? `@${peerUsername}` : 'Anonymous'}</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-headline font-bold text-lg md:text-2xl text-white">{peerLabel}</span>
                 {peerCountry && (
                   <span
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label uppercase tracking-wider backdrop-blur-md"
@@ -198,28 +194,6 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
                   </span>
                 )}
               </div>
-              {Array.isArray(peerInterests) && peerInterests.length > 0 && (
-                <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-                  {peerInterests.slice(0, MAX_PEER_CHIPS).map((code) => {
-                    const it = interestByCode(code);
-                    if (!it) return null;
-                    return (
-                      <span
-                        key={code}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label backdrop-blur-md"
-                        title={it.label}
-                        style={{ background: 'rgba(186,158,255,0.18)', color: '#ba9eff' }}
-                      >
-                        <span className="material-symbols-outlined text-xs" aria-hidden="true">{it.icon}</span>
-                        <span>{it.label}</span>
-                      </span>
-                    );
-                  })}
-                  {peerInterests.length > MAX_PEER_CHIPS && (
-                    <span className="text-[10px] text-on-surface-variant/70">+{peerInterests.length - MAX_PEER_CHIPS}</span>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 
@@ -240,7 +214,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
                   >
                     {initial}
                   </div>
-                  <p className="text-on-surface-variant font-label text-xs uppercase tracking-widest">Camera Off</p>
+                  <p className="hidden md:block text-on-surface-variant font-label text-xs uppercase tracking-widest">Camera Off</p>
                 </div>
               </div>
             )}
@@ -277,7 +251,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
         </form>
 
         {/* Desktop chat sidebar — phones use the MobileLiveChat overlay instead. */}
-        <aside className="hidden md:flex w-full md:w-96 lg:w-[420px] flex-shrink-0 md:h-full bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex-col overflow-hidden" style={{ border: '1px solid rgba(186,158,255,0.12)' }}>
+        <aside className="hidden md:flex w-full md:w-96 lg:w-[420px] flex-shrink-0 min-h-0 bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex-col overflow-hidden" style={{ border: '1px solid rgba(186,158,255,0.12)' }}>
           <div className="p-4 border-b border-white/5">
             <span className="font-headline font-semibold text-primary">Live Chat</span>
           </div>
