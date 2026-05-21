@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { GRADIENT } from '../../constants/theme';
 import { countryFlag, countryName } from '../../constants/locale';
 import { interestByCode } from '../../constants/interests';
 import ReportModal from '../../components/ReportModal';
 import EmojiPicker from '../../components/EmojiPicker';
 import MobileLiveChat from '../../components/MobileLiveChat';
+import CallControlsBar from '../../components/CallControlsBar';
 import api from '../../api/axios';
 
 const MAX_PEER_CHIPS = 3;
@@ -79,7 +79,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
   return (
     <div className="text-on-background font-body flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
       {/* Main */}
-      <main className="flex-1 min-h-0 flex flex-col md:flex-row px-2 md:px-6 pb-2 md:pb-6 gap-2 md:gap-6 relative overflow-hidden">
+      <main className="flex-1 min-h-0 flex flex-col md:flex-row px-2 md:px-4 gap-2 md:gap-4 relative overflow-hidden">
         {/* Friend-request banner. Compact pill, shown only when peer
             hit Add Friend first. Floats above the video stage; auto-
             dismisses after 20s if user does nothing. */}
@@ -140,7 +140,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             "you" is always on the left and the stranger on the right. */}
         <div className="flex-1 relative flex flex-col md:flex-row-reverse gap-2 md:gap-4 min-w-0 min-h-0 pt-[10px]">
           {/* Remote (stranger) panel */}
-          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-low rounded-xl overflow-hidden" style={{boxShadow:'0 0 20px rgba(139,92,246,0.3)'}}>
+          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-low rounded-xl overflow-hidden" style={{ border: '1px solid rgba(186,158,255,0.12)' }}>
             <video
               ref={remoteVideoRef}
               className="w-full h-full object-cover"
@@ -224,7 +224,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           </div>
 
           {/* Local (self) panel */}
-          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-high rounded-xl overflow-hidden border border-white/5" style={{boxShadow:'0 0 20px rgba(139,92,246,0.3)'}}>
+          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-high rounded-xl overflow-hidden" style={{ border: '1px solid rgba(186,158,255,0.12)' }}>
             <video
               ref={localVideoRef}
               className="w-full h-full object-cover"
@@ -277,7 +277,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
         </form>
 
         {/* Desktop chat sidebar — phones use the MobileLiveChat overlay instead. */}
-        <aside className="hidden md:flex w-full md:w-96 lg:w-[420px] flex-shrink-0 md:h-full bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex-col overflow-hidden">
+        <aside className="hidden md:flex w-full md:w-96 lg:w-[420px] flex-shrink-0 md:h-full bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex-col overflow-hidden" style={{ border: '1px solid rgba(186,158,255,0.12)' }}>
           <div className="p-4 border-b border-white/5">
             <span className="font-headline font-semibold text-primary">Live Chat</span>
           </div>
@@ -347,114 +347,15 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
         </aside>
       </main>
 
-      {/* Bottom nav */}
-      <nav
-        className="flex-shrink-0 w-full grid grid-cols-5 items-start md:flex md:justify-center md:items-center md:gap-10 px-4 py-3 bg-surface-container-low/60 backdrop-blur-xl rounded-t-2xl md:rounded-t-3xl"
-        style={{ boxShadow: '0 -8px 30px rgba(139,92,246,0.15)' }}
-      >
-        {/* Next */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            onClick={skip}
-            aria-label="Next"
-            className="flex items-center justify-center text-black rounded-full p-3 shadow-lg hover:scale-110 transition-transform duration-200"
-            style={{backgroundImage: GRADIENT, boxShadow:'0 4px 20px rgba(186,158,255,0.2)'}}
-          >
-            <span className="material-symbols-outlined text-[22px]">skip_next</span>
-          </button>
-          <span className="hidden md:block font-label text-[9px] uppercase tracking-widest text-primary font-bold">Next</span>
-        </div>
-
-        {/* Mic toggle */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            onClick={toggleMic}
-            aria-pressed={!micEnabled}
-            aria-label={micEnabled ? 'Mute mic' : 'Unmute mic'}
-            className="flex items-center justify-center rounded-full p-3 border transition-all duration-200 active:scale-95"
-            style={micEnabled
-              ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
-              : { background: 'rgba(167,1,56,0.2)', borderColor: 'rgba(167,1,56,0.4)', color: '#ff6e84' }}
-          >
-            <span className="material-symbols-outlined text-[22px]">{micEnabled ? 'mic' : 'mic_off'}</span>
-          </button>
-          <span className="hidden md:block font-label text-[9px] uppercase tracking-widest" style={{ color: micEnabled ? '#ba9eff' : '#ff6e84' }}>
-            {micEnabled ? 'Mic' : 'Muted'}
-          </span>
-        </div>
-
-        {/* Camera toggle */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            onClick={toggleCamera}
-            aria-pressed={!cameraEnabled}
-            aria-label={cameraEnabled ? 'Turn off camera' : 'Turn on camera'}
-            className="flex items-center justify-center rounded-full p-3 border transition-all duration-200 active:scale-95"
-            style={cameraEnabled
-              ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
-              : { background: 'rgba(167,1,56,0.2)', borderColor: 'rgba(167,1,56,0.4)', color: '#ff6e84' }}
-          >
-            <span className="material-symbols-outlined text-[22px]">{cameraEnabled ? 'videocam' : 'videocam_off'}</span>
-          </button>
-          <span className="hidden md:block font-label text-[9px] uppercase tracking-widest" style={{ color: cameraEnabled ? '#ba9eff' : '#ff6e84' }}>
-            {cameraEnabled ? 'Cam' : 'Off'}
-          </span>
-        </div>
-
-        {/* Add Friend */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            onClick={handleAddFriend}
-            disabled={friendBusy || friendStatus === 'accepted' || friendStatus === 'sent'}
-            aria-label={
-              friendStatus === 'accepted' ? 'Friends'
-              : friendStatus === 'sent' ? 'Friend request sent'
-              : friendStatus === 'received' ? 'Accept friend request'
-              : 'Add friend'
-            }
-            className="flex items-center justify-center rounded-full p-3 border transition-all duration-200 active:scale-95 disabled:cursor-default disabled:opacity-100"
-            style={{
-              ...(friendStatus === 'accepted' ? { background: 'rgba(0,207,252,0.15)', borderColor: 'rgba(0,207,252,0.4)', color: '#00cffc' }
-              : friendStatus === 'sent' ? { background: 'rgba(186,158,255,0.18)', borderColor: 'rgba(186,158,255,0.35)', color: '#ba9eff' }
-              : friendStatus === 'received' ? { background: 'rgba(255,151,181,0.15)', borderColor: 'rgba(255,151,181,0.35)', color: '#ff97b5' }
-              : { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }),
-              opacity: 1,
-              WebkitAppearance: 'none',
-              appearance: 'none',
-            }}
-          >
-            <span className="material-symbols-outlined text-[22px]" aria-hidden="true">
-              {friendStatus === 'accepted' ? 'check_circle'
-               : friendStatus === 'sent' ? 'hourglass_top'
-               : friendStatus === 'received' ? 'person_add_alt'
-               : 'person_add'}
-            </span>
-          </button>
-          <span className="hidden md:block font-label text-[9px] uppercase tracking-widest" style={{
-            color: friendStatus === 'accepted' ? '#00cffc'
-                 : friendStatus === 'received' ? '#ff97b5'
-                 : '#ba9eff'
-          }}>
-            {friendStatus === 'accepted' ? 'Friends'
-             : friendStatus === 'sent' ? 'Sent'
-             : friendStatus === 'received' ? 'Add Back'
-             : 'Friend'}
-          </span>
-        </div>
-
-        {/* End/Stop */}
-        <div className="flex flex-col items-center gap-0.5">
-          <button
-            onClick={endCall}
-            aria-label="End call"
-            className="flex items-center justify-center rounded-full p-3 border border-error-container/40 hover:bg-error-container hover:text-on-error transition-all duration-300 active:scale-95"
-            style={{background:'rgba(167,1,56,0.2)', color:'#ff6e84'}}
-          >
-            <span className="material-symbols-outlined text-[22px]">stop_circle</span>
-          </button>
-          <span className="hidden md:block font-label text-[9px] uppercase tracking-widest text-error-dim">Stop</span>
-        </div>
-      </nav>
+      <CallControlsBar
+        controls={[
+          { type: 'next', onClick: skip },
+          { type: 'mic', enabled: micEnabled, onClick: toggleMic },
+          { type: 'cam', enabled: cameraEnabled, onClick: toggleCamera },
+          { type: 'friend', status: friendStatus, busy: friendBusy, onClick: handleAddFriend },
+          { type: 'stop', onClick: endCall, title: 'End call' },
+        ]}
+      />
 
       {/* Ambient glows */}
       <div className="fixed top-1/4 -left-32 w-64 h-64 rounded-full blur-[120px] pointer-events-none" style={{background:'rgba(186,158,255,0.1)'}}></div>

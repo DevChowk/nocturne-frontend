@@ -21,7 +21,7 @@ export default function FriendsSidebar({ friends, loading }) {
   const onlineCount = friends.filter((f) => f.user.online).length;
 
   return (
-    <aside className="hidden md:flex flex-shrink-0 w-64 lg:w-[300px] flex-col px-3 md:px-4 pb-3 md:pb-4">
+    <aside className="hidden md:flex flex-shrink-0 w-64 lg:w-[300px] flex-col pl-3 md:pl-4 pr-0 pb-2 md:pb-2">
       <div className="flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden" style={{ background: '#131313', border: '1px solid rgba(186,158,255,0.12)' }}>
         <div className="flex items-center justify-between px-5 pt-4 pb-2 flex-shrink-0">
           <h2 className="font-headline font-bold text-on-surface text-base">Friends</h2>

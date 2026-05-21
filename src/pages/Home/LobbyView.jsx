@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { GRADIENT } from '../../constants/theme';
+import CallControlsBar from '../../components/CallControlsBar';
 
 // Shown after WAITING_FALLBACK_MS of an empty queue. Pool of variants keeps
 // the experience from feeling robotic when someone hits the dry-spell more
@@ -85,9 +86,9 @@ export default function LobbyView({ user, isConnected, socketError, status, find
       <div className="pointer-events-none fixed rounded-full blur-3xl" style={{ width: 350, height: 350, bottom: '10%', right: '-6%', background: 'rgba(0,207,252,0.05)', zIndex: 0 }} />
 
       {/* Body */}
-      <div className="relative z-10 flex flex-1 overflow-hidden" style={{paddingTop: 10, paddingBottom: 70 }}>
+      <div className="relative z-10 flex flex-1 overflow-hidden min-h-0">
         {/* Main canvas */}
-        <main className="flex flex-col md:flex-row flex-1 gap-3 md:gap-4 px-3 md:px-4 pb-3 md:pb-4 overflow-hidden">
+        <main className="flex flex-col md:flex-row flex-1 gap-3 md:gap-4 px-2 md:px-4 overflow-hidden">
           {/* Local feed panel */}
           <div className="relative flex-1 rounded-xl overflow-hidden" style={{ background: '#131313', border: '1px solid rgba(186,158,255,0.12)' }}>
             <video
@@ -129,39 +130,6 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             <div className="absolute bottom-0 left-0 right-0 p-3 md:p-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}>
               <h2 className="text-lg md:text-2xl font-bold font-headline text-white">You</h2>
             </div>
-            {/* Mic / camera quick toggles in lobby */}
-            {localStream && (
-              <div className="absolute top-4 right-4 flex gap-2">
-                <button
-                  onClick={toggleMic}
-                  aria-pressed={!micEnabled}
-                  aria-label={micEnabled ? 'Mute microphone' : 'Unmute microphone'}
-                  title={micEnabled ? 'Mute' : 'Unmute'}
-                  className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95 w-9 h-9 md:w-11 md:h-11"
-                  style={{
-                    ...(micEnabled
-                      ? { background: 'rgba(19,19,19,0.6)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
-                      : { background: 'rgba(167,1,56,0.5)', borderColor: 'rgba(167,1,56,0.6)', color: '#ff6e84' }),
-                  }}
-                >
-                  <span className="material-symbols-outlined text-lg" aria-hidden="true">{micEnabled ? 'mic' : 'mic_off'}</span>
-                </button>
-                <button
-                  onClick={toggleCamera}
-                  aria-pressed={!cameraEnabled}
-                  aria-label={cameraEnabled ? 'Turn camera off' : 'Turn camera on'}
-                  title={cameraEnabled ? 'Turn off camera' : 'Turn on camera'}
-                  className="flex items-center justify-center rounded-full border backdrop-blur-md transition-all duration-200 active:scale-95 w-9 h-9 md:w-11 md:h-11"
-                  style={{
-                    ...(cameraEnabled
-                      ? { background: 'rgba(19,19,19,0.6)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
-                      : { background: 'rgba(167,1,56,0.5)', borderColor: 'rgba(167,1,56,0.6)', color: '#ff6e84' }),
-                  }}
-                >
-                  <span className="material-symbols-outlined text-lg" aria-hidden="true">{cameraEnabled ? 'videocam' : 'videocam_off'}</span>
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Searching / idle / peer_left panel */}
@@ -239,31 +207,14 @@ export default function LobbyView({ user, isConnected, socketError, status, find
       </div>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 md:left-64 lg:left-72 z-20 flex justify-center items-center gap-8 px-4 py-3 rounded-t-3xl"
-        style={{ background: 'rgba(19,19,19,0.85)', backdropFilter: 'blur(20px)', boxShadow: '0 -8px 32px rgba(139,92,246,0.12)' }}>
-        <button
-          onClick={status === 'waiting' ? undefined : findMatch}
-          disabled={!isConnected || status === 'waiting'}
-          aria-label={status === 'waiting' ? 'Searching for a match' : 'Find next match'}
-          className={`flex flex-col items-center gap-1 rounded-full p-3 transition-transform disabled:cursor-not-allowed ${status === 'waiting' ? 'opacity-70' : 'hover:scale-105 disabled:opacity-40'}`}
-          style={{ backgroundImage: GRADIENT, color: '#000' }}>
-          <span className={`material-symbols-outlined ${status === 'waiting' ? 'animate-spin' : ''}`} style={{ fontSize: 22 }}>
-            {status === 'waiting' ? 'progress_activity' : 'skip_next'}
-          </span>
-          <span className="hidden md:block font-label uppercase tracking-widest" style={{ fontSize: 9 }}>
-            {status === 'waiting' ? 'Searching' : 'Next'}
-          </span>
-        </button>
-        <button
-          onClick={status === 'waiting' ? cancel : undefined}
-          aria-label="Stop"
-          className="flex flex-col items-center gap-1 p-3 rounded-xl transition-colors"
-          style={{ color: status === 'waiting' ? '#ff6e84' : 'rgba(173,170,170,0.3)', cursor: status === 'waiting' ? 'pointer' : 'not-allowed' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>stop_circle</span>
-          <span className="hidden md:block font-label uppercase tracking-widest" style={{ fontSize: 9 }}>Stop</span>
-        </button>
-      </nav>
-
+      <CallControlsBar
+        controls={[
+          { type: 'next', onClick: findMatch, disabled: !isConnected, loading: status === 'waiting', title: 'Find match' },
+          { type: 'mic', enabled: micEnabled, onClick: toggleMic },
+          { type: 'cam', enabled: cameraEnabled, onClick: toggleCamera },
+          { type: 'stop', onClick: cancel, disabled: status !== 'waiting', title: 'Cancel search' },
+        ]}
+      />
     </div>
   );
 }

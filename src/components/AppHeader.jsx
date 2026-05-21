@@ -7,7 +7,7 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
 
   return (
     <header
-      className="relative z-30 flex items-center justify-between px-4 py-2.5 md:px-6 md:py-4 flex-shrink-0"
+      className="relative z-30 flex items-center justify-between px-4 py-2.5 md:px-6 md:py-4 mb-2 md:mb-4 flex-shrink-0"
       style={{ background: '#0e0e0e' }}
     >
       <div className="flex items-center gap-4 min-w-0">
