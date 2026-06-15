@@ -112,6 +112,10 @@ export default function HomePage() {
   // per `socket`) can read the latest peer ID without re-subscribing.
   const matchInfoRef = useRef(null);
   useEffect(() => { matchInfoRef.current = matchInfo; }, [matchInfo]);
+  // Same trick for the last-end-reason — auto-rejoin checks this synchronously
+  // when a peer-end event fires.
+  const lastEndReasonRef = useRef(null);
+  useEffect(() => { lastEndReasonRef.current = lastEndReason; }, [lastEndReason]);
 
   // Re-bind srcObject whenever the underlying stream changes OR the DOM
   // element behind the ref changes (LobbyView ↔ VideoCallView transition,
@@ -196,13 +200,27 @@ export default function HomePage() {
       if (!data?.roomId) return false; // legacy / payloadless event — process
       return matchInfoRef.current?.roomId !== data.roomId;
     };
+    // When the OTHER side ends/drops the call, automatically rejoin the
+    // queue — the user doesn't have to tap "find a new match". Skipped if
+    // an NSFW auto-end set lastEndReason; that path wants to surface its
+    // message in the lobby instead of silently re-queueing.
+    const autoRejoinAfterPeerEnd = () => {
+      setMatchInfo(null);
+      setMessages([]);
+      if (lastEndReasonRef.current === 'nsfw') {
+        setStatus('peer_left');
+        return;
+      }
+      socket.emit('join_queue');
+      setStatus('waiting');
+    };
     const onPeerDisconnected = (data) => {
       if (isStaleRoomEvent(data)) return;
-      setStatus('peer_left'); setMatchInfo(null); setMessages([]);
+      autoRejoinAfterPeerEnd();
     };
     const onCallEnded = (data) => {
       if (isStaleRoomEvent(data)) return;
-      setStatus('peer_left'); setMatchInfo(null); setMessages([]);
+      autoRejoinAfterPeerEnd();
     };
     const onChatMessage = (data) => setMessages(prev => [...prev, { message: data.message, from: data.from, timestamp: data.timestamp, mine: false }]);
     // Peer hit Add Friend during the call. If we're matched with them, light
