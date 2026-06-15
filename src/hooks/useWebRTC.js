@@ -25,6 +25,16 @@ const ICE_SERVERS = [
 // latency.
 const MAX_VIDEO_BITRATE = 2_500_000; // 2.5 Mbps
 
+// Connection-recovery tuning. `disconnected` is often a transient blip
+// (subway, Wi-Fi handoff, captive portal) — give it a grace window before
+// declaring failure so we don't trash an otherwise-recoverable call.
+// After the window (or on a hard `failed` event), the initiator triggers
+// an ICE restart: a fresh candidate exchange that keeps the media senders
+// and tracks intact. Cap retries so a permanently broken link still
+// terminates and frees the auto-rejoin path.
+const ICE_DISCONNECT_GRACE_MS = 5000;
+const MAX_ICE_RESTARTS = 3;
+
 // Manages the RTCPeerConnection lifecycle for a matched call. The local
 // stream + mic/camera state live in useLocalMedia (which persists across
 // matches). This hook just consumes them, sets up signaling, and exposes
@@ -53,6 +63,15 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
     if (!socket || !roomId || !role || !localStream) return;
 
     let cancelled = false;
+    // Hoisted so the effect's cleanup can clear it without reaching into
+    // start()'s closure. start() reassigns this when it arms the timer.
+    let disconnectTimer = null;
+    const clearDisconnectTimer = () => {
+      if (disconnectTimer) {
+        clearTimeout(disconnectTimer);
+        disconnectTimer = null;
+      }
+    };
 
     // Listen for peer's media-state updates synchronously so the listener
     // is ready before any peer message can arrive.
@@ -66,6 +85,35 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
       // Create peer connection
       const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
       pcRef.current = pc;
+
+      // Connection-recovery bookkeeping. `disconnectTimer` (hoisted to the
+      // effect scope so cleanup can clear it) arms when ICE first reports
+      // `disconnected`; it fires the restart if the state hasn't recovered
+      // by then. `restartCount` caps how many times we try before giving
+      // up. Only the initiator drives restarts to avoid both sides creating
+      // offers simultaneously (glare).
+      let restartCount = 0;
+      let restartInFlight = false;
+      const tryIceRestart = async () => {
+        if (cancelled || restartInFlight || role !== 'initiator') return;
+        if (restartCount >= MAX_ICE_RESTARTS) {
+          console.warn('[WebRTC] ICE restart cap reached; giving up');
+          return;
+        }
+        restartInFlight = true;
+        restartCount += 1;
+        console.log(`[WebRTC] triggering ICE restart (attempt ${restartCount}/${MAX_ICE_RESTARTS})`);
+        try {
+          const offer = await pc.createOffer({ iceRestart: true });
+          if (cancelled) return;
+          await pc.setLocalDescription(offer);
+          socket.emit('offer', { roomId, offer });
+        } catch (err) {
+          console.error('[WebRTC] ICE restart failed:', err);
+        } finally {
+          restartInFlight = false;
+        }
+      };
 
       // ICE candidate buffer. Remote candidates can arrive before we've
       // called setRemoteDescription (the offer/answer exchange races
@@ -105,6 +153,31 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
         console.warn('[WebRTC] setParameters (bitrate cap) failed:', err.message);
       }
 
+      // Recovery hooks. `disconnected` is recoverable — wait the grace
+      // window before declaring failure. `failed` is terminal at the ICE
+      // layer but a restart can revive it. `connected`/`completed` mean
+      // we're healthy again; reset the restart budget so a fresh blip
+      // doesn't start counting against an old one.
+      pc.oniceconnectionstatechange = () => {
+        const state = pc.iceConnectionState;
+        console.log('[WebRTC] iceConnectionState →', state);
+        if (state === 'connected' || state === 'completed') {
+          clearDisconnectTimer();
+          restartCount = 0;
+        } else if (state === 'disconnected') {
+          if (!disconnectTimer) {
+            disconnectTimer = setTimeout(() => {
+              disconnectTimer = null;
+              const s = pcRef.current?.iceConnectionState;
+              if (s === 'disconnected' || s === 'failed') tryIceRestart();
+            }, ICE_DISCONNECT_GRACE_MS);
+          }
+        } else if (state === 'failed') {
+          clearDisconnectTimer();
+          tryIceRestart();
+        }
+      };
+
       // Collect remote tracks
       const remote = new MediaStream();
       setRemoteStream(remote);
@@ -128,6 +201,10 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
       // this connection's listeners, not any concurrent useWebRTC instance
       // (e.g. during React StrictMode double-mount).
       const onOffer = async ({ offer }) => {
+        // The initiator restarts ICE by sending a fresh offer; the receiver
+        // accepts and answers. Clear any pending grace timer on this side
+        // since the renegotiation supersedes whatever blip triggered it.
+        clearDisconnectTimer();
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         remoteDescriptionSet = true;
         await flushPendingIce();
@@ -186,6 +263,10 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
       }
       socket.off('media_state', onPeerMediaState);
       handlerRefs.current = null;
+      // Drop the grace timer before closing the peer connection so a stale
+      // fire after teardown doesn't try to send an offer on a dead socket
+      // or a closed pc.
+      clearDisconnectTimer();
       if (pcRef.current) {
         pcRef.current.close();
         pcRef.current = null;
