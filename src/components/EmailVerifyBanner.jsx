@@ -1,20 +1,22 @@
 import { useState } from 'react';
-import api from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
+import { useResendVerification } from '../hooks/useResendVerification';
+import { useGraceCountdown, formatGraceLeft } from '../hooks/useVerification';
 
 const SESSION_DISMISS_KEY = 'bump.emailBannerDismissed';
 
-// Slim banner shown to users whose email isn't verified yet. Soft nag —
-// nothing's actually blocked. Persists dismissal for the browser session
-// only (sessionStorage) so it nags again next visit.
+// Slim banner shown to unverified users while they're still inside the grace
+// window. Soft nag — the app stays usable until the deadline, after which
+// ProtectedRoute swaps in the hard VerificationGate instead of this. Shows a
+// live countdown so the deadline isn't a surprise. Dismissal lasts the browser
+// session only (sessionStorage) so it nags again next visit.
 export default function EmailVerifyBanner() {
   const { user } = useAuth();
+  const { resend, sending, sent, error, cooldown } = useResendVerification();
+  const msLeft = useGraceCountdown(user);
   const [dismissed, setDismissed] = useState(() => {
     try { return sessionStorage.getItem(SESSION_DISMISS_KEY) === '1'; } catch { return false; }
   });
-  const [resending, setResending] = useState(false);
-  const [resent, setResent] = useState(false);
-  const [error, setError] = useState('');
 
   if (!user || user.emailVerified || dismissed) return null;
 
@@ -23,18 +25,7 @@ export default function EmailVerifyBanner() {
     try { sessionStorage.setItem(SESSION_DISMISS_KEY, '1'); } catch { /* private mode */ }
   };
 
-  const resend = async () => {
-    setResending(true);
-    setError('');
-    try {
-      await api.post('/api/auth/verify/send');
-      setResent(true);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Could not send. Try again.');
-    } finally {
-      setResending(false);
-    }
-  };
+  const resendLabel = sending ? 'Sending…' : cooldown > 0 ? `${cooldown}s` : 'Resend';
 
   return (
     <div
@@ -44,24 +35,28 @@ export default function EmailVerifyBanner() {
     >
       <span className="material-symbols-outlined text-primary flex-shrink-0" aria-hidden="true" style={{ fontSize: 18 }}>mark_email_unread</span>
       <p className="text-xs text-on-surface flex-1 min-w-0 truncate">
-        {resent ? (
+        {sent && !error ? (
           <>Verification email sent — check your inbox.</>
         ) : error ? (
           <span className="text-error">{error}</span>
         ) : (
-          <><span className="font-semibold">Verify your email.</span> <span className="text-on-surface-variant">We sent a link to {user.email}.</span></>
+          <>
+            <span className="font-semibold">Verify your email.</span>{' '}
+            <span className="text-on-surface-variant">We sent a link to {user.email}.</span>
+            {msLeft != null && (
+              <span className="text-primary font-semibold"> {formatGraceLeft(msLeft)} left.</span>
+            )}
+          </>
         )}
       </p>
-      {!resent && (
-        <button
-          type="button"
-          onClick={resend}
-          disabled={resending}
-          className="text-xs font-semibold text-primary hover:text-primary-fixed flex-shrink-0 disabled:opacity-50"
-        >
-          {resending ? 'Sending…' : 'Resend'}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={resend}
+        disabled={sending || cooldown > 0}
+        className="text-xs font-semibold text-primary hover:text-primary-fixed flex-shrink-0 disabled:opacity-50"
+      >
+        {resendLabel}
+      </button>
       <button
         type="button"
         onClick={dismiss}

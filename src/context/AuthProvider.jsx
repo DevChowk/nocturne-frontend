@@ -104,6 +104,15 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // The socket layer dispatches 'bump:verification-required' when the server
+  // rejects/kicks an unverified user past their grace deadline. Re-fetch /me
+  // so emailVerificationRequired flips true and ProtectedRoute shows the gate.
+  useEffect(() => {
+    const onRequired = () => { refreshUser(); };
+    window.addEventListener('bump:verification-required', onRequired);
+    return () => window.removeEventListener('bump:verification-required', onRequired);
+  }, [refreshUser]);
+
   // True when the user is authed but hasn't completed onboarding (no username yet).
   const needsOnboarding = !!token && !loading && !!user && !user.username;
 
