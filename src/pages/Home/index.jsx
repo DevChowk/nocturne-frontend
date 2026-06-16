@@ -18,6 +18,12 @@ import SettingsModal from '../../components/SettingsModal';
 import LobbyView from './LobbyView';
 import VideoCallView from './VideoCallView';
 
+// Inbound NSFW moderation toggle. OFF by default — the scanner is a heavy
+// dependency (tfjs + nsfwjs model) and the auto-end + auto-report flow has
+// caused unwanted call drops. Set VITE_NSFW_SCAN_ENABLED=true to re-enable
+// the runtime check + auto-end-call behavior unchanged.
+const NSFW_SCAN_ENABLED = import.meta.env.VITE_NSFW_SCAN_ENABLED === 'true';
+
 // Short two-tone chime via Web Audio (no asset). Browsers gate AudioContext
 // behind a user gesture; on initial app load there's none, so the first ping
 // after refresh may be silent. Subsequent matches (same session) play fine.
@@ -334,7 +340,7 @@ export default function HomePage() {
 
   useNsfwScanner({
     videoRef: remoteVideoRef,
-    enabled: isInCall && !!remoteConnected,
+    enabled: NSFW_SCAN_ENABLED && isInCall && !!remoteConnected,
     onFlag: onNsfwFlag,
   });
 

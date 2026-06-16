@@ -127,6 +127,12 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                 </div>
               </div>
             )}
+            {/* Brand mark — top-right of the local panel. Same look as the
+                in-call brand mark so users see consistent branding. */}
+            <div className="absolute top-3 right-3 md:top-5 md:right-5 flex items-center gap-1 opacity-40 pointer-events-none select-none z-10">
+              <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
+              <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bump</span>
+            </div>
             <div className="absolute bottom-0 left-0 right-0 p-3 md:p-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}>
               <h2 className="text-lg md:text-2xl font-bold font-headline text-white">You</h2>
             </div>
