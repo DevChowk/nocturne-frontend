@@ -136,7 +136,7 @@ export default function ConversationPage() {
   return (
     <div className="bg-background text-on-surface font-body min-h-screen flex flex-col">
       <header
-        className="px-4 py-3 flex items-center gap-3 border-b border-white/5 sticky top-0 z-10"
+        className="px-4 py-2.5 md:px-6 md:py-4 flex items-center gap-3 border-b border-white/5 sticky top-0 z-10"
         style={{ background: '#0e0e0e' }}
       >
         <button

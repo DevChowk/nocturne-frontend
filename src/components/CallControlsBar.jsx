@@ -116,7 +116,7 @@ const renderControl = (c, i) => {
 
 export default function CallControlsBar({ controls }) {
   return (
-    <div className="flex-shrink-0 w-full px-2 md:px-4 pt-2 md:pt-4 pb-2 md:pb-2">
+    <div className="flex-shrink-0 w-full px-2 md:px-4 pt-2 md:pt-4 pb-4 md:pb-4">
       <nav
         className="w-full flex justify-center px-4 py-2 bg-surface-container-low/60 backdrop-blur-xl rounded-2xl"
         style={{ boxShadow: '0 -8px 30px rgba(139,92,246,0.15)' }}

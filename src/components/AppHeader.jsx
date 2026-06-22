@@ -50,7 +50,7 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
             aria-label={friendsCollapsed ? 'Show friends list' : 'Hide friends list'}
             aria-pressed={!friendsCollapsed}
             title={friendsCollapsed ? 'Show friends' : 'Hide friends'}
-            className="hidden md:flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0 w-8 h-8 md:w-10 md:h-10"
+            className="flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0 w-8 h-8 md:w-10 md:h-10"
             style={{ background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 12px rgba(186,158,255,0.15)' }}
           >
             <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>group</span>

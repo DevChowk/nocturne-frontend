@@ -70,6 +70,7 @@ export default function HomePage() {
   const [lastEndReason, setLastEndReason] = useState(null);
   const [onlineCount, setOnlineCount] = useState(null);
   const { friends, loading: friendsLoading } = useFriends(socket);
+  const navigate = useNavigate();
   // Sidebar collapse state — owned here so both the sidebar's chevron AND
   // the header's friends button can toggle it. Persisted across sessions.
   const [friendsCollapsed, setFriendsCollapsed] = useState(() => {
@@ -79,6 +80,15 @@ export default function HomePage() {
     try { localStorage.setItem('bump.friendsSidebarCollapsed', friendsCollapsed ? '1' : '0'); } catch { /* private mode */ }
   }, [friendsCollapsed]);
   const toggleFriendsCollapsed = useCallback(() => setFriendsCollapsed((c) => !c), []);
+  // Header's friends button does different things by viewport: on desktop
+  // it toggles the inline sidebar; on mobile (where the sidebar doesn't
+  // render at all) it jumps to the full /friends page instead. Checked at
+  // click time so it stays correct across orientation changes.
+  const handleFriendsHeaderClick = useCallback(() => {
+    const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+    if (isDesktop) setFriendsCollapsed((c) => !c);
+    else navigate('/friends');
+  }, [navigate]);
 
   // In-call chat panel collapse state — same pattern, separate key so each
   // panel remembers its own preference independently.
@@ -96,7 +106,6 @@ export default function HomePage() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
-  const navigate = useNavigate();
   const isInCall = status === 'matched' && matchInfo;
 
   const {
@@ -471,7 +480,7 @@ export default function HomePage() {
           isConnected={isConnected}
           onlineCount={onlineCount}
           onProfileClick={() => setShowProfile(true)}
-          onFriendsToggle={!isInCall ? toggleFriendsCollapsed : null}
+          onFriendsToggle={!isInCall ? handleFriendsHeaderClick : null}
           friendsCollapsed={friendsCollapsed}
         />
 
@@ -481,7 +490,6 @@ export default function HomePage() {
               friends={friends}
               loading={friendsLoading}
               collapsed={friendsCollapsed}
-              onToggle={toggleFriendsCollapsed}
             />
           )}
           {mainView}

@@ -9,9 +9,9 @@ import { useNavigate } from 'react-router-dom';
 // when collapsed (pinned to the screen's left edge) so the rail is always
 // re-openable.
 //
-// `collapsed` + `onToggle` are owned by HomePage so the AppHeader's friends
-// button can drive the same state.
-export default function FriendsSidebar({ friends, loading, collapsed, onToggle }) {
+// `collapsed` is owned by HomePage so the AppHeader's friends button drives
+// the same state.
+export default function FriendsSidebar({ friends, loading, collapsed }) {
   const navigate = useNavigate();
 
   const sorted = useMemo(() => {
@@ -100,33 +100,6 @@ export default function FriendsSidebar({ friends, loading, collapsed, onToggle }
         </div>
       )}
 
-      {/* Floating handle. Pinned to the aside's right edge with a half-out
-          translate so half of it sits inside the card border (expanded) or
-          at x=0 of the viewport (collapsed). Round, blurred backdrop so it
-          reads as a control regardless of what's behind it. */}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={collapsed ? 'Show friends list' : 'Hide friends list'}
-        aria-expanded={!collapsed}
-        title={collapsed ? 'Show friends' : 'Hide friends'}
-        className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 z-20 flex items-center justify-center w-14 h-14 rounded-full transition-transform active:scale-90 hover:scale-110"
-        style={{
-          background: 'rgba(19,19,19,0.95)',
-          border: '1.5px solid rgba(186,158,255,0.55)',
-          color: '#ba9eff',
-          boxShadow: '0 4px 18px rgba(0,0,0,0.6), 0 0 24px rgba(186,158,255,0.35)',
-          backdropFilter: 'blur(6px)',
-        }}
-      >
-        <span
-          className="material-symbols-outlined transition-transform duration-300"
-          aria-hidden="true"
-          style={{ fontSize: 30, transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}
-        >
-          chevron_right
-        </span>
-      </button>
     </aside>
   );
 }
