@@ -2,7 +2,7 @@
 // online-count pill, then user identity + profile-menu trigger on the
 // right. Identical look and responsive sizing in every page so the user
 // always sees the same header regardless of which screen they're on.
-export default function AppHeader({ user, isConnected, onlineCount, onProfileClick }) {
+export default function AppHeader({ user, isConnected, onlineCount, onProfileClick, onFriendsToggle, friendsCollapsed }) {
   const initial = (user?.displayName?.[0] || user?.username?.[0] || user?.email?.[0] || '?').toUpperCase();
 
   return (
@@ -39,9 +39,23 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
         </div>
       </div>
       <div className="flex items-center gap-2 min-w-0">
-        <span className="text-on-surface-variant text-xs md:text-sm font-label truncate max-w-[100px] sm:max-w-[140px] md:max-w-[220px]">
-          {user?.username ? `@${user.username}` : user?.email}
-        </span>
+        {/* Friends toggle — desktop only (sidebar is desktop-only). Shows
+            people-icon at all times so users see the friends list exists;
+            click to collapse/expand. A small dot indicator on the icon when
+            the sidebar is hidden, so it's clear what's happening. */}
+        {onFriendsToggle && (
+          <button
+            type="button"
+            onClick={onFriendsToggle}
+            aria-label={friendsCollapsed ? 'Show friends list' : 'Hide friends list'}
+            aria-pressed={!friendsCollapsed}
+            title={friendsCollapsed ? 'Show friends' : 'Hide friends'}
+            className="hidden md:flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0 w-8 h-8 md:w-10 md:h-10"
+            style={{ background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 12px rgba(186,158,255,0.15)' }}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>group</span>
+          </button>
+        )}
         <button
           onClick={onProfileClick}
           aria-label="Open profile menu"

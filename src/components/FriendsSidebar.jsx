@@ -1,8 +1,5 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Persisted across sessions so the user's collapse preference sticks.
-const COLLAPSED_KEY = 'bump.friendsSidebarCollapsed';
 
 // Desktop-only left rail listing the user's accepted friends with a
 // live online indicator. Hidden on mobile (md:flex). Online friends
@@ -11,14 +8,11 @@ const COLLAPSED_KEY = 'bump.friendsSidebarCollapsed';
 // out of view; tap it again to bring it back. The handle stays visible
 // when collapsed (pinned to the screen's left edge) so the rail is always
 // re-openable.
-export default function FriendsSidebar({ friends, loading }) {
+//
+// `collapsed` + `onToggle` are owned by HomePage so the AppHeader's friends
+// button can drive the same state.
+export default function FriendsSidebar({ friends, loading, collapsed, onToggle }) {
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(() => {
-    try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
-  });
-  useEffect(() => {
-    try { localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0'); } catch { /* private mode */ }
-  }, [collapsed]);
 
   const sorted = useMemo(() => {
     return [...friends].sort((a, b) => {
@@ -112,11 +106,11 @@ export default function FriendsSidebar({ friends, loading }) {
           reads as a control regardless of what's behind it. */}
       <button
         type="button"
-        onClick={() => setCollapsed((c) => !c)}
+        onClick={onToggle}
         aria-label={collapsed ? 'Show friends list' : 'Hide friends list'}
         aria-expanded={!collapsed}
         title={collapsed ? 'Show friends' : 'Hide friends'}
-        className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full transition-transform active:scale-90 hover:scale-110"
+        className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 z-20 flex items-center justify-center w-14 h-14 rounded-full transition-transform active:scale-90 hover:scale-110"
         style={{
           background: 'rgba(19,19,19,0.95)',
           border: '1.5px solid rgba(186,158,255,0.55)',
@@ -128,7 +122,7 @@ export default function FriendsSidebar({ friends, loading }) {
         <span
           className="material-symbols-outlined transition-transform duration-300"
           aria-hidden="true"
-          style={{ fontSize: 24, transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}
+          style={{ fontSize: 30, transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}
         >
           chevron_right
         </span>

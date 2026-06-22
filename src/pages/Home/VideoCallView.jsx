@@ -8,7 +8,7 @@ import api from '../../api/axios';
 
 const BANNER_AUTO_DISMISS_MS = 20000;
 
-export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange }) {
+export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange, chatCollapsed, onChatToggle }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
   const [chatEmojiOpen, setChatEmojiOpen] = useState(false);
@@ -182,7 +182,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             {/* Brand mark — same top-right placement as the local panel so
                 both feeds carry consistent branding. */}
-            <div className="absolute top-3 right-3 md:top-6 md:right-6 flex items-center gap-1 opacity-40 pointer-events-none select-none">
+            <div className="absolute top-3 right-3 md:top-6 md:right-6 flex items-center gap-1 opacity-65 pointer-events-none select-none">
               <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
               <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bump</span>
             </div>
@@ -227,7 +227,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             {/* Brand mark — top-right of the local panel. Matches the
                 stranger-panel watermark style (40% opacity, non-interactive). */}
-            <div className="absolute top-3 right-3 md:top-6 md:right-6 flex items-center gap-1 opacity-40 pointer-events-none select-none">
+            <div className="absolute top-3 right-3 md:top-6 md:right-6 flex items-center gap-1 opacity-65 pointer-events-none select-none">
               <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
               <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bump</span>
             </div>
@@ -262,74 +262,95 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           </button>
         </form>
 
-        {/* Desktop chat sidebar — phones use the MobileLiveChat overlay instead. */}
-        <aside className="hidden md:flex w-full md:w-96 lg:w-[420px] flex-shrink-0 min-h-0 bg-surface-container-low/60 backdrop-blur-xl rounded-xl flex-col overflow-hidden" style={{ border: '1px solid rgba(186,158,255,0.12)' }}>
-          <div className="p-4 border-b border-white/5">
-            <span className="font-headline font-semibold text-primary">Live Chat</span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-            {messages.length === 0 && (
-              <p className="text-on-surface-variant text-sm text-center mt-4 font-label">No messages yet. Say hi!</p>
-            )}
-            {messages.reduce((blocks, msg) => {
-              // Collapse consecutive messages from the same sender into one
-              // block so the YOU / @peer label only shows once per run.
-              const last = blocks[blocks.length - 1];
-              if (last && last.mine === msg.mine) last.messages.push(msg);
-              else blocks.push({ mine: msg.mine, messages: [msg] });
-              return blocks;
-            }, []).map((block, b) => (
-              <div key={b} className={`flex flex-col gap-1 ${block.mine ? 'items-end' : ''}`}>
-                <span className={`text-[10px] font-bold uppercase tracking-tighter ${block.mine ? 'text-primary-fixed' : 'text-secondary'}`}>
-                  {block.mine ? 'You' : peerLabel}
-                </span>
-                {block.messages.map((msg, m) => (
-                  <div
-                    key={m}
-                    className={`p-3 max-w-[90%] text-sm text-on-surface leading-relaxed break-words [overflow-wrap:anywhere] ${
-                      block.mine
-                        ? 'bg-primary/10 border border-primary/20 rounded-tl-xl rounded-br-xl rounded-bl-xl'
-                        : 'bg-surface-container-highest rounded-tr-xl rounded-br-xl rounded-bl-xl'
-                    }`}
-                  >
-                    {msg.message}
+        {/* Desktop chat sidebar — phones use the MobileLiveChat overlay
+            instead. Collapsible via the floating chevron on its left edge;
+            same UX as the friends sidebar in the lobby (state owned by
+            HomePage so a future header button could drive it too).
+            Structure mirrors FriendsSidebar: the outer <aside> is just a
+            sized, relatively-positioned container without overflow clipping
+            so the floating handle can extend past its left edge; the inner
+            <div> is the rounded card that holds (and clips) the actual
+            chat content. */}
+        <aside
+          className={`hidden md:flex relative flex-shrink-0 min-h-0 transition-[width] duration-300 ease-out ${
+            chatCollapsed ? 'w-0' : 'w-full md:w-96 lg:w-[420px]'
+          }`}
+          aria-hidden={chatCollapsed}
+        >
+          {!chatCollapsed && (
+            <div
+              className="flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden bg-surface-container-low/60 backdrop-blur-xl"
+              style={{ border: '1px solid rgba(186,158,255,0.12)' }}
+            >
+              <div className="p-4 border-b border-white/5">
+                <span className="font-headline font-semibold text-primary">Live Chat</span>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                {messages.length === 0 && (
+                  <p className="text-on-surface-variant text-sm text-center mt-4 font-label">No messages yet. Say hi!</p>
+                )}
+                {messages.reduce((blocks, msg) => {
+                  // Collapse consecutive messages from the same sender into one
+                  // block so the YOU / @peer label only shows once per run.
+                  const last = blocks[blocks.length - 1];
+                  if (last && last.mine === msg.mine) last.messages.push(msg);
+                  else blocks.push({ mine: msg.mine, messages: [msg] });
+                  return blocks;
+                }, []).map((block, b) => (
+                  <div key={b} className={`flex flex-col gap-1 ${block.mine ? 'items-end' : ''}`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-tighter ${block.mine ? 'text-primary-fixed' : 'text-secondary'}`}>
+                      {block.mine ? 'You' : peerLabel}
+                    </span>
+                    {block.messages.map((msg, m) => (
+                      <div
+                        key={m}
+                        className={`p-3 max-w-[90%] text-sm text-on-surface leading-relaxed break-words [overflow-wrap:anywhere] ${
+                          block.mine
+                            ? 'bg-primary/10 border border-primary/20 rounded-tl-xl rounded-br-xl rounded-bl-xl'
+                            : 'bg-surface-container-highest rounded-tr-xl rounded-br-xl rounded-bl-xl'
+                        }`}
+                      >
+                        {msg.message}
+                      </div>
+                    ))}
                   </div>
                 ))}
+                <div ref={chatEndRef} />
               </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-          <div className="p-4 bg-surface-container-high/40">
-            <form className="relative flex items-center" onSubmit={sendMessage}>
-              <input
-                type="text"
-                value={chatInput}
-                onChange={e => setChatInput(e.target.value)}
-                placeholder="Type a message..."
-                autoComplete="off"
-                className="w-full bg-surface-container-highest border-none rounded-lg py-3 pl-4 pr-20 md:pr-20 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
-              />
-              {/* Emoji picker — desktop only. */}
-              <button
-                type="button"
-                onClick={() => setChatEmojiOpen((o) => !o)}
-                aria-label="Pick emoji"
-                className="hidden md:inline-flex absolute right-10 top-1/2 -translate-y-1/2 items-center justify-center w-8 h-8 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/60 transition-colors"
-              >
-                <span className="material-symbols-outlined text-lg" aria-hidden="true">mood</span>
-              </button>
-              {chatEmojiOpen && (
-                <EmojiPicker
-                  onPick={(emoji) => setChatInput((d) => d + emoji)}
-                  onClose={() => setChatEmojiOpen(false)}
-                  anchor="top"
-                />
-              )}
-              <button type="submit" aria-label="Send" className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-primary hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined" aria-hidden="true">send</span>
-              </button>
-            </form>
-          </div>
+              <div className="p-4 bg-surface-container-high/40">
+                <form className="relative flex items-center" onSubmit={sendMessage}>
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    placeholder="Type a message..."
+                    autoComplete="off"
+                    className="w-full bg-surface-container-highest border-none rounded-lg py-3 pl-4 pr-20 md:pr-20 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                  />
+                  {/* Emoji picker — desktop only. */}
+                  <button
+                    type="button"
+                    onClick={() => setChatEmojiOpen((o) => !o)}
+                    aria-label="Pick emoji"
+                    className="hidden md:inline-flex absolute right-10 top-1/2 -translate-y-1/2 items-center justify-center w-8 h-8 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/60 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-lg" aria-hidden="true">mood</span>
+                  </button>
+                  {chatEmojiOpen && (
+                    <EmojiPicker
+                      onPick={(emoji) => setChatInput((d) => d + emoji)}
+                      onClose={() => setChatEmojiOpen(false)}
+                      anchor="top"
+                    />
+                  )}
+                  <button type="submit" aria-label="Send" className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-primary hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined" aria-hidden="true">send</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
         </aside>
       </main>
 
@@ -340,6 +361,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           { type: 'cam', enabled: cameraEnabled, onClick: toggleCamera },
           { type: 'friend', status: friendStatus, busy: friendBusy, onClick: handleAddFriend },
           { type: 'stop', onClick: endCall, title: 'End call' },
+          { type: 'chat', active: !chatCollapsed, onClick: onChatToggle },
         ]}
       />
 

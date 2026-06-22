@@ -129,7 +129,7 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             )}
             {/* Brand mark — top-right of the local panel. Same look as the
                 in-call brand mark so users see consistent branding. */}
-            <div className="absolute top-3 right-3 md:top-5 md:right-5 flex items-center gap-1 opacity-40 pointer-events-none select-none z-10">
+            <div className="absolute top-3 right-3 md:top-5 md:right-5 flex items-center gap-1 opacity-65 pointer-events-none select-none z-10">
               <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
               <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bump</span>
             </div>

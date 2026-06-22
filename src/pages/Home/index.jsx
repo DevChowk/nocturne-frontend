@@ -70,6 +70,25 @@ export default function HomePage() {
   const [lastEndReason, setLastEndReason] = useState(null);
   const [onlineCount, setOnlineCount] = useState(null);
   const { friends, loading: friendsLoading } = useFriends(socket);
+  // Sidebar collapse state — owned here so both the sidebar's chevron AND
+  // the header's friends button can toggle it. Persisted across sessions.
+  const [friendsCollapsed, setFriendsCollapsed] = useState(() => {
+    try { return localStorage.getItem('bump.friendsSidebarCollapsed') === '1'; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('bump.friendsSidebarCollapsed', friendsCollapsed ? '1' : '0'); } catch { /* private mode */ }
+  }, [friendsCollapsed]);
+  const toggleFriendsCollapsed = useCallback(() => setFriendsCollapsed((c) => !c), []);
+
+  // In-call chat panel collapse state — same pattern, separate key so each
+  // panel remembers its own preference independently.
+  const [chatCollapsed, setChatCollapsed] = useState(() => {
+    try { return localStorage.getItem('bump.chatCollapsed') === '1'; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('bump.chatCollapsed', chatCollapsed ? '1' : '0'); } catch { /* private mode */ }
+  }, [chatCollapsed]);
+  const toggleChatCollapsed = useCallback(() => setChatCollapsed((c) => !c), []);
   // Lifted from LobbyView so FriendsSidebar (always rendered) can also
   // trigger the profile menu, regardless of whether we're in the lobby
   // or in a call.
@@ -410,6 +429,8 @@ export default function HomePage() {
       mirrorLocal={settings.mirrorLocal}
       friendStatus={friendStatus}
       onFriendStatusChange={setFriendStatus}
+      chatCollapsed={chatCollapsed}
+      onChatToggle={toggleChatCollapsed}
     />
   ) : (
     <LobbyView
@@ -450,10 +471,19 @@ export default function HomePage() {
           isConnected={isConnected}
           onlineCount={onlineCount}
           onProfileClick={() => setShowProfile(true)}
+          onFriendsToggle={!isInCall ? toggleFriendsCollapsed : null}
+          friendsCollapsed={friendsCollapsed}
         />
 
         <div className="flex flex-1 min-h-0 overflow-hidden">
-          {!isInCall && <FriendsSidebar friends={friends} loading={friendsLoading} />}
+          {!isInCall && (
+            <FriendsSidebar
+              friends={friends}
+              loading={friendsLoading}
+              collapsed={friendsCollapsed}
+              onToggle={toggleFriendsCollapsed}
+            />
+          )}
           {mainView}
         </div>
       </div>

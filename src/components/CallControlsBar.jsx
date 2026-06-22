@@ -68,6 +68,24 @@ function FriendButton({ status = 'none', onClick, busy }) {
   );
 }
 
+function ChatButton({ active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={active ? 'Hide chat' : 'Show chat'}
+      aria-pressed={active}
+      title={active ? 'Hide chat' : 'Show chat'}
+      className="hidden md:flex items-center justify-center rounded-full p-2 md:p-3 border transition-all duration-200 active:scale-95"
+      style={active
+        ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
+        : { background: 'rgba(38,38,38,0.6)', borderColor: 'rgba(72,72,71,0.4)', color: '#adaaaa' }}
+    >
+      <span className={ICON_CLASS}>chat_bubble</span>
+    </button>
+  );
+}
+
 function StopButton({ onClick, disabled, title }) {
   return (
     <button
@@ -90,6 +108,7 @@ const renderControl = (c, i) => {
     case 'mic':    return <ToggleButton key={i} enabled={c.enabled} onClick={c.onClick} iconOn="mic" iconOff="mic_off" label={c.enabled ? 'Mute mic' : 'Unmute mic'} />;
     case 'cam':    return <ToggleButton key={i} enabled={c.enabled} onClick={c.onClick} iconOn="videocam" iconOff="videocam_off" label={c.enabled ? 'Turn off camera' : 'Turn on camera'} />;
     case 'friend': return <FriendButton key={i} {...c} />;
+    case 'chat':   return <ChatButton key={i} {...c} />;
     case 'stop':   return <StopButton key={i} {...c} />;
     default:       return null;
   }
@@ -102,10 +121,7 @@ export default function CallControlsBar({ controls }) {
         className="w-full flex justify-center px-4 py-2 bg-surface-container-low/60 backdrop-blur-xl rounded-2xl"
         style={{ boxShadow: '0 -8px 30px rgba(139,92,246,0.15)' }}
       >
-        <div
-          className="grid items-center justify-items-center w-full max-w-xs"
-          style={{ gridTemplateColumns: `repeat(${controls.length}, minmax(0, 1fr))` }}
-        >
+        <div className="flex items-center justify-center gap-x-6 w-full">
           {controls.map(renderControl)}
         </div>
       </nav>
