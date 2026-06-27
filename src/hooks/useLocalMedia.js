@@ -11,6 +11,10 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
   const [micEnabled, setMicEnabled] = useState(true);
   const [cameraEnabled, setCameraEnabled] = useState(true);
   const [devices, setDevices] = useState({ video: [], audio: [] });
+  // Bumped whenever we need to re-acquire the stream for reasons unrelated
+  // to a device change — e.g. the page came back to the foreground after
+  // being backgrounded and we stopped the tracks to release the hardware.
+  const [acquireToken, setAcquireToken] = useState(0);
   const streamRef = useRef(null);
   const stateRef = useRef({ mic: true, camera: true });
 
@@ -22,6 +26,12 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
   // Acquire / re-acquire stream when device IDs change.
   useEffect(() => {
     let cancelled = false;
+    // Don't re-acquire while the page is in the background. The visibility
+    // listener will bump acquireToken when we come back, which triggers
+    // this effect to re-run and request a fresh stream.
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      return;
+    }
     // navigator.mediaDevices is only exposed in a secure context (HTTPS or
     // localhost). On plain http://lan-ip access, it's undefined — surface
     // a friendly error instead of crashing the render tree.
@@ -71,13 +81,52 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
     return () => {
       cancelled = true;
     };
-  }, [videoDeviceId, audioDeviceId]);
+  }, [videoDeviceId, audioDeviceId, acquireToken]);
 
   // Stop tracks on unmount.
   useEffect(() => {
     return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
+    };
+  }, []);
+
+  // Release the camera/mic hardware when the page goes to the background
+  // (tab switch, screen lock, app moved to background on mobile). Just
+  // setting `track.enabled = false` keeps the hardware acquired and the
+  // OS-level "in use" indicator (orange dot on iOS, mic icon on Android)
+  // stays lit; calling `track.stop()` is the only way to actually release
+  // it. When we come back, bump acquireToken so the acquire effect re-runs
+  // and we grab a fresh stream automatically.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        const s = streamRef.current;
+        if (s) {
+          s.getTracks().forEach((t) => t.stop());
+          streamRef.current = null;
+          setStream(null);
+        }
+      } else if (document.visibilityState === 'visible' && !streamRef.current) {
+        setAcquireToken((n) => n + 1);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    // Also stop on pagehide for iOS Safari, where switching apps doesn't
+    // always fire visibilitychange but always fires pagehide.
+    const onPageHide = () => {
+      const s = streamRef.current;
+      if (s) {
+        s.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        setStream(null);
+      }
+    };
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onPageHide);
     };
   }, []);
 
