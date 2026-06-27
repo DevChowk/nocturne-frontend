@@ -2,8 +2,10 @@
 // online-count pill, then user identity + profile-menu trigger on the
 // right. Identical look and responsive sizing in every page so the user
 // always sees the same header regardless of which screen they're on.
-export default function AppHeader({ user, isConnected, onlineCount, onProfileClick, onFriendsToggle, friendsCollapsed }) {
-  const initial = (user?.displayName?.[0] || user?.username?.[0] || user?.email?.[0] || '?').toUpperCase();
+export default function AppHeader({ user, isConnected, onlineCount, onProfileClick, onFriendsToggle, friendsCollapsed, isGuest }) {
+  const initial = isGuest
+    ? 'G'
+    : (user?.displayName?.[0] || user?.username?.[0] || user?.email?.[0] || '?').toUpperCase();
 
   return (
     <header

@@ -2,6 +2,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { AuthContext } from './AuthContext';
+import { getDeviceFingerprint } from '../utils/fingerprint';
+
+const GUEST_FLAG_KEY = 'bump.isGuest';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
@@ -9,11 +12,24 @@ export function AuthProvider({ children }) {
     return stored ? JSON.parse(stored) : null;
   });
   const [token, setToken] = useState(() => localStorage.getItem('token'));
+  // Guest sessions reuse the same token slot as registered users so the
+  // axios bearer header + every existing protected component just work.
+  // The flag tells the rest of the app to skip /me, hide registered-only
+  // features, and surface signup CTAs.
+  const [isGuest, setIsGuest] = useState(() => {
+    try { return localStorage.getItem(GUEST_FLAG_KEY) === '1'; } catch { return false; }
+  });
   const [loading, setLoading] = useState(() => !!localStorage.getItem('token'));
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) {
+      setLoading(false);
+      return;
+    }
+    // Guests have no User row — calling /me would 401/403 and yank them
+    // out. Trust the cached user shape stamped at loginAsGuest() time.
+    if (isGuest) {
       setLoading(false);
       return;
     }
@@ -66,18 +82,45 @@ export function AuthProvider({ children }) {
     navigate('/home');
   }, [saveAuth, navigate]);
 
+  // Spin up an anonymous guest session. Computes a homemade device
+  // fingerprint client-side, sends it along with the DOB attestation, and
+  // stashes the returned guest token in the same `token` slot used by
+  // registered users so axios + protected routes don't need to know.
+  const loginAsGuest = useCallback(async ({ dateOfBirth }) => {
+    const { uuid, fpHash } = getDeviceFingerprint();
+    const { data } = await api.post('/api/auth/guest', {
+      dateOfBirth,
+      uuid,
+      fpHash,
+    });
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.guest));
+    try { localStorage.setItem(GUEST_FLAG_KEY, '1'); } catch { /* private mode */ }
+    setToken(data.token);
+    setUser(data.guest);
+    setIsGuest(true);
+    navigate('/home');
+    return data;
+  }, [navigate]);
+
   const logout = useCallback(async () => {
     // Tell the server to blocklist the token so it can't be reused if it
     // ever leaks. Fire-and-forget — even if the request fails (network /
     // server down), we still clear local state and navigate; the token
-    // would only stay valid until its natural 7d expiry.
-    try { await api.post('/api/auth/logout'); } catch { /* ignore */ }
+    // would only stay valid until its natural 7d expiry. Skipped for
+    // guests — their tokens expire on their own short clock and the
+    // server has no User row to blocklist against.
+    if (!isGuest) {
+      try { await api.post('/api/auth/logout'); } catch { /* ignore */ }
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    try { localStorage.removeItem(GUEST_FLAG_KEY); } catch { /* private mode */ }
     setToken(null);
     setUser(null);
-    navigate('/login');
-  }, [navigate]);
+    setIsGuest(false);
+    navigate(isGuest ? '/' : '/login');
+  }, [navigate, isGuest]);
 
   // Profile updates (username, displayName, bio, dateOfBirth). Refreshes
   // the cached user on success and bubbles errors so callers can show
@@ -113,11 +156,13 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('bump:verification-required', onRequired);
   }, [refreshUser]);
 
-  // True when the user is authed but hasn't completed onboarding (no username yet).
-  const needsOnboarding = !!token && !loading && !!user && !user.username;
+  // True when the user is authed but hasn't completed onboarding (no
+  // username yet). Guests never get prompted — they have no User row to
+  // patch, so onboarding wouldn't make sense for them.
+  const needsOnboarding = !!token && !loading && !!user && !user.username && !isGuest;
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, needsOnboarding, login, googleLogin, register, logout, updateProfile, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, loading, needsOnboarding, isGuest, login, googleLogin, register, loginAsGuest, logout, updateProfile, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

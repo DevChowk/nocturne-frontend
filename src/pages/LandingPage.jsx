@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GRADIENT, gradientTextStyle } from '../constants/theme';
+import GuestEntryModal from '../components/GuestEntryModal';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [showGuestEntry, setShowGuestEntry] = useState(false);
 
   return (
     <div className="relative bg-background text-on-background font-body" style={{ height: '100vh', overflow: 'hidden' }}>
@@ -38,7 +41,7 @@ export default function LandingPage() {
         </p>
 
         {/* CTA Button */}
-        <div className="relative mb-6" style={{ display: 'inline-block' }}>
+        <div className="relative mb-4" style={{ display: 'inline-block' }}>
           <div className="absolute -inset-1 rounded-full blur-md opacity-40" style={{ backgroundImage: GRADIENT }} />
           <button
             onClick={() => navigate('/login')}
@@ -55,8 +58,20 @@ export default function LandingPage() {
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1", fontSize: 22 }}>bolt</span>
           </button>
         </div>
+
+        {/* Guest entry — opens the age-gate modal. Visually secondary so
+            signup stays the primary CTA. */}
+        <button
+          type="button"
+          onClick={() => setShowGuestEntry(true)}
+          className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-white/5 text-sm font-semibold transition-colors"
+        >
+          <span>Or try as a guest</span>
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>arrow_forward</span>
+        </button>
       </main>
 
+      {showGuestEntry && <GuestEntryModal onClose={() => setShowGuestEntry(false)} />}
     </div>
   );
 }

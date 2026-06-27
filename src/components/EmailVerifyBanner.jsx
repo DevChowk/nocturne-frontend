@@ -11,14 +11,15 @@ const SESSION_DISMISS_KEY = 'bump.emailBannerDismissed';
 // live countdown so the deadline isn't a surprise. Dismissal lasts the browser
 // session only (sessionStorage) so it nags again next visit.
 export default function EmailVerifyBanner() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const { resend, sending, sent, error, cooldown } = useResendVerification();
   const msLeft = useGraceCountdown(user);
   const [dismissed, setDismissed] = useState(() => {
     try { return sessionStorage.getItem(SESSION_DISMISS_KEY) === '1'; } catch { return false; }
   });
 
-  if (!user || user.emailVerified || dismissed) return null;
+  // Guests have no email to verify — banner is irrelevant for them.
+  if (isGuest || !user || user.emailVerified || dismissed) return null;
 
   const dismiss = () => {
     setDismissed(true);
