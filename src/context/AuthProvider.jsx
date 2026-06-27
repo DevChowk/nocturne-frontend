@@ -60,8 +60,14 @@ export function AuthProvider({ children }) {
   const saveAuth = useCallback((data) => {
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
+    // Clear the guest flag — saveAuth is only called for register/login/
+    // google, all of which mint a real user token. A guest who converts
+    // by signing up needs to shed the isGuest flag here or downstream
+    // gates (friends UI, EmailVerifyBanner, etc.) stay wrong.
+    try { localStorage.removeItem(GUEST_FLAG_KEY); } catch { /* private mode */ }
     setToken(data.token);
     setUser(data.user);
+    setIsGuest(false);
   }, []);
 
   const register = useCallback(async ({ email, password, username, dateOfBirth }) => {
