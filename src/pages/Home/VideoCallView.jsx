@@ -153,7 +153,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               </div>
             )}
             {!peerMicEnabled && remoteConnected && (
-              <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(167,1,56,0.6)' }}>
+              <div className="absolute bottom-3 right-3 md:bottom-6 md:right-6 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(167,1,56,0.6)' }}>
                 <span className="material-symbols-outlined text-white" aria-hidden="true" style={{ fontSize: 16 }}>mic_off</span>
                 <span className="text-white text-xs font-label uppercase tracking-wider">Muted</span>
               </div>
@@ -188,7 +188,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             </div>
             <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-headline font-bold text-base md:text-xl text-white">{peerLabel}</span>
+                <span className="font-headline font-bold text-xs md:text-base text-white">{peerLabel}</span>
                 {peerCountry && (
                   <span
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label uppercase tracking-wider backdrop-blur-md"

@@ -133,9 +133,6 @@ export default function LobbyView({ user, isConnected, socketError, status, find
               <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
               <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bump</span>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-3 md:p-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}>
-              <h2 className="text-lg md:text-2xl font-bold font-headline text-white">You</h2>
-            </div>
           </div>
 
           {/* Searching / idle / peer_left panel */}
