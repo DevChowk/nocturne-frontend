@@ -8,7 +8,7 @@ import api from '../../api/axios';
 
 const BANNER_AUTO_DISMISS_MS = 20000;
 
-export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange, chatCollapsed, onChatToggle }) {
+export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange, chatCollapsed, onChatToggle, unreadChat, isGuest, peerIsGuest }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
   const [chatEmojiOpen, setChatEmojiOpen] = useState(false);
@@ -188,7 +188,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             </div>
             <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-headline font-bold text-lg md:text-2xl text-white">{peerLabel}</span>
+                <span className="font-headline font-bold text-base md:text-xl text-white">{peerLabel}</span>
                 {peerCountry && (
                   <span
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label uppercase tracking-wider backdrop-blur-md"
@@ -231,36 +231,38 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
               <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bump</span>
             </div>
-            <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
-              <span className="font-headline font-bold text-lg md:text-2xl text-white">You</span>
-            </div>
           </div>
 
           {/* Phone-only live chat overlay — fading messages on the right
-              edge of the video stage. Lives inside the video stage so its
-              `bottom-0` aligns with the bottom of the user's panel. */}
-          <MobileLiveChat messages={messages} peerLabel={peerLabel} />
+              edge of the video stage. Gated by the same chatCollapsed flag
+              as the input bar so the chat button toggles both surfaces
+              together; collapsed = no input AND no message overlay. */}
+          {!chatCollapsed && <MobileLiveChat messages={messages} peerLabel={peerLabel} />}
         </div>
 
         {/* Phone-only chat input bar — inline, sits just below the user's
-            panel and above the bottom nav. */}
-        <form className="md:hidden flex-shrink-0 relative flex items-center" onSubmit={sendMessage}>
-          <input
-            type="text"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            placeholder="Type a message..."
-            autoComplete="off"
-            className="w-full bg-black/40 backdrop-blur-md border border-white/10 rounded-full py-2 pl-4 pr-11 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary/40"
-          />
-          <button
-            type="submit"
-            aria-label="Send"
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-primary hover:scale-110 transition-transform"
-          >
-            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>send</span>
-          </button>
-        </form>
+            panel and above the bottom nav. Toggled by the chat button in
+            the bottom controls; the live-chat overlay above stays visible
+            regardless so incoming messages are never missed. */}
+        {!chatCollapsed && (
+          <form className="md:hidden flex-shrink-0 relative flex items-center" onSubmit={sendMessage}>
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Type a message..."
+              autoComplete="off"
+              className="w-full bg-black/40 backdrop-blur-md border border-white/10 rounded-full py-2 pl-4 pr-11 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary/40"
+            />
+            <button
+              type="submit"
+              aria-label="Send"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-primary hover:scale-110 transition-transform"
+            >
+              <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>send</span>
+            </button>
+          </form>
+        )}
 
         {/* Desktop chat sidebar — phones use the MobileLiveChat overlay
             instead. Collapsible via the floating chevron on its left edge;
@@ -359,9 +361,15 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           { type: 'next', onClick: skip },
           { type: 'mic', enabled: micEnabled, onClick: toggleMic },
           { type: 'cam', enabled: cameraEnabled, onClick: toggleCamera },
-          { type: 'friend', status: friendStatus, busy: friendBusy, onClick: handleAddFriend },
+          // Friend button is hidden when either side is a guest — guests
+          // can't have friends, and there's no point letting a registered
+          // user "add" a guest whose session is throwaway.
+          ...(isGuest || peerIsGuest
+            ? []
+            : [{ type: 'friend', status: friendStatus, busy: friendBusy, onClick: handleAddFriend }]
+          ),
           { type: 'stop', onClick: endCall, title: 'End call' },
-          { type: 'chat', active: !chatCollapsed, onClick: onChatToggle },
+          { type: 'chat', active: !chatCollapsed, unread: unreadChat, onClick: onChatToggle },
         ]}
       />
 

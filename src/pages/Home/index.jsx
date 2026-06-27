@@ -13,6 +13,7 @@ import AppHeader from '../../components/AppHeader';
 import FriendsSidebar from '../../components/FriendsSidebar';
 import ProfileModal from '../../components/ProfileModal';
 import ProfileEditModal from '../../components/ProfileEditModal';
+import GuestLimitModal from '../../components/GuestLimitModal';
 import LogoutConfirmModal from '../../components/LogoutConfirmModal';
 import SettingsModal from '../../components/SettingsModal';
 import LobbyView from './LobbyView';
@@ -53,7 +54,7 @@ function playMatchTone() {
 }
 
 export default function HomePage() {
-  const { user, token, logout, needsOnboarding } = useAuth();
+  const { user, token, logout, needsOnboarding, isGuest } = useAuth();
   const { socket, isConnected, error: socketError } = useSocket(token);
   const { settings } = useSettings();
   const [status, setStatus] = useState('idle');
@@ -69,7 +70,12 @@ export default function HomePage() {
   // (the default behavior) keeps the existing "Your match disconnected."
   const [lastEndReason, setLastEndReason] = useState(null);
   const [onlineCount, setOnlineCount] = useState(null);
-  const { friends, loading: friendsLoading } = useFriends(socket);
+  // Set when the server tells a guest they've hit their match cap. Drives
+  // the "Sign up to keep chatting" modal that replaces the lobby CTA.
+  const [guestLimitInfo, setGuestLimitInfo] = useState(null);
+  // Guests have no friends — passing a null socket disables the hook so
+  // it doesn't try to hit /api/friends (which 403s for guests).
+  const { friends, loading: friendsLoading } = useFriends(isGuest ? null : socket);
   const navigate = useNavigate();
   // Sidebar collapse state — owned here so both the sidebar's chevron AND
   // the header's friends button can toggle it. Persisted across sessions.
@@ -90,12 +96,35 @@ export default function HomePage() {
     else navigate('/friends');
   }, [navigate]);
 
-  // In-call chat panel collapse state — same pattern, separate key so each
-  // panel remembers its own preference independently.
+  // In-call chat panel collapse state.
+  // - Mobile: always starts collapsed (input hidden). Toggles are session-
+  //   only — we deliberately don't persist mobile state so a previous "open"
+  //   doesn't reappear on the next call/visit, and so it can't leak into
+  //   the desktop preference.
+  // - Desktop: reads/writes localStorage as before so the side panel
+  //   remembers its open/closed preference across sessions.
+  const isMobileViewport = () =>
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(max-width: 767px)').matches;
+
   const [chatCollapsed, setChatCollapsed] = useState(() => {
+    if (isMobileViewport()) return true;
     try { return localStorage.getItem('bump.chatCollapsed') === '1'; } catch { return false; }
   });
+  // Unread badge on the chat-toggle button. Bumps on incoming peer
+  // messages while chat is collapsed; clears as soon as the user opens
+  // chat back up, and resets whenever the active match changes so a
+  // stale badge from a previous peer doesn't leak into a new call.
+  const [unreadChat, setUnreadChat] = useState(0);
+  const chatCollapsedRef = useRef(chatCollapsed);
   useEffect(() => {
+    chatCollapsedRef.current = chatCollapsed;
+    if (!chatCollapsed) setUnreadChat(0);
+  }, [chatCollapsed]);
+  useEffect(() => { setUnreadChat(0); }, [matchInfo?.roomId]);
+  useEffect(() => {
+    if (isMobileViewport()) return;
     try { localStorage.setItem('bump.chatCollapsed', chatCollapsed ? '1' : '0'); } catch { /* private mode */ }
   }, [chatCollapsed]);
   const toggleChatCollapsed = useCallback(() => setChatCollapsed((c) => !c), []);
@@ -210,6 +239,7 @@ export default function HomePage() {
         peerDisplayName: data.peerDisplayName,
         peerCountry: data.peerCountry,
         peerInterests: Array.isArray(data.peerInterests) ? data.peerInterests : [],
+        peerIsGuest: !!data.peerIsGuest,
       });
       setMessages([]);
       setSwapped(false);
@@ -256,7 +286,13 @@ export default function HomePage() {
       if (isStaleRoomEvent(data)) return;
       autoRejoinAfterPeerEnd();
     };
-    const onChatMessage = (data) => setMessages(prev => [...prev, { message: data.message, from: data.from, timestamp: data.timestamp, mine: false }]);
+    const onChatMessage = (data) => {
+      setMessages(prev => [...prev, { message: data.message, from: data.from, timestamp: data.timestamp, mine: false }]);
+      // Bump the unread badge on the chat button when chat is collapsed
+      // (read via ref so this handler doesn't have to be rebuilt every
+      // time chatCollapsed flips — closures get the stale value).
+      if (chatCollapsedRef.current) setUnreadChat((n) => n + 1);
+    };
     // Peer hit Add Friend during the call. If we're matched with them, light
     // up the in-call CTA. Outside a call this is harmless (the badge in the
     // profile menu refreshes via /me on the next mount).
@@ -297,6 +333,18 @@ export default function HomePage() {
       if (typeof data?.count === 'number') setOnlineCount(data.count);
     };
 
+    // Guest-only: server rejects the join_queue with this when the per-
+    // session or per-day cap is exhausted. Bounce out of waiting and let
+    // the lobby render the signup prompt instead.
+    const onGuestLimitReached = (data) => {
+      setStatus('idle');
+      setGuestLimitInfo({
+        message: data?.message || 'Sign up to keep chatting.',
+        sessionMax: data?.sessionMax,
+        dailyMax: data?.dailyMax,
+      });
+    };
+
     socket.on('waiting', onWaiting);
     socket.on('match_found', onMatchFound);
     socket.on('left_queue', onLeftQueue);
@@ -308,6 +356,7 @@ export default function HomePage() {
     socket.on('match_lost', onMatchLost);
     socket.on('connect', onConnect);
     socket.on('online_count', onOnlineCount);
+    socket.on('guest_limit_reached', onGuestLimitReached);
     return () => {
       socket.off('waiting', onWaiting);
       socket.off('match_found', onMatchFound);
@@ -319,6 +368,7 @@ export default function HomePage() {
       socket.off('friend_accepted', onFriendAccepted);
       socket.off('match_lost', onMatchLost);
       socket.off('connect', onConnect);
+      socket.off('guest_limit_reached', onGuestLimitReached);
       socket.off('online_count', onOnlineCount);
     };
   }, [socket, settings.matchSound]);
@@ -440,6 +490,9 @@ export default function HomePage() {
       onFriendStatusChange={setFriendStatus}
       chatCollapsed={chatCollapsed}
       onChatToggle={toggleChatCollapsed}
+      unreadChat={unreadChat}
+      isGuest={isGuest}
+      peerIsGuest={matchInfo?.peerIsGuest}
     />
   ) : (
     <LobbyView
@@ -478,14 +531,15 @@ export default function HomePage() {
         <AppHeader
           user={user}
           isConnected={isConnected}
+          isGuest={isGuest}
           onlineCount={onlineCount}
           onProfileClick={() => setShowProfile(true)}
-          onFriendsToggle={!isInCall ? handleFriendsHeaderClick : null}
+          onFriendsToggle={!isGuest && !isInCall ? handleFriendsHeaderClick : null}
           friendsCollapsed={friendsCollapsed}
         />
 
         <div className="flex flex-1 min-h-0 overflow-hidden">
-          {!isInCall && (
+          {!isGuest && !isInCall && (
             <FriendsSidebar
               friends={friends}
               loading={friendsLoading}
@@ -498,6 +552,7 @@ export default function HomePage() {
       {showProfile && (
         <ProfileModal
           user={user}
+          isGuest={isGuest}
           onClose={() => setShowProfile(false)}
           onSettings={() => { setShowProfile(false); setShowSettings(true); }}
           onEditProfile={() => { setShowProfile(false); setShowProfileEdit(true); }}
@@ -506,6 +561,12 @@ export default function HomePage() {
       )}
       {showProfileEdit && (
         <ProfileEditModal onClose={() => setShowProfileEdit(false)} />
+      )}
+      {guestLimitInfo && (
+        <GuestLimitModal
+          info={guestLimitInfo}
+          onClose={() => setGuestLimitInfo(null)}
+        />
       )}
       {showLogoutConfirm && (
         <LogoutConfirmModal

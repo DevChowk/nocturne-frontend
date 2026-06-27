@@ -68,20 +68,40 @@ function FriendButton({ status = 'none', onClick, busy }) {
   );
 }
 
-function ChatButton({ active, onClick }) {
+function ChatButton({ active, onClick, unread = 0 }) {
+  const hasUnread = !active && unread > 0;
+  // Cap at "3+" so the pill stays tiny and we don't end up rendering
+  // double-digit counts on a 18px badge.
+  const badge = unread > 3 ? '3+' : String(unread);
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={active ? 'Hide chat' : 'Show chat'}
+      aria-label={
+        hasUnread
+          ? `Show chat (${unread} new ${unread === 1 ? 'message' : 'messages'})`
+          : active ? 'Hide chat' : 'Show chat'
+      }
       aria-pressed={active}
       title={active ? 'Hide chat' : 'Show chat'}
-      className="hidden md:flex items-center justify-center rounded-full p-2 md:p-3 border transition-all duration-200 active:scale-95"
+      className="relative flex items-center justify-center rounded-full p-2 md:p-3 border transition-all duration-200 active:scale-95"
       style={active
         ? { background: 'rgba(186,158,255,0.12)', borderColor: 'rgba(186,158,255,0.25)', color: '#ba9eff' }
         : { background: 'rgba(38,38,38,0.6)', borderColor: 'rgba(72,72,71,0.4)', color: '#adaaaa' }}
     >
       <span className={ICON_CLASS}>chat_bubble</span>
+      {/* Unread indicator — only shown while chat is collapsed. A pill with
+          the count once we have one (so the user can tell "new" vs "lots of
+          new"). Positioned to clip the top-right of the icon. */}
+      {hasUnread && (
+        <span
+          className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center rounded-full text-[10px] font-bold leading-none text-black"
+          style={{ background: '#ba9eff', boxShadow: '0 0 8px rgba(186,158,255,0.6)' }}
+          aria-hidden="true"
+        >
+          {badge}
+        </span>
+      )}
     </button>
   );
 }
