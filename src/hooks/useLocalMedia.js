@@ -26,10 +26,17 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
   // Acquire / re-acquire stream when device IDs change.
   useEffect(() => {
     let cancelled = false;
-    // Don't re-acquire while the page is in the background. The visibility
-    // listener will bump acquireToken when we come back, which triggers
-    // this effect to re-run and request a fresh stream.
-    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+    // Don't re-acquire while a mobile page is in the background. The
+    // visibility listener will bump acquireToken when we come back,
+    // triggering this effect to re-run and request a fresh stream.
+    // Desktop is unaffected — hidden tabs there keep the call alive.
+    if (
+      typeof document !== 'undefined'
+      && document.visibilityState === 'hidden'
+      && typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(max-width: 767px)').matches
+    ) {
       return;
     }
     // navigator.mediaDevices is only exposed in a secure context (HTTPS or
@@ -92,30 +99,21 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
   }, []);
 
   // Release the camera/mic hardware when the page goes to the background
-  // (tab switch, screen lock, app moved to background on mobile). Just
-  // setting `track.enabled = false` keeps the hardware acquired and the
-  // OS-level "in use" indicator (orange dot on iOS, mic icon on Android)
-  // stays lit; calling `track.stop()` is the only way to actually release
-  // it. When we come back, bump acquireToken so the acquire effect re-runs
-  // and we grab a fresh stream automatically.
+  // on MOBILE only. On phones the OS-level "in use" indicator (iOS orange
+  // dot, Android mic icon) stays lit until we actually stop() the tracks,
+  // which is a privacy issue the user cares about. On desktop, tab
+  // switching / minimising is routine and users expect their call to keep
+  // running — so we intentionally do nothing there. Viewport-based
+  // detection (matches the same breakpoint used for the mobile chat
+  // input) is enough here since the mic/cam indicator concern is
+  // phone-specific.
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    const onVisibility = () => {
-      if (document.visibilityState === 'hidden') {
-        const s = streamRef.current;
-        if (s) {
-          s.getTracks().forEach((t) => t.stop());
-          streamRef.current = null;
-          setStream(null);
-        }
-      } else if (document.visibilityState === 'visible' && !streamRef.current) {
-        setAcquireToken((n) => n + 1);
-      }
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-    // Also stop on pagehide for iOS Safari, where switching apps doesn't
-    // always fire visibilitychange but always fires pagehide.
-    const onPageHide = () => {
+    const isMobile = () =>
+      typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(max-width: 767px)').matches;
+    const stopTracks = () => {
       const s = streamRef.current;
       if (s) {
         s.getTracks().forEach((t) => t.stop());
@@ -123,6 +121,18 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
         setStream(null);
       }
     };
+    const onVisibility = () => {
+      if (!isMobile()) return;
+      if (document.visibilityState === 'hidden') {
+        stopTracks();
+      } else if (document.visibilityState === 'visible' && !streamRef.current) {
+        setAcquireToken((n) => n + 1);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    // pagehide fallback for iOS Safari, which doesn't reliably fire
+    // visibilitychange when the user switches apps. Still mobile-only.
+    const onPageHide = () => { if (isMobile()) stopTracks(); };
     window.addEventListener('pagehide', onPageHide);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);

@@ -385,20 +385,22 @@ export default function HomePage() {
     setMatchInfo(null); setMessages([]); setStatus('idle');
   }, [socket, matchInfo]);
 
-  // Backgrounding the app (tab switch, screen lock, app switcher on mobile)
-  // releases the camera/mic hardware via useLocalMedia. The in-flight WebRTC
-  // call would otherwise sit alive with no media flowing, leaving the peer
-  // staring at a frozen frame. Mirror the user's intent — leave the call —
-  // by ending it cleanly so the peer is re-queued. Also drop out of the
-  // waiting state for the same reason: matchmaking shouldn't pair someone
-  // who isn't present. Uses a ref to the latest match/status so the listener
-  // is mounted once and doesn't churn on every state change.
+  // MOBILE ONLY: backgrounding the app (app switcher, screen lock) releases
+  // camera/mic in useLocalMedia; without ending the call the peer would
+  // stare at a frozen frame. End the call cleanly so the server re-queues
+  // them. Desktop is intentionally excluded — tab-switching or minimising
+  // is routine there and users expect the call to keep running.
   const callStateRef = useRef({ matchInfo: null, status: 'idle' });
   useEffect(() => { callStateRef.current = { matchInfo, status }; }, [matchInfo, status]);
   useEffect(() => {
     if (typeof document === 'undefined') return;
+    const isMobile = () =>
+      typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(max-width: 767px)').matches;
     const onHidden = () => {
       if (document.visibilityState !== 'hidden') return;
+      if (!isMobile()) return;
       const { matchInfo: m, status: s } = callStateRef.current;
       if (m?.roomId) {
         socket?.emit('end_call', { roomId: m.roomId });
