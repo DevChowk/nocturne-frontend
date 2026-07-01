@@ -50,6 +50,12 @@ export function useSocket(token) {
         return;
       }
       if (err.message.startsWith('Authentication error')) {
+        // "session_replaced" means the user logged in on another device.
+        // Surface a distinct signal so the frontend can show a "you've
+        // been signed in elsewhere" toast instead of a generic bounce.
+        if (err.message.includes('session_replaced')) {
+          try { sessionStorage.setItem('bump.sessionReplaced', '1'); } catch { /* private mode */ }
+        }
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
@@ -64,6 +70,16 @@ export function useSocket(token) {
     // app to re-check /me and show the gate.
     s.on('verification_required', () => {
       window.dispatchEvent(new Event('bump:verification-required'));
+    });
+
+    // Server pushes this to the OLD device when the user signs in
+    // somewhere else — arrives ~250ms before the same socket is
+    // force-disconnected. Handled inline (not via connect_error) so the
+    // old tab can log out cleanly before the underlying connection
+    // drops. Flag in sessionStorage tells LoginPage to show a toast.
+    s.on('session_replaced', () => {
+      try { sessionStorage.setItem('bump.sessionReplaced', '1'); } catch { /* private mode */ }
+      window.dispatchEvent(new Event('bump:session-replaced'));
     });
 
     return () => {

@@ -42,6 +42,16 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [suspendedUntil, setSuspendedUntil] = useState(readStoredSuspension);
+  // Read once and clear so refreshes don't re-show the note. Set upstream
+  // by useSocket / AuthProvider when the server kicks this device because
+  // the account signed in somewhere else.
+  const [sessionReplaced] = useState(() => {
+    try {
+      const v = sessionStorage.getItem('bump.sessionReplaced') === '1';
+      if (v) sessionStorage.removeItem('bump.sessionReplaced');
+      return v;
+    } catch { return false; }
+  });
   const { openTerms, openPrivacy, modals } = useAuthModals();
 
   const handleSuspensionFromError = (err) => {
@@ -117,6 +127,21 @@ export default function LoginPage() {
                 <p className="font-headline font-bold text-error text-sm">Account suspended</p>
                 <p className="text-on-surface-variant text-xs mt-1">
                   Try again after <span className="text-on-surface font-semibold">{formatSuspensionUntil(suspendedUntil)}</span>.
+                </p>
+              </div>
+            </div>
+          )}
+          {!suspendedUntil && sessionReplaced && (
+            <div
+              role="alert"
+              className="mb-6 flex items-start gap-3 rounded-xl border p-4"
+              style={{ background: 'rgba(186,158,255,0.10)', borderColor: 'rgba(186,158,255,0.30)' }}
+            >
+              <span className="material-symbols-outlined text-primary mt-0.5" aria-hidden="true">devices</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-headline font-bold text-on-surface text-sm">Signed out on this device</p>
+                <p className="text-on-surface-variant text-xs mt-1">
+                  Your account was signed in on another device. Log in again to keep using Bump here.
                 </p>
               </div>
             </div>

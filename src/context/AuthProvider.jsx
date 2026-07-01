@@ -162,6 +162,25 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('bump:verification-required', onRequired);
   }, [refreshUser]);
 
+  // 'bump:session-replaced' fires when this device's user has just signed
+  // in somewhere else. Clear local auth and land them on /login (the
+  // sessionStorage flag was already set by useSocket so LoginPage can
+  // show a "signed in elsewhere" note). Avoid the /logout POST — the
+  // token is already invalid on the server.
+  useEffect(() => {
+    const onReplaced = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      try { localStorage.removeItem(GUEST_FLAG_KEY); } catch { /* private mode */ }
+      setToken(null);
+      setUser(null);
+      setIsGuest(false);
+      navigate('/login', { replace: true });
+    };
+    window.addEventListener('bump:session-replaced', onReplaced);
+    return () => window.removeEventListener('bump:session-replaced', onReplaced);
+  }, [navigate]);
+
   // True when the user is authed but hasn't completed onboarding (no
   // username yet). Guests never get prompted — they have no User row to
   // patch, so onboarding wouldn't make sense for them.
