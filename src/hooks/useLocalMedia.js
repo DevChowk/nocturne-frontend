@@ -55,7 +55,15 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
         width: { ideal: 1280 },
         height: { ideal: 720 },
         frameRate: { ideal: 30 },
-        ...(videoDeviceId && { deviceId: { exact: videoDeviceId } }),
+        // Prefer the front-facing camera on phones. `ideal` (not `exact`)
+        // so desktops without a facing-mode concept aren't broken by the
+        // constraint, and Android devices without a matching camera fall
+        // back gracefully instead of throwing OverconstrainedError. Only
+        // applied when the user hasn't manually picked a camera — an
+        // explicit deviceId always wins.
+        ...(videoDeviceId
+          ? { deviceId: { exact: videoDeviceId } }
+          : { facingMode: { ideal: 'user' } }),
       },
       audio: {
         echoCancellation: true,
