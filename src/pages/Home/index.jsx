@@ -145,6 +145,7 @@ export default function HomePage() {
     cameraEnabled,
     toggleMic,
     toggleCamera,
+    subscribeVideoTrack,
   } = useLocalMedia({
     videoDeviceId: settings.videoDeviceId,
     audioDeviceId: settings.audioDeviceId,
@@ -162,6 +163,7 @@ export default function HomePage() {
     localStream,
     micEnabled,
     cameraEnabled,
+    subscribeVideoTrack,
   });
 
   const localVideoRef = useRef(null);

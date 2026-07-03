@@ -17,6 +17,26 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
   const [acquireToken, setAcquireToken] = useState(0);
   const streamRef = useRef(null);
   const stateRef = useRef({ mic: true, camera: true });
+  // Subscribers notified when the video track slot changes (stop, or
+  // re-acquire after a toggle). useWebRTC subscribes so it can call
+  // sender.replaceTrack(newTrack) on the active peer connection without
+  // renegotiating. Payload: the fresh MediaStreamTrack, or null when the
+  // camera was just switched off.
+  const videoTrackListenersRef = useRef(new Set());
+  const notifyVideoTrackChange = useCallback((track) => {
+    videoTrackListenersRef.current.forEach((cb) => {
+      try { cb(track); } catch (err) { console.error('[useLocalMedia] video track listener threw:', err); }
+    });
+  }, []);
+  const subscribeVideoTrack = useCallback((cb) => {
+    videoTrackListenersRef.current.add(cb);
+    return () => { videoTrackListenersRef.current.delete(cb); };
+  }, []);
+  // Race guard for toggleCamera. Each call bumps this; async re-acquire
+  // paths check they still own the latest version before mutating state
+  // or the stream, so a rapid off→on→off doesn't leave a stale track
+  // slotted in.
+  const cameraToggleVersionRef = useRef(0);
 
   // Keep stateRef in sync with state so the acquire effect can read latest
   // values without taking them as deps (which would re-acquire on every toggle).
@@ -189,13 +209,86 @@ export function useLocalMedia({ videoDeviceId = null, audioDeviceId = null } = {
     });
   }, []);
 
-  const toggleCamera = useCallback(() => {
-    setCameraEnabled((prev) => {
-      const next = !prev;
-      streamRef.current?.getVideoTracks().forEach((t) => { t.enabled = next; });
-      return next;
-    });
-  }, []);
+  // Camera toggle fully RELEASES the hardware on off and RE-ACQUIRES it on
+  // on. Setting `track.enabled = false` (the mic path) transmits blank
+  // frames but keeps the OS/browser camera indicator lit — bad trust
+  // signal on a random-stranger app. Stopping the track drops the
+  // indicator; a paired peer connection stays alive because we call
+  // sender.replaceTrack(null/newTrack) via the subscription mechanism
+  // above — no renegotiation, no SDP round-trip.
+  const toggleCamera = useCallback(async () => {
+    const nextEnabled = !stateRef.current.camera;
+    const version = ++cameraToggleVersionRef.current;
 
-  return { stream, error, devices, micEnabled, cameraEnabled, toggleMic, toggleCamera };
+    // Optimistic UI flip — the button visibly responds even while an async
+    // getUserMedia is in flight for the on-path. Reverted below if
+    // re-acquire throws (permission revoked, camera busy, hardware gone).
+    stateRef.current.camera = nextEnabled;
+    setCameraEnabled(nextEnabled);
+
+    if (!nextEnabled) {
+      const s = streamRef.current;
+      if (s) {
+        // stop() releases the hardware; removeTrack keeps the stream
+        // reference stable so callers (video element, useWebRTC's
+        // localStream dep) don't see a whole-stream swap.
+        s.getVideoTracks().forEach((t) => {
+          try { t.stop(); } catch { /* already stopped */ }
+          s.removeTrack(t);
+        });
+      }
+      notifyVideoTrackChange(null);
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError(new Error('Camera requires HTTPS. Open the app over https:// or via localhost.'));
+      // Revert optimistic flip.
+      if (version === cameraToggleVersionRef.current) {
+        stateRef.current.camera = false;
+        setCameraEnabled(false);
+      }
+      return;
+    }
+
+    // Re-acquire just the video half. Constraints match the initial
+    // acquire effect so quality doesn't downgrade after a toggle round-trip.
+    const constraints = {
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 30 },
+        ...(videoDeviceId
+          ? { deviceId: { exact: videoDeviceId } }
+          : { facingMode: { ideal: 'user' } }),
+      },
+    };
+
+    try {
+      const s = await navigator.mediaDevices.getUserMedia(constraints);
+      // Race guard: the user may have toggled again while we awaited. If a
+      // newer toggle superseded this one, discard the freshly-acquired
+      // tracks so we don't leak hardware.
+      if (version !== cameraToggleVersionRef.current) {
+        s.getTracks().forEach((t) => t.stop());
+        return;
+      }
+      const newTrack = s.getVideoTracks()[0];
+      const target = streamRef.current;
+      if (!target || !newTrack) {
+        s.getTracks().forEach((t) => t.stop());
+        return;
+      }
+      target.addTrack(newTrack);
+      notifyVideoTrackChange(newTrack);
+    } catch (err) {
+      console.warn('[useLocalMedia] camera re-acquire failed:', err.message);
+      if (version === cameraToggleVersionRef.current) {
+        stateRef.current.camera = false;
+        setCameraEnabled(false);
+      }
+    }
+  }, [videoDeviceId, notifyVideoTrackChange]);
+
+  return { stream, error, devices, micEnabled, cameraEnabled, toggleMic, toggleCamera, subscribeVideoTrack };
 }

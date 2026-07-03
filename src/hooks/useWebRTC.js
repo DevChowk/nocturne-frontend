@@ -39,7 +39,7 @@ const MAX_ICE_RESTARTS = 3;
 // stream + mic/camera state live in useLocalMedia (which persists across
 // matches). This hook just consumes them, sets up signaling, and exposes
 // the remote stream + peer's media state.
-export function useWebRTC({ socket, roomId, role, localStream, micEnabled, cameraEnabled }) {
+export function useWebRTC({ socket, roomId, role, localStream, micEnabled, cameraEnabled, subscribeVideoTrack }) {
   const [remoteStream, setRemoteStream] = useState(null);
   const [remoteConnected, setRemoteConnected] = useState(false);
   const [peerMicEnabled, setPeerMicEnabled] = useState(true);
@@ -136,21 +136,46 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
       // Add local tracks to connection
       localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
 
+      // Reserve a video sender even when the camera is currently off, so
+      // toggling it on mid-call can call sender.replaceTrack(newTrack) and
+      // the peer starts receiving video WITHOUT an SDP renegotiation.
+      // Doing the addTransceiver BEFORE createOffer means the offer already
+      // carries the video m-section — no glare, no answer-round-trip.
+      let videoSender = pc.getSenders().find((s) => s.track?.kind === 'video');
+      if (!videoSender) {
+        const transceiver = pc.addTransceiver('video', { direction: 'sendrecv' });
+        videoSender = transceiver.sender;
+      }
+
       // Lift the video sender's bitrate cap. setParameters can throw on
       // older Safari / unusual browser builds; if it does, we just log and
       // keep going — the call still works at the default cap.
       try {
-        const videoSender = pc.getSenders().find((s) => s.track?.kind === 'video');
-        if (videoSender) {
-          const params = videoSender.getParameters();
-          if (!params.encodings || params.encodings.length === 0) {
-            params.encodings = [{}];
-          }
-          params.encodings[0].maxBitrate = MAX_VIDEO_BITRATE;
-          await videoSender.setParameters(params);
+        const params = videoSender.getParameters();
+        if (!params.encodings || params.encodings.length === 0) {
+          params.encodings = [{}];
         }
+        params.encodings[0].maxBitrate = MAX_VIDEO_BITRATE;
+        await videoSender.setParameters(params);
       } catch (err) {
         console.warn('[WebRTC] setParameters (bitrate cap) failed:', err.message);
+      }
+
+      // Hot-swap the video sender's track when useLocalMedia releases /
+      // re-acquires it (camera-off / camera-on). replaceTrack keeps the
+      // sender slot and the connection alive — no negotiation. The
+      // subscription is scoped to this pc; the effect's cleanup below
+      // calls the returned unsubscribe.
+      if (subscribeVideoTrack) {
+        const unsubscribeVideoTrack = subscribeVideoTrack((newTrack) => {
+          if (cancelled) return;
+          videoSender.replaceTrack(newTrack).catch((err) => {
+            console.warn('[WebRTC] replaceTrack failed:', err.message);
+          });
+        });
+        // Stash on the handler bag so cleanup below can invoke it alongside
+        // the socket.off calls without threading yet another ref.
+        handlerRefs.current = { ...(handlerRefs.current || {}), unsubscribeVideoTrack };
       }
 
       // Recovery hooks. `disconnected` is recoverable — wait the grace
@@ -232,7 +257,9 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
       socket.on('answer', onAnswer);
       socket.on('ice_candidate', onIceCandidate);
       // Stash handler refs so the effect's cleanup can remove just these.
-      handlerRefs.current = { onOffer, onAnswer, onIceCandidate };
+      // Merge with any previously-set fields (e.g. unsubscribeVideoTrack
+      // registered earlier in start()) so we don't lose them.
+      handlerRefs.current = { ...(handlerRefs.current || {}), onOffer, onAnswer, onIceCandidate };
 
       // Initiator creates offer
       if (role === 'initiator') {
@@ -257,9 +284,10 @@ export function useWebRTC({ socket, roomId, role, localStream, micEnabled, camer
       cancelled = true;
       const refs = handlerRefs.current;
       if (refs) {
-        socket.off('offer', refs.onOffer);
-        socket.off('answer', refs.onAnswer);
-        socket.off('ice_candidate', refs.onIceCandidate);
+        if (refs.onOffer) socket.off('offer', refs.onOffer);
+        if (refs.onAnswer) socket.off('answer', refs.onAnswer);
+        if (refs.onIceCandidate) socket.off('ice_candidate', refs.onIceCandidate);
+        if (refs.unsubscribeVideoTrack) refs.unsubscribeVideoTrack();
       }
       socket.off('media_state', onPeerMediaState);
       handlerRefs.current = null;
