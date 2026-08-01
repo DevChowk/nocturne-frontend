@@ -40,10 +40,10 @@ export default function VerificationGate() {
           Verify your email
         </h1>
         <p className="text-on-surface text-base mb-2">
-          Your free preview of Bump has ended.
+          Your free preview of Bumpp has ended.
         </p>
         <p className="text-on-surface-variant text-sm mb-8">
-          To keep using Bump, confirm your email. We sent a link to{' '}
+          To keep using Bumpp, confirm your email. We sent a link to{' '}
           <span className="font-semibold text-on-surface">{user?.email}</span>.
           Click it, then come back here.
         </p>

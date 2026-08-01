@@ -14,8 +14,8 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
     >
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex items-center gap-2 flex-shrink-0">
-          <img src="/favicon.png" alt="Bump" className="w-6 h-6 md:w-7 md:h-7 rounded-lg object-cover" />
-          <span className="text-base md:text-xl font-bold tracking-tighter text-white uppercase font-headline">Bump</span>
+          <img src="/favicon.png" alt="Bumpp" className="w-6 h-6 md:w-7 md:h-7 rounded-lg object-cover" />
+          <span className="text-base md:text-xl font-bold tracking-tighter text-white uppercase font-headline">Bumpp</span>
         </div>
         <div
           className="flex items-center gap-1.5 px-3 py-1 rounded-full flex-shrink-0"

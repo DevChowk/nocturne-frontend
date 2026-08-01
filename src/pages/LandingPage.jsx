@@ -21,8 +21,8 @@ export default function LandingPage() {
       {/* ── Header ── */}
       <header className="absolute top-0 left-0 right-0 z-30 flex justify-between items-center px-6 py-4">
         <div className="flex items-center gap-3">
-          <img src="/favicon.png" alt="Bump" className="w-8 h-8 rounded-lg object-cover" />
-          <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bump</span>
+          <img src="/favicon.png" alt="Bumpp" className="w-8 h-8 rounded-lg object-cover" />
+          <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bumpp</span>
         </div>
       </header>
 
@@ -36,7 +36,7 @@ export default function LandingPage() {
 
         <p className="text-on-surface-variant font-body max-w-lg mx-auto mb-10 leading-relaxed"
           style={{ fontSize: 'clamp(0.95rem, 2vw, 1.15rem)' }}>
-          Bump: The fastest way to run into someone new. One tap, one face, one real conversation.
+          Bumpp: The fastest way to run into someone new. One tap, one face, one real conversation.
           Minimal. Secure. Instant.
         </p>
 

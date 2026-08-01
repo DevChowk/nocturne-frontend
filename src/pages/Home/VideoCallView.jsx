@@ -184,7 +184,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
                 both feeds carry consistent branding. */}
             <div className="absolute top-3 right-3 md:top-6 md:right-6 flex items-center gap-1 opacity-65 pointer-events-none select-none">
               <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
-              <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bump</span>
+              <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bumpp</span>
             </div>
             <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
               <div className="flex items-center gap-2 flex-wrap">
@@ -229,7 +229,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
                 stranger-panel watermark style (40% opacity, non-interactive). */}
             <div className="absolute top-3 right-3 md:top-6 md:right-6 flex items-center gap-1 opacity-65 pointer-events-none select-none">
               <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
-              <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bump</span>
+              <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bumpp</span>
             </div>
           </div>
 

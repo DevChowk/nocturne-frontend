@@ -18,7 +18,7 @@ export default function OnboardingModal() {
     const d = new Date(dob);
     if (Number.isNaN(d.getTime())) return 'Invalid date.';
     const age = ageInYears(d);
-    if (age < MIN_AGE_YEARS) return `You must be at least ${MIN_AGE_YEARS} to use Bump.`;
+    if (age < MIN_AGE_YEARS) return `You must be at least ${MIN_AGE_YEARS} to use Bumpp.`;
     if (age > 120) return 'Invalid date of birth.';
     return null;
   };
@@ -62,7 +62,7 @@ export default function OnboardingModal() {
           >
             {initial}
           </div>
-          <h2 className="font-headline font-extrabold text-on-surface text-2xl mb-1">Welcome to Bump</h2>
+          <h2 className="font-headline font-extrabold text-on-surface text-2xl mb-1">Welcome to Bumpp</h2>
           <p className="text-on-surface-variant text-sm">Pick a username so people know who they're meeting.</p>
         </header>
 

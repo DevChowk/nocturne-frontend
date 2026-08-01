@@ -8,7 +8,7 @@ const DATA_ITEMS = [
 
 const VIDEO_ITEMS = [
   { title: 'End-to-End Privacy', desc: 'Real-time video streams are routed via WebRTC protocols with DTLS encryption. We cannot view or record your sessions.' },
-  { title: 'Zero Storage Policy', desc: 'Bump does not store video frames on our servers. Once a session ends, the transient data is purged from memory.' },
+  { title: 'Zero Storage Policy', desc: 'Bumpp does not store video frames on our servers. Once a session ends, the transient data is purged from memory.' },
 ];
 
 const RIGHTS = ['Right to Erasure', 'Data Portability', 'Object to Processing'];
@@ -51,7 +51,7 @@ export default function PrivacyModal({ onClose }) {
         <section>
           <SectionHeader icon="analytics" iconBg="rgba(186,158,255,0.1)" iconColor="text-primary" title="Data Collection" />
           <div className="space-y-4 text-on-surface-variant leading-relaxed">
-            <p>At Bump, your presence is ephemeral. We collect minimal technical metadata to ensure connection stability, including device identifiers and approximate network location. Unlike traditional platforms, we do not log your interactions or build a behavioral profile.</p>
+            <p>At Bumpp, your presence is ephemeral. We collect minimal technical metadata to ensure connection stability, including device identifiers and approximate network location. Unlike traditional platforms, we do not log your interactions or build a behavioral profile.</p>
             <ul className="space-y-3 pl-2 border-l border-primary/20">
               {DATA_ITEMS.map(item => (
                 <li key={item.strong} className="flex items-start gap-3">
@@ -108,7 +108,7 @@ export default function PrivacyModal({ onClose }) {
 
       {/* Footer */}
       <footer className="p-8 bg-surface-container-low/80 backdrop-blur-md border-t border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between">
-        <p className="text-xs text-on-surface-variant text-center md:text-left">By continuing to use Bump, you acknowledge these terms.</p>
+        <p className="text-xs text-on-surface-variant text-center md:text-left">By continuing to use Bumpp, you acknowledge these terms.</p>
         <button
           onClick={onClose}
           className="w-full md:w-auto px-10 py-3 rounded-full text-black font-bold text-sm transition-all duration-300 active:scale-95"

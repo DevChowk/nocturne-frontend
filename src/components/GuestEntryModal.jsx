@@ -25,7 +25,7 @@ export default function GuestEntryModal({ onClose }) {
     const d = new Date(dob);
     if (Number.isNaN(d.getTime())) return setError('Invalid date.');
     const age = ageInYears(d);
-    if (age < MIN_AGE_YEARS) return setError(`You must be at least ${MIN_AGE_YEARS} to use Bump.`);
+    if (age < MIN_AGE_YEARS) return setError(`You must be at least ${MIN_AGE_YEARS} to use Bumpp.`);
     if (age > 120) return setError('Invalid date of birth.');
     setSubmitting(true);
     try {
@@ -47,7 +47,7 @@ export default function GuestEntryModal({ onClose }) {
         >
           <span className="material-symbols-outlined" style={{ fontSize: 30 }}>person_raised_hand</span>
         </div>
-        <h2 className="font-headline font-extrabold text-on-surface text-xl mb-1">Try Bump as a guest</h2>
+        <h2 className="font-headline font-extrabold text-on-surface text-xl mb-1">Try Bumpp as a guest</h2>
         <p className="text-on-surface-variant text-sm">No signup. Random matches. Limited features.</p>
       </header>
 

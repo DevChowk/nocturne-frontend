@@ -4,7 +4,7 @@ import { GRADIENT } from '../constants/theme';
 const USER_RESPONSIBILITIES = [
   'Provide accurate and complete information during registration.',
   'Maintain the confidentiality of your login credentials.',
-  'Notify Bump immediately of any unauthorized use of your account.',
+  'Notify Bumpp immediately of any unauthorized use of your account.',
 ];
 
 const PROHIBITED_ITEMS = [
@@ -46,7 +46,7 @@ export default function TermsModal({ onClose }) {
         <div className="space-y-10 text-on-surface-variant leading-relaxed">
           <article>
             <SectionHeading num="01" title="Introduction" />
-            <p>Welcome to Bump. By accessing or using our platform, you agree to be bound by these Terms of Service. This is a legal agreement between you and Bump regarding your use of our real-time video connection services. Please read these terms carefully before proceeding. If you do not agree to these terms, you must cease use of the service immediately.</p>
+            <p>Welcome to Bumpp. By accessing or using our platform, you agree to be bound by these Terms of Service. This is a legal agreement between you and Bumpp regarding your use of our real-time video connection services. Please read these terms carefully before proceeding. If you do not agree to these terms, you must cease use of the service immediately.</p>
           </article>
 
           <article>
@@ -79,7 +79,7 @@ export default function TermsModal({ onClose }) {
 
           <article>
             <SectionHeading num="04" title="Termination" />
-            <p>Bump reserves the right to terminate or suspend your access to the Service at any time, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms. All provisions of the Terms which by their nature should survive termination shall survive termination, including ownership provisions, warranty disclaimers, and limitations of liability.</p>
+            <p>Bumpp reserves the right to terminate or suspend your access to the Service at any time, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms. All provisions of the Terms which by their nature should survive termination shall survive termination, including ownership provisions, warranty disclaimers, and limitations of liability.</p>
           </article>
         </div>
       </div>

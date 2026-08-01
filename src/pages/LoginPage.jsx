@@ -141,7 +141,7 @@ export default function LoginPage() {
               <div className="flex-1 min-w-0">
                 <p className="font-headline font-bold text-on-surface text-sm">Signed out on this device</p>
                 <p className="text-on-surface-variant text-xs mt-1">
-                  Your account was signed in on another device. Log in again to keep using Bump here.
+                  Your account was signed in on another device. Log in again to keep using Bumpp here.
                 </p>
               </div>
             </div>
