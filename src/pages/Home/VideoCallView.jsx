@@ -84,12 +84,12 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
         {showFriendBanner && (
           <div
             role="alert"
-            className="absolute top-2 md:top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-1.5 py-1 rounded-full backdrop-blur-md border border-white/10 shadow-lg max-w-[92vw]"
-            style={{ background: 'rgba(19,19,19,0.85)' }}
+            className="absolute top-2 md:top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-1.5 py-1 rounded-full backdrop-blur-md border border-on-surface/10 shadow-lg max-w-[92vw]"
+            style={{ background: 'rgb(var(--color-surface-low-rgb) / 0.85)' }}
           >
             <div
-              className="flex-shrink-0 flex items-center justify-center rounded-full font-bold font-headline"
-              style={{ width: 26, height: 26, fontSize: 12, background: 'rgba(186,158,255,0.18)', color: '#ba9eff' }}
+              className="flex-shrink-0 flex items-center justify-center rounded-full font-bold font-headline bg-primary text-on-primary"
+              style={{ width: 26, height: 26, fontSize: 12 }}
               aria-hidden="true"
             >
               {peerInitial}
@@ -104,7 +104,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               aria-label="Accept friend request"
               title="Accept"
               className="flex items-center justify-center rounded-full transition-transform active:scale-90 disabled:opacity-50"
-              style={{ width: 28, height: 28, background: 'rgba(0,207,252,0.18)', color: '#00cffc' }}
+              style={{ width: 28, height: 28, background: 'rgba(63,82,255,0.18)', color: '#3F52FF' }}
             >
               <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>check</span>
             </button>
@@ -115,7 +115,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               aria-label="Decline friend request"
               title="Decline"
               className="flex items-center justify-center rounded-full transition-transform active:scale-90 disabled:opacity-50"
-              style={{ width: 28, height: 28, background: 'rgba(167,1,56,0.22)', color: '#ff6e84' }}
+              style={{ width: 28, height: 28, background: 'rgba(255,79,79,0.22)', color: '#FF4F4F' }}
             >
               <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>close</span>
             </button>
@@ -138,7 +138,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             "you" is always on the left and the stranger on the right. */}
         <div className="flex-1 relative flex flex-col md:flex-row-reverse gap-2 md:gap-4 min-w-0 min-h-0">
           {/* Remote (stranger) panel */}
-          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-low rounded-xl overflow-hidden" style={{ border: '1px solid rgba(186,158,255,0.12)' }}>
+          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-low rounded-xl overflow-hidden" style={{ border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
             <video
               ref={remoteVideoRef}
               className="w-full h-full object-cover"
@@ -146,25 +146,25 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             />
             {!peerCameraEnabled && remoteConnected && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-container-high px-6 text-center">
-                <div className="flex items-center justify-center rounded-full" style={{ background: 'rgba(255,110,132,0.15)', color: '#ff6e84' }}>
+                <div className="flex items-center justify-center rounded-full bg-tertiary text-white shadow-lg" style={{ boxShadow: '0 8px 30px rgba(255,79,79,0.35)' }}>
                   <span className="material-symbols-outlined p-5 md:p-6" aria-hidden="true" style={{ fontSize: 36 }}>videocam_off</span>
                 </div>
-                <p className="font-headline font-semibold text-white text-sm md:text-base">{peerLabel} turned off camera</p>
+                <p className="font-headline font-semibold text-on-surface text-sm md:text-base">{peerLabel} turned off camera</p>
               </div>
             )}
             {!peerMicEnabled && remoteConnected && (
-              <div className="absolute bottom-3 right-3 md:bottom-6 md:right-6 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(167,1,56,0.6)' }}>
+              <div className="absolute bottom-3 right-3 md:bottom-6 md:right-6 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(255,79,79,0.6)' }}>
                 <span className="material-symbols-outlined text-white" aria-hidden="true" style={{ fontSize: 16 }}>mic_off</span>
                 <span className="text-white text-xs font-label uppercase tracking-wider">Muted</span>
               </div>
             )}
             {!remoteConnected && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-surface-container-low/90">
-                <div className="flex items-center justify-center rounded-full w-14 h-14 md:w-20 md:h-20" style={{ background: '#20201f', boxShadow: '0 0 40px rgba(139,92,246,0.25)' }}>
+                <div className="flex items-center justify-center rounded-full w-14 h-14 md:w-20 md:h-20" style={{ background: 'rgb(var(--color-surface-high-rgb))', boxShadow: '0 0 40px rgba(255,212,0,0.25)' }}>
                   <span className="material-symbols-outlined text-primary animate-pulse text-[28px] md:text-[40px]" aria-hidden="true" style={{ fontVariationSettings: "'FILL' 1" }}>cell_tower</span>
                 </div>
                 <div className="text-center">
-                  <h3 className="font-headline font-bold text-white text-lg mb-1">Connecting...</h3>
+                  <h3 className="font-headline font-bold text-on-surface text-lg mb-1">Connecting...</h3>
                   <p className="text-on-surface-variant text-xs font-label uppercase tracking-widest">Establishing secure link</p>
                 </div>
               </div>
@@ -175,7 +175,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               aria-label="Report stranger"
               title="Report"
               className="absolute top-4 left-4 z-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors hover:bg-error/30 active:scale-95"
-              style={{ width: 36, height: 36, background: 'rgba(0,0,0,0.5)', color: '#ff6e84' }}
+              style={{ width: 36, height: 36, background: 'rgba(0,0,0,0.5)', color: '#FF4F4F' }}
             >
               <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>flag</span>
             </button>
@@ -193,7 +193,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
                   <span
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label uppercase tracking-wider backdrop-blur-md"
                     title={countryName(peerCountry)}
-                    style={{ background: 'rgba(0,207,252,0.18)', color: '#00cffc' }}
+                    style={{ background: 'rgba(63,82,255,0.18)', color: '#3F52FF' }}
                   >
                     <span aria-hidden="true">{countryFlag(peerCountry)}</span>
                     <span>{peerCountry}</span>
@@ -204,7 +204,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           </div>
 
           {/* Local (self) panel */}
-          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-high rounded-xl overflow-hidden" style={{ border: '1px solid rgba(186,158,255,0.12)' }}>
+          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-high rounded-xl overflow-hidden" style={{ border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
             <video
               ref={localVideoRef}
               className="w-full h-full object-cover"
@@ -215,8 +215,8 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
                 <div className="flex flex-col items-center gap-3 text-center px-6">
                   <div
-                    className="flex items-center justify-center rounded-full font-bold font-headline w-24 h-24 text-4xl md:w-[120px] md:h-[120px] md:text-5xl"
-                    style={{ background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 40px rgba(186,158,255,0.15)' }}
+                    className="flex items-center justify-center rounded-full font-bold font-headline w-24 h-24 text-4xl md:w-[120px] md:h-[120px] md:text-5xl bg-primary text-on-primary"
+                    style={{ boxShadow: '0 8px 30px rgba(255,212,0,0.35)' }}
                   >
                     {initial}
                   </div>
@@ -252,7 +252,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               onChange={(e) => setChatInput(e.target.value)}
               placeholder="Type a message..."
               autoComplete="off"
-              className="w-full bg-black/40 backdrop-blur-md border border-white/10 rounded-full py-2 pl-4 pr-11 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary/40"
+              className="w-full bg-black/40 backdrop-blur-md border border-on-surface/10 rounded-full py-2 pl-4 pr-11 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary/40"
             />
             <button
               type="submit"
@@ -282,9 +282,9 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           {!chatCollapsed && (
             <div
               className="flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden bg-surface-container-low/60 backdrop-blur-xl"
-              style={{ border: '1px solid rgba(186,158,255,0.12)' }}
+              style={{ border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}
             >
-              <div className="p-4 border-b border-white/5">
+              <div className="p-4 border-b border-outline-variant/40">
                 <span className="font-headline font-semibold text-primary">Live Chat</span>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
@@ -374,8 +374,8 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
       />
 
       {/* Ambient glows */}
-      <div className="fixed top-1/4 -left-32 w-64 h-64 rounded-full blur-[120px] pointer-events-none" style={{background:'rgba(186,158,255,0.1)'}}></div>
-      <div className="fixed bottom-1/4 -right-32 w-96 h-96 rounded-full blur-[150px] pointer-events-none" style={{background:'rgba(0,207,252,0.05)'}}></div>
+      <div className="fixed top-1/4 -left-32 w-64 h-64 rounded-full blur-[120px] pointer-events-none" style={{background:'rgba(255,212,0,0.1)'}}></div>
+      <div className="fixed bottom-1/4 -right-32 w-96 h-96 rounded-full blur-[150px] pointer-events-none" style={{background:'rgba(63,82,255,0.05)'}}></div>
 
       {showReport && (
         <ReportModal

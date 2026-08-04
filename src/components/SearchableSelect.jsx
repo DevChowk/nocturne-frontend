@@ -112,8 +112,8 @@ export default function SearchableSelect({
         <ul
           ref={listRef}
           role="listbox"
-          className="absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-lg border border-white/10 backdrop-blur-md custom-scrollbar"
-          style={{ background: 'rgba(19,19,19,0.95)' }}
+          className="absolute z-30 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-lg border border-on-surface/10 backdrop-blur-md custom-scrollbar"
+          style={{ background: 'rgb(var(--color-surface-low-rgb) / 0.95)' }}
         >
           {rows.length === 0 ? (
             <li className="px-3 py-2 text-on-surface-variant text-sm">No matches</li>
@@ -136,8 +136,8 @@ export default function SearchableSelect({
                   }}
                   className="px-3 py-2 text-sm cursor-pointer transition-colors"
                   style={{
-                    background: isActive ? 'rgba(186,158,255,0.12)' : 'transparent',
-                    color: isSelected ? '#ba9eff' : '#fff',
+                    background: isActive ? 'rgba(255,212,0,0.12)' : 'transparent',
+                    color: isSelected ? '#FFD400' : '#fff',
                     fontWeight: isSelected ? 600 : 400,
                   }}
                 >

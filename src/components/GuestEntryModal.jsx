@@ -39,10 +39,10 @@ export default function GuestEntryModal({ onClose }) {
 
   return (
     <ModalBase maxWidth="max-w-md" onClose={onClose}>
-      <header className="px-6 pt-7 pb-4 text-center border-b border-white/5">
+      <header className="px-6 pt-7 pb-4 text-center border-b border-outline-variant/40">
         <div
-          className="mx-auto mb-3 flex items-center justify-center rounded-full"
-          style={{ width: 64, height: 64, background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 32px rgba(186,158,255,0.18)' }}
+          className="mx-auto mb-3 flex items-center justify-center rounded-full bg-primary text-on-primary"
+          style={{ width: 64, height: 64, boxShadow: '0 8px 30px rgba(255,212,0,0.35)' }}
           aria-hidden="true"
         >
           <span className="material-symbols-outlined" style={{ fontSize: 30 }}>person_raised_hand</span>
@@ -90,8 +90,7 @@ export default function GuestEntryModal({ onClose }) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 rounded-full text-black font-bold font-headline transition-all active:scale-[0.98] disabled:opacity-60"
-            style={{ backgroundImage: GRADIENT, boxShadow: submitting ? 'none' : '0 0 24px rgba(186,158,255,0.3)' }}
+            className="btn-sticker w-full py-3 disabled:opacity-60"
           >
             {submitting ? 'Starting…' : 'Start chatting'}
           </button>

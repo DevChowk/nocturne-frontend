@@ -21,10 +21,10 @@ export default function GuestLimitModal({ info, onClose }) {
 
   return (
     <ModalBase maxWidth="max-w-md" onClose={onClose}>
-      <header className="px-6 pt-8 pb-5 text-center border-b border-white/5">
+      <header className="px-6 pt-8 pb-5 text-center border-b border-outline-variant/40">
         <div
-          className="mx-auto mb-3 flex items-center justify-center rounded-full"
-          style={{ width: 64, height: 64, background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 32px rgba(186,158,255,0.18)' }}
+          className="mx-auto mb-3 flex items-center justify-center rounded-full bg-primary text-on-primary"
+          style={{ width: 64, height: 64, boxShadow: '0 8px 30px rgba(255,212,0,0.35)' }}
           aria-hidden="true"
         >
           <span className="material-symbols-outlined" style={{ fontSize: 30 }}>auto_awesome</span>
@@ -56,8 +56,7 @@ export default function GuestLimitModal({ info, onClose }) {
         <button
           type="button"
           onClick={handleSignup}
-          className="w-full py-3 rounded-full text-black font-bold font-headline transition-all active:scale-[0.98]"
-          style={{ backgroundImage: GRADIENT, boxShadow: '0 0 24px rgba(186,158,255,0.3)' }}
+          className="btn-sticker w-full py-3"
         >
           Sign up — it's free
         </button>

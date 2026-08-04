@@ -36,9 +36,9 @@ export default function ReportModal({ onClose, reportedUserId, roomId, onSubmitt
 
   return (
     <ModalBase maxWidth="max-w-lg" onClose={onClose}>
-      <header className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+      <header className="flex items-center justify-between px-6 py-5 border-b border-outline-variant/40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,110,132,0.15)' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,79,79,0.15)' }}>
             <span className="material-symbols-outlined text-error" aria-hidden="true">flag</span>
           </div>
           <h2 className="font-headline text-lg font-bold text-on-surface">Report Stranger</h2>
@@ -64,8 +64,8 @@ export default function ReportModal({ onClose, reportedUserId, roomId, onSubmitt
               key={r.value}
               className="flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors"
               style={{
-                background: reason === r.value ? 'rgba(186,158,255,0.1)' : 'transparent',
-                border: `1px solid ${reason === r.value ? 'rgba(186,158,255,0.3)' : 'rgba(72,72,71,0.3)'}`,
+                background: reason === r.value ? 'rgba(255,212,0,0.1)' : 'transparent',
+                border: `1px solid ${reason === r.value ? 'rgba(255,212,0,0.3)' : 'rgb(var(--color-outline-rgb) / 0.3)'}`,
               }}
             >
               <input
@@ -109,8 +109,7 @@ export default function ReportModal({ onClose, reportedUserId, roomId, onSubmitt
           <button
             type="submit"
             disabled={submitting || !reason}
-            className="flex-1 px-6 py-3 rounded-full text-black font-bold text-sm transition-all active:scale-95 disabled:opacity-50"
-            style={{ backgroundImage: GRADIENT }}
+            className="btn-sticker flex-1 px-6 py-3 text-sm disabled:opacity-50"
           >
             {submitting ? 'Submitting…' : 'Submit Report'}
           </button>

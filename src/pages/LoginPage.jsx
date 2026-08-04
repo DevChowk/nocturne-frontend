@@ -108,9 +108,9 @@ export default function LoginPage() {
       <main className="flex-grow flex items-center justify-center relative overflow-hidden px-4 pt-32 pb-12">
         {/* Ambient glows */}
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
-          style={{ background: 'rgba(186,158,255,0.1)' }} />
+          style={{ background: 'rgba(255,212,0,0.1)' }} />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px]"
-          style={{ background: 'rgba(0,207,252,0.1)' }} />
+          style={{ background: 'rgba(63,82,255,0.1)' }} />
 
         <div className="w-full max-w-[480px] z-10">
           {/* Suspension banner — shown when the user just got bounced or
@@ -120,7 +120,7 @@ export default function LoginPage() {
             <div
               role="alert"
               className="mb-6 flex items-start gap-3 rounded-xl border p-4"
-              style={{ background: 'rgba(167,1,56,0.12)', borderColor: 'rgba(255,110,132,0.3)' }}
+              style={{ background: 'rgba(255,79,79,0.12)', borderColor: 'rgba(255,79,79,0.3)' }}
             >
               <span className="material-symbols-outlined text-error mt-0.5" aria-hidden="true">block</span>
               <div className="flex-1 min-w-0">
@@ -135,7 +135,7 @@ export default function LoginPage() {
             <div
               role="alert"
               className="mb-6 flex items-start gap-3 rounded-xl border p-4"
-              style={{ background: 'rgba(186,158,255,0.10)', borderColor: 'rgba(186,158,255,0.30)' }}
+              style={{ background: 'rgba(255,212,0,0.10)', borderColor: 'rgba(255,212,0,0.30)' }}
             >
               <span className="material-symbols-outlined text-primary mt-0.5" aria-hidden="true">devices</span>
               <div className="flex-1 min-w-0">
@@ -148,8 +148,8 @@ export default function LoginPage() {
           )}
 
           {/* Login card */}
-          <div className="glass-panel border border-outline-variant/10 rounded-xl p-8 md:p-10"
-            style={{ boxShadow: '0 0 24px rgba(186,158,255,0.15)' }}>
+          <div className="glass-panel border border-outline-variant/40 rounded-xl p-8 md:p-10"
+            style={{ boxShadow: '0 0 24px rgba(255,212,0,0.15)' }}>
 
             {/* Social auth */}
             <div className="space-y-4 mb-8">
@@ -227,8 +227,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-4 py-4 px-6 rounded-full text-black font-bold text-lg transition-all duration-300 active:scale-[0.98] disabled:opacity-60"
-                style={{ backgroundImage: GRADIENT, boxShadow: loading ? 'none' : '0 0 24px rgba(186,158,255,0.3)' }}
+                className="btn-sticker w-full mt-4 py-4 px-6 text-lg disabled:opacity-60"
               >
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>

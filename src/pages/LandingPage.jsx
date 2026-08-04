@@ -12,17 +12,17 @@ export default function LandingPage() {
 
       {/* ── Ambient glows ── */}
       <div className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(139,92,246,0.18) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(255,212,0,0.18) 0%, transparent 70%)' }} />
       <div className="pointer-events-none absolute rounded-full blur-3xl"
-        style={{ width: 480, height: 480, top: '10%', left: '-8%', background: 'rgba(186,158,255,0.07)' }} />
+        style={{ width: 480, height: 480, top: '10%', left: '-8%', background: 'rgba(255,212,0,0.07)' }} />
       <div className="pointer-events-none absolute rounded-full blur-3xl"
-        style={{ width: 420, height: 420, bottom: '5%', right: '-6%', background: 'rgba(0,207,252,0.06)' }} />
+        style={{ width: 420, height: 420, bottom: '5%', right: '-6%', background: 'rgba(63,82,255,0.06)' }} />
 
       {/* ── Header ── */}
       <header className="absolute top-0 left-0 right-0 z-30 flex justify-between items-center px-6 py-4">
         <div className="flex items-center gap-3">
           <img src="/favicon.png" alt="Bumpp" className="w-8 h-8 rounded-lg object-cover" />
-          <span className="text-xl font-bold tracking-tighter text-white uppercase font-headline">Bumpp</span>
+          <span className="text-xl font-bold tracking-tighter text-on-surface uppercase font-headline">Bumpp</span>
         </div>
       </header>
 
@@ -40,17 +40,17 @@ export default function LandingPage() {
           Minimal. Secure. Instant.
         </p>
 
-        {/* CTA Button */}
+        {/* CTA Button — sticker treatment: paper-white 2px stroke +
+            hard drop shadow, chunky rounded rectangle. Hover nudges the
+            button up-left and grows the shadow; active presses it into
+            the shadow like a physical button. */}
         <div className="relative mb-4" style={{ display: 'inline-block' }}>
-          <div className="absolute -inset-1 rounded-full blur-md opacity-40" style={{ backgroundImage: GRADIENT }} />
           <button
             onClick={() => navigate('/login')}
-            className="relative flex items-center gap-3 font-headline font-bold rounded-full transition-all duration-200 active:scale-95"
+            className="btn-sticker relative flex items-center gap-3 font-headline"
             style={{
-              backgroundImage: GRADIENT,
-              color: '#000',
               padding: '1rem 2.5rem',
-              fontSize: '1.1rem',
+              fontSize: '1.15rem',
               letterSpacing: '-0.01em',
             }}
           >
@@ -64,7 +64,7 @@ export default function LandingPage() {
         <button
           type="button"
           onClick={() => setShowGuestEntry(true)}
-          className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-white/5 text-sm font-semibold transition-colors"
+          className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-on-surface/5 text-sm font-semibold transition-colors"
         >
           <span>Or try as a guest</span>
           <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>arrow_forward</span>

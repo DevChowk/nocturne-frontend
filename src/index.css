@@ -2,11 +2,113 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------
+   Theme tokens
+   ---------------------------------------------------------------------
+   The palette lives entirely in CSS custom properties so both Tailwind
+   classes (via `rgb(var(--color-x-rgb) / <alpha-value>)` in the config)
+   and inline styles (via `var(--color-x)` / `var(--shadow-sticker)`) can
+   share the same source of truth and flip on theme change.
+
+   Resolution order:
+     1. `:root`                          → light defaults
+     2. `@media (prefers-color-scheme: dark) :root:not([data-theme="light"])`
+                                         → OS-dark unless user picked light
+     3. `:root[data-theme="light"]`      → explicit override → light
+     4. `:root[data-theme="dark"]`       → explicit override → dark
+
+   ThemeProvider stamps `data-theme` on <html> when the user picks
+   light/dark; when they pick "system" the attribute is REMOVED so the
+   media query takes over.
+
+   Accent hues (yellow / cobalt / coral) live outside the theme flip —
+   they're on-brand in both modes. Only surfaces / text / stroke swap.
+   --------------------------------------------------------------------- */
+
+:root {
+  /* Accents — shared between light and dark. */
+  --color-primary-rgb: 255 212 0;         /* #FFD400 */
+  --color-primary-dim-rgb: 245 183 0;     /* #F5B700 */
+  --color-secondary-rgb: 63 82 255;       /* #3F52FF */
+  --color-tertiary-rgb: 255 79 79;        /* #FF4F4F */
+
+  /* Sticker shadow composed from --color-stroke-rgb so it flips with theme. */
+  --shadow-sticker: 4px 4px 0 rgb(var(--color-stroke-rgb));
+  --shadow-sticker-sm: 2px 2px 0 rgb(var(--color-stroke-rgb));
+
+  /* Alpha shortcuts callsites can reach into instead of hand-typing rgba(). */
+  --shadow-sticker-glow: 0 0 24px rgb(var(--color-primary-rgb) / 0.3);
+
+  /* ------ LIGHT MODE DEFAULTS ------
+     Warm putty / kraft-paper ground. Noticeably deeper than the previous
+     linen pass so the saturated yellow #FFD400 has real luminance
+     separation to pop against, not just tint on top of. Palette stays
+     in the same warm hue family so buttons and ground feel intentionally
+     paired (same visual world), while chroma is kept low so the ground
+     never competes for attention. Elevation steps darker as before. */
+  --color-bg-rgb: 210 200 175;              /* #D2C8AF warm putty */
+  --color-surface-rgb: 193 182 149;         /* #C1B695 raised */
+  --color-surface-low-rgb: 202 192 165;     /* #CAC0A5 subtle raise */
+  --color-surface-high-rgb: 176 163 129;    /* #B0A381 inputs / hover */
+  --color-surface-highest-rgb: 155 141 106; /* #9B8D6A filled inputs / active */
+  --color-on-surface-rgb: 20 0 10;          /* #14000A near-black */
+  --color-on-surface-variant-rgb: 66 58 46; /* #423A2E deep warm brown */
+  --color-outline-rgb: 92 80 62;            /* #5C503E strong border */
+  --color-outline-variant-rgb: 138 122 96;  /* #8A7A60 subtle divider */
+  /* In light mode the sticker stroke and drop-shadow are near-black — this
+     is the classic Notion-sticker / meme-graphic look. In dark it inverts
+     to paper white below. */
+  --color-stroke-rgb: 20 0 10;              /* #14000A */
+}
+
+/* OS is dark AND user hasn't explicitly picked light → dark palette wins. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg-rgb: 15 15 20;               /* #0F0F14 */
+    --color-surface-rgb: 26 26 40;          /* #1A1A28 */
+    --color-surface-low-rgb: 19 19 32;      /* #131320 */
+    --color-surface-high-rgb: 34 34 46;     /* #22222E */
+    --color-surface-highest-rgb: 42 42 56;  /* #2A2A38 */
+    --color-on-surface-rgb: 253 253 247;    /* #FDFDF7 */
+    --color-on-surface-variant-rgb: 150 145 160; /* #9691A0 */
+    --color-outline-rgb: 75 71 83;          /* #4B4753 */
+    --color-outline-variant-rgb: 51 49 62;  /* #33313E */
+    --color-stroke-rgb: 253 253 247;        /* #FDFDF7 */
+  }
+}
+
+/* Explicit overrides. These win regardless of the media query above. */
+:root[data-theme="light"] {
+  --color-bg-rgb: 210 200 175;
+  --color-surface-rgb: 193 182 149;
+  --color-surface-low-rgb: 202 192 165;
+  --color-surface-high-rgb: 176 163 129;
+  --color-surface-highest-rgb: 155 141 106;
+  --color-on-surface-rgb: 20 0 10;
+  --color-on-surface-variant-rgb: 66 58 46;
+  --color-outline-rgb: 92 80 62;
+  --color-outline-variant-rgb: 138 122 96;
+  --color-stroke-rgb: 20 0 10;
+}
+
+:root[data-theme="dark"] {
+  --color-bg-rgb: 15 15 20;
+  --color-surface-rgb: 26 26 40;
+  --color-surface-low-rgb: 19 19 32;
+  --color-surface-high-rgb: 34 34 46;
+  --color-surface-highest-rgb: 42 42 56;
+  --color-on-surface-rgb: 253 253 247;
+  --color-on-surface-variant-rgb: 150 145 160;
+  --color-outline-rgb: 75 71 83;
+  --color-outline-variant-rgb: 51 49 62;
+  --color-stroke-rgb: 253 253 247;
+}
+
 @layer base {
   body {
     font-family: 'Manrope', sans-serif;
-    background-color: #0e0e0e;
-    color: #ffffff;
+    background-color: rgb(var(--color-bg-rgb));
+    color: rgb(var(--color-on-surface-rgb));
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Plus Jakarta Sans', sans-serif;
@@ -26,7 +128,12 @@
     100% { transform: scale(1.5); opacity: 0; }
   }
   .shimmer {
-    background: linear-gradient(90deg, #131313 25%, #20201f 50%, #131313 75%);
+    background: linear-gradient(
+      90deg,
+      rgb(var(--color-surface-low-rgb)) 25%,
+      rgb(var(--color-surface-high-rgb)) 50%,
+      rgb(var(--color-surface-low-rgb)) 75%
+    );
     background-size: 200% 100%;
     animation: shimmer 2s infinite linear;
   }
@@ -35,18 +142,46 @@
     to { background-position: -200% 0; }
   }
   .glass-panel {
-    background: rgba(26, 26, 26, 0.6);
+    background: rgb(var(--color-surface-rgb) / 0.6);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
   }
   .video-gradient-overlay {
-    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 40%);
+    /* Video is always a dark ground regardless of theme — a light overlay
+       would be unreadable against the video content. Kept as literal black. */
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 40%);
   }
   .custom-scrollbar::-webkit-scrollbar { width: 4px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: #2c2c2c; border-radius: 10px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-surface-highest-rgb));
+    border-radius: 10px;
+  }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Sticker CTA — yellow fill, theme-aware stroke + drop shadow.
+     Signature hover/press micro-interaction: hover nudges the button up-
+     and-left and grows the shadow (like the sticker's peeling off);
+     active presses it into the shadow. */
+  .btn-sticker {
+    background: rgb(var(--color-primary-rgb));
+    color: #14000A;
+    border: 2px solid rgb(var(--color-stroke-rgb));
+    box-shadow: var(--shadow-sticker);
+    border-radius: 0.75rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-sticker:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 rgb(var(--color-stroke-rgb));
+  }
+  .btn-sticker:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 rgb(var(--color-stroke-rgb));
+  }
 
   /* Reduce-motion: applied as a class on <html> by the SettingsProvider when
      either the user opted in OR (if untouched) the OS reports the preference. */
@@ -58,5 +193,9 @@
     transition-duration: 0.001ms !important;
   }
   .reduce-motion .pulse-ring { animation: none !important; }
-  .reduce-motion .shimmer { animation: none !important; background: #131313 !important; }
+  .reduce-motion .shimmer {
+    animation: none !important;
+    background: rgb(var(--color-surface-low-rgb)) !important;
+  }
+  .reduce-motion .btn-sticker { transition: none !important; }
 }

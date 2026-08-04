@@ -11,20 +11,18 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
   return (
     <ModalBase maxWidth="max-w-md" onClose={onClose}>
       {/* Header with avatar + identity */}
-      <header className="px-6 pt-8 pb-6 flex flex-col items-center text-center border-b border-white/5">
+      <header className="px-6 pt-8 pb-6 flex flex-col items-center text-center border-b border-outline-variant/40">
         <div
-          className="flex items-center justify-center rounded-full font-bold font-headline mb-4"
+          className="flex items-center justify-center rounded-full font-bold font-headline mb-4 bg-primary text-on-primary"
           style={{
             width: 80, height: 80, fontSize: 36,
-            background: 'rgba(186,158,255,0.15)',
-            color: '#ba9eff',
-            boxShadow: '0 0 40px rgba(186,158,255,0.15)',
+            boxShadow: '0 8px 30px rgba(255,212,0,0.35)',
           }}
         >
           {initial}
         </div>
         <p className="font-headline font-bold text-on-surface text-lg">{displayName}</p>
-        {!isGuest && user?.username && <p className="text-primary text-sm font-label">@{user.username}</p>}
+        {!isGuest && user?.username && <p className="text-on-surface-variant text-sm font-label font-semibold">@{user.username}</p>}
         {!isGuest && <p className="text-on-surface-variant text-xs mt-1 break-all">{user?.email}</p>}
         {isGuest && <p className="text-on-surface-variant text-xs mt-1">Anonymous session</p>}
         {!isGuest && user?.bio && <p className="text-on-surface-variant text-sm mt-3 max-w-[280px]">{user.bio}</p>}
@@ -42,7 +40,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
               type="button"
               onClick={() => { onClose?.(); navigate('/signup'); }}
               className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-black font-bold transition-transform active:scale-[0.98]"
-              style={{ backgroundImage: GRADIENT, boxShadow: '0 0 18px rgba(186,158,255,0.25)' }}
+              style={{ backgroundImage: GRADIENT, boxShadow: '0 0 18px rgba(255,212,0,0.25)' }}
             >
               <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>auto_awesome</span>
               <span className="flex-1 text-sm">Sign up to unlock everything</span>
@@ -108,7 +106,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
       </div>
 
       {/* Footer */}
-      <footer className="px-6 py-4 border-t border-white/5 flex justify-end">
+      <footer className="px-6 py-4 border-t border-outline-variant/40 flex justify-end">
         <button
           type="button"
           onClick={onClose}

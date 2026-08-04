@@ -41,6 +41,41 @@ export function SettingsProvider({ children }) {
     setSettings((prev) => ({ ...prev, [key]: value }));
   }, []);
 
+  // Theme wiring: stamp `data-theme="light"` / `data-theme="dark"` on
+  // <html> when the user picks a specific mode, and REMOVE the attribute
+  // when they pick "system" so the `prefers-color-scheme` media query in
+  // index.css takes over. Also toggles Tailwind's `.dark` class since
+  // tailwind.config.js has `darkMode: 'class'` — any `dark:*` utility
+  // that survives from before will keep working. Runs once on mount and
+  // again whenever the theme setting changes.
+  useEffect(() => {
+    const html = document.documentElement;
+    const applyTheme = () => {
+      const t = settings.theme;
+      if (t === 'light') {
+        html.setAttribute('data-theme', 'light');
+        html.classList.remove('dark');
+      } else if (t === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+        html.classList.add('dark');
+      } else {
+        html.removeAttribute('data-theme');
+        // Follow OS preference for the `.dark` class too.
+        const osDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+        html.classList.toggle('dark', !!osDark);
+      }
+    };
+    applyTheme();
+    // When on "system", react to OS-level theme flips in real time so the
+    // .dark class stays synchronized (the CSS media query already does).
+    if (settings.theme === 'system' && window.matchMedia) {
+      const mql = window.matchMedia('(prefers-color-scheme: dark)');
+      const onChange = () => applyTheme();
+      mql.addEventListener?.('change', onChange);
+      return () => mql.removeEventListener?.('change', onChange);
+    }
+  }, [settings.theme]);
+
   return (
     <SettingsContext.Provider value={{ settings, updateSetting }}>
       {children}

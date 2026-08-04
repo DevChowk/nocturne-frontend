@@ -136,8 +136,8 @@ export default function ConversationPage() {
   return (
     <div className="bg-background text-on-surface font-body min-h-screen flex flex-col">
       <header
-        className="px-4 py-2.5 md:px-6 md:py-4 flex items-center gap-3 border-b border-white/5 sticky top-0 z-10"
-        style={{ background: '#0e0e0e' }}
+        className="px-4 py-2.5 md:px-6 md:py-4 flex items-center gap-3 border-b border-outline-variant/40 sticky top-0 z-10"
+        style={{ background: 'rgb(var(--color-bg-rgb))' }}
       >
         <button
           type="button"
@@ -149,8 +149,8 @@ export default function ConversationPage() {
         </button>
         <div className="flex items-center gap-3 min-w-0">
           <div
-            className="flex-shrink-0 flex items-center justify-center rounded-full font-bold font-headline"
-            style={{ width: 36, height: 36, fontSize: 16, background: 'rgba(186,158,255,0.15)', color: '#ba9eff' }}
+            className="flex-shrink-0 flex items-center justify-center rounded-full font-bold font-headline bg-primary text-on-primary"
+            style={{ width: 36, height: 36, fontSize: 16 }}
           >
             {(peer?.displayName?.[0] || peer?.username?.[0] || '?').toUpperCase()}
           </div>
@@ -187,8 +187,8 @@ export default function ConversationPage() {
 
       <form
         onSubmit={send}
-        className="sticky bottom-0 max-w-2xl w-full mx-auto px-4 py-3 border-t border-white/5"
-        style={{ background: '#0e0e0e' }}
+        className="sticky bottom-0 max-w-2xl w-full mx-auto px-4 py-3 border-t border-outline-variant/40"
+        style={{ background: 'rgb(var(--color-bg-rgb))' }}
       >
         <div className="relative flex items-center">
           <input

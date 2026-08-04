@@ -42,7 +42,7 @@ export default function FriendsSidebar({ friends, loading, collapsed }) {
       aria-hidden={collapsed}
     >
       {!collapsed && (
-        <div className="flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden" style={{ background: '#131313', border: '1px solid rgba(186,158,255,0.12)' }}>
+        <div className="flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden" style={{ background: 'rgb(var(--color-surface-low-rgb))', border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
           <div className="flex items-center justify-between px-5 pt-4 pb-2 flex-shrink-0">
             <h2 className="font-headline font-bold text-on-surface text-base">Friends</h2>
             <span className="text-on-surface-variant text-[10px] font-label uppercase tracking-widest tabular-nums">
@@ -72,18 +72,21 @@ export default function FriendsSidebar({ friends, loading, collapsed }) {
                 key={entry.id}
                 type="button"
                 onClick={() => navigate(`/messages/${u.id}`)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left"
+                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-on-surface/5 transition-colors text-left"
               >
                 <div className="relative flex-shrink-0">
                   <div
-                    className="flex items-center justify-center rounded-full font-bold font-headline"
-                    style={{ width: 36, height: 36, fontSize: 14, background: 'rgba(186,158,255,0.15)', color: '#ba9eff' }}
+                    className="flex items-center justify-center rounded-full font-bold font-headline bg-primary text-on-primary"
+                    style={{ width: 36, height: 36, fontSize: 14 }}
                   >
                     {initial}
                   </div>
                   <span
-                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 ${u.online ? 'bg-secondary' : 'bg-on-surface-variant/40'}`}
-                    style={{ borderColor: '#0e0e0e', background: u.online ? '#00cffc' : 'rgba(173,170,170,0.4)' }}
+                    className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
+                    style={{
+                      borderColor: 'rgb(var(--color-bg-rgb))',
+                      background: u.online ? '#3F52FF' : 'rgb(var(--color-outline-rgb))',
+                    }}
                     aria-label={u.online ? 'Online' : 'Offline'}
                   />
                 </div>

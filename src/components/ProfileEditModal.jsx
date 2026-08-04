@@ -77,10 +77,10 @@ export default function ProfileEditModal({ onClose }) {
 
   return (
     <ModalBase maxWidth="max-w-md" onClose={onClose}>
-      <header className="px-6 py-5 flex items-center justify-between border-b border-white/5">
+      <header className="px-6 py-5 flex items-center justify-between border-b border-outline-variant/40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(186,158,255,0.15)' }}>
-            <span className="material-symbols-outlined text-primary" aria-hidden="true">person</span>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary text-on-primary">
+            <span className="material-symbols-outlined" aria-hidden="true">person</span>
           </div>
           <h2 className="font-headline text-lg font-bold text-on-surface">Edit profile</h2>
         </div>
@@ -176,10 +176,10 @@ export default function ProfileEditModal({ onClose }) {
                   type="button"
                   onClick={() => toggleLanguage(l.code)}
                   aria-pressed={selected}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95"
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
                   style={selected
-                    ? { background: 'rgba(186,158,255,0.18)', borderColor: 'rgba(186,158,255,0.45)', color: '#ba9eff' }
-                    : { background: 'rgba(38,38,38,0.6)', borderColor: 'rgba(72,72,71,0.4)', color: '#adaaaa' }}
+                    ? { background: 'rgb(var(--color-primary-rgb))', color: '#14000A' }
+                    : { background: 'rgb(var(--color-surface-highest-rgb))', color: 'rgb(var(--color-on-surface-variant-rgb))' }}
                 >
                   {l.name}
                 </button>
@@ -205,10 +205,10 @@ export default function ProfileEditModal({ onClose }) {
                   type="button"
                   onClick={() => toggleInterest(it.code)}
                   aria-pressed={selected}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95"
                   style={selected
-                    ? { background: 'rgba(0,207,252,0.16)', borderColor: 'rgba(0,207,252,0.45)', color: '#00cffc' }
-                    : { background: 'rgba(38,38,38,0.6)', borderColor: 'rgba(72,72,71,0.4)', color: '#adaaaa' }}
+                    ? { background: 'rgb(var(--color-secondary-rgb))', color: '#FFFFFF' }
+                    : { background: 'rgb(var(--color-surface-highest-rgb))', color: 'rgb(var(--color-on-surface-variant-rgb))' }}
                 >
                   <span className="material-symbols-outlined text-base" aria-hidden="true">{it.icon}</span>
                   {it.label}
@@ -231,8 +231,7 @@ export default function ProfileEditModal({ onClose }) {
           <button
             type="submit"
             disabled={submitting}
-            className="flex-1 px-5 py-3 rounded-full text-black font-bold text-sm transition-all active:scale-95 disabled:opacity-60"
-            style={{ backgroundImage: GRADIENT }}
+            className="btn-sticker flex-1 px-5 py-3 text-sm disabled:opacity-60"
           >
             {submitting ? 'Saving…' : 'Save'}
           </button>

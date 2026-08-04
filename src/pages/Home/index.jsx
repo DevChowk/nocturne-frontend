@@ -556,9 +556,9 @@ export default function HomePage() {
         className="flex flex-col h-[100dvh] min-h-[100dvh] overflow-hidden"
         style={{
           background:
-            'radial-gradient(circle at 12% 22%, rgba(186,158,255,0.18) 0%, transparent 45%),' +
-            'radial-gradient(circle at 88% 78%, rgba(0,207,252,0.14) 0%, transparent 45%),' +
-            '#0e0e0e',
+            'radial-gradient(circle at 12% 22%, rgba(255,212,0,0.18) 0%, transparent 45%),' +
+            'radial-gradient(circle at 88% 78%, rgba(63,82,255,0.14) 0%, transparent 45%),' +
+            'rgb(var(--color-bg-rgb))',
         }}
       >
         <AppHeader
