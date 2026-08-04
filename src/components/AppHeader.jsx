@@ -9,22 +9,22 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
 
   return (
     <header
-      className="relative z-30 flex items-center justify-between px-4 py-2.5 md:px-6 md:py-4 mb-2 md:mb-4 flex-shrink-0"
-      style={{ background: '#0e0e0e' }}
+      className="relative z-30 flex items-center justify-between px-4 py-2.5 md:px-6 md:py-4 mb-2 md:mb-4 flex-shrink-0 border-b border-outline-variant/40"
+      style={{ background: 'rgb(var(--color-bg-rgb))' }}
     >
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex items-center gap-2 flex-shrink-0">
           <img src="/favicon.png" alt="Bumpp" className="w-6 h-6 md:w-7 md:h-7 rounded-lg object-cover" />
-          <span className="text-base md:text-xl font-bold tracking-tighter text-white uppercase font-headline">Bumpp</span>
+          <span className="text-base md:text-xl font-bold tracking-tighter text-on-surface uppercase font-headline">Bumpp</span>
         </div>
         <div
           className="flex items-center gap-1.5 px-3 py-1 rounded-full flex-shrink-0"
-          style={{ background: '#131313' }}
+          style={{ background: 'rgb(var(--color-surface-low-rgb))' }}
           title={isConnected ? 'People online now' : 'Disconnected from server'}
         >
           <span
             className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'animate-pulse' : ''}`}
-            style={{ background: isConnected ? '#00cffc' : '#ff6e84', boxShadow: isConnected ? '0 0 6px #00cffc' : 'none' }}
+            style={{ background: isConnected ? '#3F52FF' : '#FF4F4F', boxShadow: isConnected ? '0 0 6px #3F52FF' : 'none' }}
           />
           <span className="font-label tabular-nums" style={{ fontSize: 11 }}>
             {!isConnected ? (
@@ -52,8 +52,7 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
             aria-label={friendsCollapsed ? 'Show friends list' : 'Hide friends list'}
             aria-pressed={!friendsCollapsed}
             title={friendsCollapsed ? 'Show friends' : 'Hide friends'}
-            className="flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0 w-8 h-8 md:w-10 md:h-10"
-            style={{ background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 12px rgba(186,158,255,0.15)' }}
+            className="flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0 w-8 h-8 md:w-10 md:h-10 bg-primary text-on-primary shadow-lg"
           >
             <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>group</span>
           </button>
@@ -62,8 +61,7 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
           onClick={onProfileClick}
           aria-label="Open profile menu"
           title="Profile"
-          className="flex items-center justify-center rounded-full font-bold font-headline transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0 w-8 h-8 md:w-10 md:h-10 text-sm md:text-base"
-          style={{ background: 'rgba(186,158,255,0.15)', color: '#ba9eff', boxShadow: '0 0 12px rgba(186,158,255,0.15)' }}
+          className="flex items-center justify-center rounded-full font-bold font-headline transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50 flex-shrink-0 w-8 h-8 md:w-10 md:h-10 text-sm md:text-base bg-primary text-on-primary shadow-lg"
         >
           {initial}
         </button>

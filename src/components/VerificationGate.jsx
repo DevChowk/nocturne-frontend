@@ -29,7 +29,7 @@ export default function VerificationGate() {
   return (
     <div className="bg-background text-on-background font-body min-h-[100dvh] flex flex-col items-center justify-center px-6 text-center">
       <div className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(139,92,246,0.12) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(255,212,0,0.12) 0%, transparent 70%)' }} />
 
       <div className="relative max-w-md w-full">
         <span className="material-symbols-outlined text-primary mb-4 inline-block" aria-hidden="true" style={{ fontSize: 56 }}>
@@ -62,8 +62,7 @@ export default function VerificationGate() {
             type="button"
             onClick={recheck}
             disabled={checking}
-            className="inline-flex items-center justify-center gap-2 font-headline font-bold rounded-full transition-all duration-200 active:scale-95 text-black px-8 py-3.5 disabled:opacity-60"
-            style={{ backgroundImage: GRADIENT }}
+            className="btn-sticker inline-flex items-center justify-center gap-2 px-8 py-3.5 disabled:opacity-60"
           >
             {checking ? 'Checking…' : "I've verified — continue"}
             <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>arrow_forward</span>

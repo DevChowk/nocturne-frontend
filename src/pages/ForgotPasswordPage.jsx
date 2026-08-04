@@ -33,19 +33,19 @@ export default function ForgotPasswordPage() {
 
       <main className="flex-grow flex items-center justify-center relative overflow-hidden px-4 pt-32 pb-12">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
-          style={{ background: 'rgba(186,158,255,0.1)' }} />
+          style={{ background: 'rgba(255,212,0,0.1)' }} />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full blur-[100px]"
-          style={{ background: 'rgba(0,207,252,0.1)' }} />
+          style={{ background: 'rgba(63,82,255,0.1)' }} />
 
         <div className="w-full max-w-[480px] z-10">
-          <div className="glass-panel border border-outline-variant/10 rounded-xl p-8 md:p-10"
-            style={{ boxShadow: '0 0 24px rgba(186,158,255,0.15)' }}>
+          <div className="glass-panel border border-outline-variant/40 rounded-xl p-8 md:p-10"
+            style={{ boxShadow: '0 0 24px rgba(255,212,0,0.15)' }}>
 
             {submitted ? (
               <div className="text-center space-y-4">
-                <div className="flex items-center justify-center mx-auto rounded-full"
-                  style={{ width: 64, height: 64, background: 'rgba(186,158,255,0.15)', boxShadow: '0 0 24px rgba(186,158,255,0.2)' }}>
-                  <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: 32 }}>mark_email_read</span>
+                <div className="flex items-center justify-center mx-auto rounded-full bg-primary text-on-primary"
+                  style={{ width: 64, height: 64, boxShadow: '0 8px 30px rgba(255,212,0,0.35)' }}>
+                  <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 32 }}>mark_email_read</span>
                 </div>
                 <h1 className="font-headline text-2xl font-extrabold" style={gradientTextStyle}>Check your inbox</h1>
                 <p className="text-on-surface-variant text-sm leading-relaxed">
@@ -84,8 +84,7 @@ export default function ForgotPasswordPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full mt-4 py-4 px-6 rounded-full text-black font-bold text-lg transition-all duration-300 active:scale-[0.98] disabled:opacity-60"
-                    style={{ backgroundImage: GRADIENT, boxShadow: loading ? 'none' : '0 0 24px rgba(186,158,255,0.3)' }}
+                    className="btn-sticker w-full mt-4 py-4 px-6 text-lg disabled:opacity-60"
                   >
                     {loading ? 'Sending…' : 'Send reset link'}
                   </button>

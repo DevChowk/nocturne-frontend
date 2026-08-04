@@ -32,7 +32,7 @@ export default function VerifyPage() {
   return (
     <div className="bg-background text-on-background font-body min-h-screen flex flex-col items-center justify-center px-6 text-center">
       <div className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(139,92,246,0.12) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(255,212,0,0.12) 0%, transparent 70%)' }} />
 
       <div className="relative max-w-md w-full">
         {status === 'verifying' && (
@@ -51,8 +51,7 @@ export default function VerifyPage() {
             <p className="text-on-surface-variant mb-8">You can close this tab or head back to the app.</p>
             <Link
               to={authToken ? '/home' : '/login'}
-              className="inline-flex items-center gap-2 font-headline font-bold rounded-full transition-all duration-200 active:scale-95 text-black px-8 py-3.5"
-              style={{ backgroundImage: GRADIENT }}
+              className="btn-sticker inline-flex items-center gap-2 px-8 py-3.5"
             >
               {authToken ? 'Go to Bumpp' : 'Sign in'}
               <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>arrow_forward</span>

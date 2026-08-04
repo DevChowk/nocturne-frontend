@@ -9,12 +9,8 @@ function Avatar({ user }) {
   const initial = label[0]?.toUpperCase() ?? '?';
   return (
     <div
-      className="flex-shrink-0 flex items-center justify-center rounded-full font-bold font-headline"
-      style={{
-        width: 44, height: 44, fontSize: 18,
-        background: 'rgba(186,158,255,0.15)',
-        color: '#ba9eff',
-      }}
+      className="flex-shrink-0 flex items-center justify-center rounded-full font-bold font-headline bg-primary text-on-primary"
+      style={{ width: 44, height: 44, fontSize: 18 }}
     >
       {initial}
     </div>
@@ -24,7 +20,7 @@ function Avatar({ user }) {
 function FriendRow({ entry, busy, onPrimary, primaryLabel, primaryIcon, onSecondary, secondaryLabel, onMessage }) {
   const { user } = entry;
   return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container-low border border-white/5">
+    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container-low border border-outline-variant/40">
       <Avatar user={user} />
       <div className="flex-1 min-w-0">
         <p className="font-headline font-semibold text-on-surface text-sm truncate">
@@ -133,7 +129,7 @@ export default function FriendsPage() {
   return (
     <div className="bg-background text-on-surface font-body min-h-screen flex flex-col">
       {/* Header */}
-      <header className="px-4 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-b border-white/5 sticky top-0 z-10" style={{ background: '#0e0e0e' }}>
+      <header className="px-4 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-b border-outline-variant/40 sticky top-0 z-10" style={{ background: 'rgb(var(--color-bg-rgb))' }}>
         <div className="flex items-center gap-3">
           <Link to="/home" aria-label="Back to home" className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-surface-container-high transition-colors">
             <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>

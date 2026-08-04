@@ -47,17 +47,15 @@ export default function OnboardingModal() {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/90 backdrop-blur-md p-4" role="dialog" aria-modal="true">
       <div
-        className="relative w-full max-w-md flex flex-col bg-surface-container-low rounded-xl border border-white/5 overflow-hidden max-h-[90vh]"
-        style={{ boxShadow: '0 0 40px rgba(132,85,239,0.2)' }}
+        className="relative w-full max-w-md flex flex-col bg-surface-container-low rounded-xl border border-outline-variant/40 overflow-hidden max-h-[90vh]"
+        style={{ boxShadow: '0 0 40px rgba(245,183,0,0.2)' }}
       >
-        <header className="px-6 pt-8 pb-6 text-center border-b border-white/5">
+        <header className="px-6 pt-8 pb-6 text-center border-b border-outline-variant/40">
           <div
-            className="mx-auto mb-4 flex items-center justify-center rounded-full font-bold font-headline"
+            className="mx-auto mb-4 flex items-center justify-center rounded-full font-bold font-headline bg-primary text-on-primary"
             style={{
               width: 72, height: 72, fontSize: 32,
-              background: 'rgba(186,158,255,0.15)',
-              color: '#ba9eff',
-              boxShadow: '0 0 32px rgba(186,158,255,0.18)',
+              boxShadow: '0 8px 30px rgba(255,212,0,0.35)',
             }}
           >
             {initial}
@@ -110,8 +108,7 @@ export default function OnboardingModal() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full mt-2 py-3.5 rounded-full text-black font-bold transition-all active:scale-[0.98] disabled:opacity-60"
-            style={{ backgroundImage: GRADIENT, boxShadow: submitting ? 'none' : '0 0 24px rgba(186,158,255,0.3)' }}
+            className="btn-sticker w-full mt-2 py-3.5 disabled:opacity-60"
           >
             {submitting ? 'Saving…' : 'Continue'}
           </button>

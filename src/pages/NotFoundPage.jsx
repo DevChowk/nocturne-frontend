@@ -5,7 +5,7 @@ export default function NotFoundPage() {
   return (
     <div className="bg-background text-on-background font-body min-h-screen flex flex-col items-center justify-center px-6 text-center">
       <div className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(139,92,246,0.12) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(circle at 50% 50%, rgba(255,212,0,0.12) 0%, transparent 70%)' }} />
 
       <h1 className="font-headline font-extrabold tracking-tight leading-none mb-4 relative" style={{ fontSize: 'clamp(4rem, 16vw, 9rem)', ...gradientTextStyle }}>
         404
@@ -19,8 +19,7 @@ export default function NotFoundPage() {
 
       <Link
         to="/"
-        className="relative flex items-center gap-2 font-headline font-bold rounded-full transition-all duration-200 active:scale-95 text-black px-8 py-3.5"
-        style={{ backgroundImage: GRADIENT }}
+        className="btn-sticker relative flex items-center gap-2 px-8 py-3.5"
       >
         Take me home
         <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>arrow_forward</span>

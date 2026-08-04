@@ -30,13 +30,13 @@ export default function TermsModal({ onClose }) {
         <div className="space-y-1">
           <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Terms of Service</h1>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" style={{ boxShadow: '0 0 8px #00cffc' }} />
+            <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" style={{ boxShadow: '0 0 8px #3F52FF' }} />
             <span className="text-xs font-label uppercase tracking-widest text-on-surface-variant font-semibold">
               Last Updated: October 2023
             </span>
           </div>
         </div>
-        <div className="p-3 bg-surface-container-high rounded-full text-primary" style={{ boxShadow: '0 0 15px rgba(186,158,255,0.1)' }}>
+        <div className="p-3 bg-surface-container-high rounded-full text-primary" style={{ boxShadow: '0 0 15px rgba(255,212,0,0.1)' }}>
           <span className="material-symbols-outlined text-3xl">shield_person</span>
         </div>
       </header>
@@ -87,15 +87,14 @@ export default function TermsModal({ onClose }) {
       {/* Footer */}
       <footer
         className="p-8 pt-6 flex flex-col sm:flex-row items-center gap-4 border-t border-outline-variant/5"
-        style={{ background: 'linear-gradient(to top, #131313, transparent)' }}
+        style={{ background: 'linear-gradient(to top, rgb(var(--color-surface-low-rgb)), transparent)' }}
       >
         <p className="flex-1 text-xs text-on-surface-variant max-sm:text-center">
           By clicking Close or interacting with the app, you acknowledge that you have read and understood these terms.
         </p>
         <button
           onClick={onClose}
-          className="w-full sm:w-auto px-10 py-3 rounded-full text-black font-headline font-bold text-sm tracking-wide transition-all duration-300 active:scale-95"
-          style={{ backgroundImage: GRADIENT, boxShadow: '0 4px 20px rgba(186,158,255,0.25)' }}
+          className="btn-sticker w-full sm:w-auto px-10 py-3 text-sm tracking-wide"
         >
           Close
         </button>

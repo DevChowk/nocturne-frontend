@@ -60,9 +60,9 @@ export default function SignupPage() {
       <main className="flex-grow flex items-center justify-center pt-24 pb-12 px-4 relative overflow-hidden">
         {/* Ambient glows */}
         <div className="absolute top-1/4 -left-20 w-96 h-96 rounded-full blur-[120px] pointer-events-none"
-          style={{ background: 'rgba(186,158,255,0.1)' }} />
+          style={{ background: 'rgba(255,212,0,0.1)' }} />
         <div className="absolute bottom-1/4 -right-20 w-96 h-96 rounded-full blur-[120px] pointer-events-none"
-          style={{ background: 'rgba(0,207,252,0.1)' }} />
+          style={{ background: 'rgba(63,82,255,0.1)' }} />
 
         <div className="w-full max-w-[1100px] grid md:grid-cols-2 gap-12 items-center">
           {/* Left branding */}
@@ -93,7 +93,7 @@ export default function SignupPage() {
 
           {/* Registration form */}
           <div className="w-full">
-            <div className="bg-surface-container-low rounded-xl p-8 md:p-10 border border-white/[0.03]"
+            <div className="bg-surface-container-low rounded-xl p-8 md:p-10 border border-on-surface/[0.03]"
               style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
               <div className="mb-8">
                 <h2 className="text-3xl font-headline font-bold text-on-surface mb-2">Create Account</h2>
@@ -200,8 +200,7 @@ export default function SignupPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 rounded-full text-black font-bold tracking-tight transition-all transform active:scale-95 flex items-center justify-center gap-2 mt-4 disabled:opacity-60"
-                  style={{ backgroundImage: GRADIENT, boxShadow: '0 0 24px rgba(186,158,255,0.15)' }}
+                  className="btn-sticker w-full py-4 flex items-center justify-center gap-2 mt-4 disabled:opacity-60"
                 >
                   {loading ? 'Creating...' : 'Create Account'}
                   {!loading && <span className="material-symbols-outlined">arrow_forward</span>}

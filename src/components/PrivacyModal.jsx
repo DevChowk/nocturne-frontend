@@ -28,7 +28,7 @@ export default function PrivacyModal({ onClose }) {
   return (
     <ModalBase maxWidth="max-w-3xl" onClose={onClose}>
       {/* Header */}
-      <header className="flex items-center justify-between px-8 py-6 border-b border-white/5">
+      <header className="flex items-center justify-between px-8 py-6 border-b border-outline-variant/40">
         <div>
           <h1 className="font-headline text-2xl font-extrabold tracking-tight" style={gradientTextStyle}>
             Privacy Policy
@@ -49,7 +49,7 @@ export default function PrivacyModal({ onClose }) {
       <div className="flex-1 overflow-y-auto px-8 py-10 space-y-12 no-scrollbar">
         {/* Data Collection */}
         <section>
-          <SectionHeader icon="analytics" iconBg="rgba(186,158,255,0.1)" iconColor="text-primary" title="Data Collection" />
+          <SectionHeader icon="analytics" iconBg="rgba(255,212,0,0.1)" iconColor="text-primary" title="Data Collection" />
           <div className="space-y-4 text-on-surface-variant leading-relaxed">
             <p>At Bumpp, your presence is ephemeral. We collect minimal technical metadata to ensure connection stability, including device identifiers and approximate network location. Unlike traditional platforms, we do not log your interactions or build a behavioral profile.</p>
             <ul className="space-y-3 pl-2 border-l border-primary/20">
@@ -64,17 +64,17 @@ export default function PrivacyModal({ onClose }) {
         </section>
 
         {/* Use of Information */}
-        <section className="p-6 rounded-xl bg-surface-container-high/40" style={{ boxShadow: 'inset 0 0 0 1px rgba(186,158,255,0.1)' }}>
-          <SectionHeader icon="share" iconBg="rgba(0,207,252,0.1)" iconColor="text-secondary" title="Use of Information" />
+        <section className="p-6 rounded-xl bg-surface-container-high/40" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,212,0,0.1)' }}>
+          <SectionHeader icon="share" iconBg="rgba(63,82,255,0.1)" iconColor="text-secondary" title="Use of Information" />
           <p className="text-on-surface-variant leading-relaxed">We leverage information solely to curate the "Electric Pulse" of our community. Your data is never sold. We use anonymized usage patterns to improve our matching algorithms and prevent malicious activity within the ecosystem.</p>
         </section>
 
         {/* Video Security */}
         <section>
-          <SectionHeader icon="videocam_off" iconBg="rgba(255,151,181,0.1)" iconColor="text-tertiary" title="Video Security" />
+          <SectionHeader icon="videocam_off" iconBg="rgba(255,79,79,0.1)" iconColor="text-tertiary" title="Video Security" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {VIDEO_ITEMS.map(item => (
-              <div key={item.title} className="p-5 bg-surface-container rounded-xl border border-white/5">
+              <div key={item.title} className="p-5 bg-surface-container rounded-xl border border-outline-variant/40">
                 <h3 className="text-on-surface font-semibold mb-2">{item.title}</h3>
                 <p className="text-sm text-on-surface-variant">{item.desc}</p>
               </div>
@@ -84,7 +84,7 @@ export default function PrivacyModal({ onClose }) {
 
         {/* Your Rights */}
         <section>
-          <SectionHeader icon="gavel" iconBg="rgba(174,141,255,0.1)" iconColor="text-primary-fixed" title="Your Rights" />
+          <SectionHeader icon="gavel" iconBg="rgba(255,223,51,0.1)" iconColor="text-primary-fixed" title="Your Rights" />
           <p className="text-on-surface-variant leading-relaxed mb-6">You maintain absolute sovereignty over your digital footprint. Under global privacy frameworks, including GDPR and CCPA, you have the following irrevocable rights:</p>
           <div className="space-y-3">
             {RIGHTS.map(right => (
@@ -107,12 +107,11 @@ export default function PrivacyModal({ onClose }) {
       </div>
 
       {/* Footer */}
-      <footer className="p-8 bg-surface-container-low/80 backdrop-blur-md border-t border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <footer className="p-8 bg-surface-container-low/80 backdrop-blur-md border-t border-outline-variant/40 flex flex-col md:flex-row gap-4 items-center justify-between">
         <p className="text-xs text-on-surface-variant text-center md:text-left">By continuing to use Bumpp, you acknowledge these terms.</p>
         <button
           onClick={onClose}
-          className="w-full md:w-auto px-10 py-3 rounded-full text-black font-bold text-sm transition-all duration-300 active:scale-95"
-          style={{ backgroundImage: GRADIENT, boxShadow: '0 0 20px rgba(186,158,255,0.3)' }}
+          className="btn-sticker w-full md:w-auto px-10 py-3 text-sm"
         >
           I Understand
         </button>

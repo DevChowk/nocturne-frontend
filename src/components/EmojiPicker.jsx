@@ -41,8 +41,8 @@ export default function EmojiPicker({ onPick, onClose, anchor = 'top' }) {
       ref={ref}
       role="dialog"
       aria-label="Pick an emoji"
-      className={`absolute ${anchor === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} right-0 z-30 grid grid-cols-8 gap-1 p-2 rounded-xl backdrop-blur-md border border-white/10 shadow-xl`}
-      style={{ background: 'rgba(19,19,19,0.95)' }}
+      className={`absolute ${anchor === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} right-0 z-30 grid grid-cols-8 gap-1 p-2 rounded-xl backdrop-blur-md border border-on-surface/10 shadow-xl`}
+      style={{ background: 'rgb(var(--color-surface-low-rgb) / 0.95)' }}
     >
       {POPULAR_EMOJIS.map((emoji) => (
         <button
@@ -53,7 +53,7 @@ export default function EmojiPicker({ onPick, onClose, anchor = 'top' }) {
             onClose?.();
           }}
           aria-label={`Insert ${emoji}`}
-          className="flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors active:scale-90"
+          className="flex items-center justify-center rounded-lg hover:bg-on-surface/10 transition-colors active:scale-90"
           style={{ width: 32, height: 32, fontSize: 18 }}
         >
           {emoji}

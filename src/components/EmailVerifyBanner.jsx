@@ -31,7 +31,7 @@ export default function EmailVerifyBanner() {
   return (
     <div
       role="status"
-      className="fixed top-0 left-0 right-0 z-[60] flex items-center gap-2 px-3 py-2 border-b border-white/5 backdrop-blur-md"
+      className="fixed top-0 left-0 right-0 z-[60] flex items-center gap-2 px-3 py-2 border-b border-outline-variant/40 backdrop-blur-md"
       style={{ background: 'rgba(38,28,72,0.92)' }}
     >
       <span className="material-symbols-outlined text-primary flex-shrink-0" aria-hidden="true" style={{ fontSize: 18 }}>mark_email_unread</span>

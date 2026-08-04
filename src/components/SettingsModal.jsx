@@ -11,11 +11,11 @@ function Toggle({ checked, onChange, ariaLabel }) {
       onClick={() => onChange(!checked)}
       className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
       style={{
-        background: checked ? '#ba9eff' : 'rgba(72,72,71,0.6)',
+        background: checked ? 'rgb(var(--color-primary-rgb))' : 'rgb(var(--color-outline-rgb) / 0.6)',
       }}
     >
       <span
-        className="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
+        className="inline-block h-5 w-5 transform rounded-full bg-on-primary shadow transition-transform"
         style={{ transform: checked ? 'translateX(22px)' : 'translateX(2px)' }}
       />
     </button>
@@ -43,6 +43,46 @@ function SectionHeader({ icon, title }) {
   );
 }
 
+// Segmented control for theme picking. Three options laid out as a
+// pill trio so the choice reads at a glance and there's no dropdown to
+// open. Selected state uses the sticker primary; unselected uses the
+// surface container so both themes read cleanly.
+function ThemeSwitch({ value, onChange }) {
+  const options = [
+    { key: 'system', icon: 'devices', label: 'System' },
+    { key: 'light',  icon: 'light_mode', label: 'Light' },
+    { key: 'dark',   icon: 'dark_mode', label: 'Dark' },
+  ];
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Theme"
+      className="inline-flex rounded-full p-1 bg-surface-container-high"
+    >
+      {options.map((o) => {
+        const active = value === o.key;
+        return (
+          <button
+            key={o.key}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(o.key)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 ${
+              active
+                ? 'bg-primary text-on-primary shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>{o.icon}</span>
+            <span>{o.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function SettingsModal({ onClose, devices }) {
   const { settings, updateSetting } = useSettings();
 
@@ -53,10 +93,10 @@ export default function SettingsModal({ onClose, devices }) {
 
   return (
     <ModalBase maxWidth="max-w-lg" onClose={onClose}>
-      <header className="px-6 py-5 flex items-center justify-between border-b border-white/5">
+      <header className="px-6 py-5 flex items-center justify-between border-b border-outline-variant/40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(186,158,255,0.15)' }}>
-            <span className="material-symbols-outlined text-primary" aria-hidden="true">settings</span>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary text-on-primary">
+            <span className="material-symbols-outlined" aria-hidden="true">settings</span>
           </div>
           <h2 className="font-headline text-lg font-bold text-on-surface">Settings</h2>
         </div>
@@ -127,6 +167,25 @@ export default function SettingsModal({ onClose, devices }) {
           }
         />
 
+        {/* Appearance */}
+        <SectionHeader icon="palette" title="Appearance" />
+        <Row
+          label="Theme"
+          hint={
+            settings.theme === 'system'
+              ? 'Following your device — flips automatically when the OS toggles.'
+              : settings.theme === 'light'
+              ? 'Always light, regardless of your device setting.'
+              : 'Always dark, regardless of your device setting.'
+          }
+          control={
+            <ThemeSwitch
+              value={settings.theme}
+              onChange={(v) => updateSetting('theme', v)}
+            />
+          }
+        />
+
         {/* Notifications */}
         <SectionHeader icon="notifications" title="Notifications" />
         <Row
@@ -174,7 +233,7 @@ export default function SettingsModal({ onClose, devices }) {
         />
       </div>
 
-      <footer className="px-6 py-4 border-t border-white/5 flex justify-end">
+      <footer className="px-6 py-4 border-t border-outline-variant/40 flex justify-end">
         <button
           type="button"
           onClick={onClose}
