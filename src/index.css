@@ -154,6 +154,17 @@
        would be unreadable against the video content. Kept as literal black. */
     background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 40%);
   }
+  /* Video-stage empty background — the specific 3-stop dark gradient from
+     the Design Book spec (page 03 Components + page 10 In-call). Used on
+     the local + remote panels so the "waiting for video" state has a
+     designed dark ground instead of a flat surface color. Theme-
+     independent since real video content is always visually dark. */
+  .video-stage {
+    background: linear-gradient(150deg, #25252F 0%, #0B0B10 60%, #131320 100%);
+  }
+  .video-stage-alt {
+    background: linear-gradient(150deg, #2A2A36 0%, #0B0B10 60%, #15151F 100%);
+  }
   .custom-scrollbar::-webkit-scrollbar { width: 4px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb {

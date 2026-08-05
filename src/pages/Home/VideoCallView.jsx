@@ -138,7 +138,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             "you" is always on the left and the stranger on the right. */}
         <div className="flex-1 relative flex flex-col md:flex-row-reverse gap-2 md:gap-4 min-w-0 min-h-0">
           {/* Remote (stranger) panel */}
-          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-low rounded-xl overflow-hidden" style={{ border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
+          <div className="video-stage relative flex-1 min-w-0 min-h-0 rounded-xl overflow-hidden" style={{ border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
             <video
               ref={remoteVideoRef}
               className="w-full h-full object-cover"
@@ -212,7 +212,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           </div>
 
           {/* Local (self) panel */}
-          <div className="relative flex-1 min-w-0 min-h-0 bg-surface-container-high rounded-xl overflow-hidden" style={{ border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
+          <div className="video-stage-alt relative flex-1 min-w-0 min-h-0 rounded-xl overflow-hidden" style={{ border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
             <video
               ref={localVideoRef}
               className="w-full h-full object-cover"

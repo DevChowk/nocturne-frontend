@@ -65,6 +65,24 @@ export default function LobbyView({ user, isGuest, isConnected, socketError, sta
   const WAITING_FALLBACK_MS = 30000;
   const [waitingLong, setWaitingLong] = useState(false);
   const [quietMessage, setQuietMessage] = useState(null);
+
+  // Mono elapsed-time counter shown alongside the online-count chip while
+  // searching. Design Book spec: "2.4K online · 0:04" — reassures the user
+  // that we're still trying even when nothing visibly changes. Also
+  // doubles as the reduce-motion fallback (design spec: swap the pulse
+  // for a static ring and a mono timer) since the ring animation is
+  // already disabled via the `.reduce-motion .pulse-ring` rule in CSS.
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (status !== 'waiting') { setElapsed(0); return; }
+    const startedAt = Date.now();
+    const tick = () => setElapsed(Math.floor((Date.now() - startedAt) / 1000));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [status]);
+  const formatElapsed = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
   useEffect(() => {
     if (status !== 'waiting') {
       setWaitingLong(false);
@@ -90,7 +108,7 @@ export default function LobbyView({ user, isGuest, isConnected, socketError, sta
         {/* Main canvas */}
         <main className="flex flex-col md:flex-row flex-1 gap-3 md:gap-4 px-2 md:px-4 overflow-hidden">
           {/* Local feed panel */}
-          <div className="relative flex-1 rounded-xl overflow-hidden" style={{ background: 'rgb(var(--color-surface-low-rgb))', border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
+          <div className="video-stage relative flex-1 rounded-xl overflow-hidden" style={{ border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
             <video
               ref={localVideoRef}
               className="w-full h-full object-cover"
@@ -136,7 +154,7 @@ export default function LobbyView({ user, isGuest, isConnected, socketError, sta
           </div>
 
           {/* Searching / idle / peer_left panel */}
-          <div className="relative flex-1 rounded-xl overflow-hidden flex flex-col items-center justify-center" style={{ background: 'rgb(var(--color-surface-low-rgb))', border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
+          <div className="video-stage-alt relative flex-1 rounded-xl overflow-hidden flex flex-col items-center justify-center" style={{ border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
             {status === 'waiting' && waitingLong && quietMessage ? (
               <div className="z-10 text-center px-8 py-10 max-w-sm">
                 <div className="flex items-center justify-center mx-auto mb-3 md:mb-5 rounded-full w-14 h-14 md:w-20 md:h-20"
@@ -172,6 +190,8 @@ export default function LobbyView({ user, isGuest, isConnected, socketError, sta
                   <span className="chip-sticker" style={{ background: 'rgb(var(--color-surface-high-rgb))' }}>
                     <span className="chip-dot" style={{ background: '#3F52FF' }} />
                     {typeof onlineCount === 'number' ? `${onlineCount.toLocaleString()} online` : 'searching'}
+                    <span aria-hidden="true" style={{ opacity: 0.5 }}>·</span>
+                    <span className="tabular-nums" aria-label={`Elapsed ${formatElapsed(elapsed)}`}>{formatElapsed(elapsed)}</span>
                   </span>
                 </div>
               </div>
