@@ -11,21 +11,28 @@
     <script>
       // Pre-hydration theme bootstrap. SettingsProvider takes over on mount,
       // but React needs a tick to render — without this, the initial paint
-      // would flash the wrong theme (default light) for OS-dark users who've
-      // picked "system", or for anyone who chose light/dark last session.
-      // Reads the same key SettingsProvider uses and stamps <html> before
-      // the first paint, then the provider silently reconciles.
+      // would flash the wrong theme for anyone who chose dark, or who is on
+      // "system" with an OS-dark machine. Reads the same key SettingsProvider
+      // uses (including its v2 'system' → 'light' migration, so the first
+      // paint agrees with what the provider is about to settle on) and stamps
+      // <html> before the first paint.
       (function () {
+        var root = document.documentElement;
+        var pref = 'light'; // product default — Sunbaked
         try {
           var raw = localStorage.getItem('bumpSettings');
-          var pref = raw ? (JSON.parse(raw).theme || 'system') : 'system';
-          var root = document.documentElement;
-          if (pref === 'light') { root.setAttribute('data-theme', 'light'); }
-          else if (pref === 'dark') { root.setAttribute('data-theme', 'dark'); root.classList.add('dark'); }
-          else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            root.classList.add('dark');
+          if (raw) {
+            var stored = JSON.parse(raw);
+            pref = stored.theme || 'light';
+            if (pref === 'system' && (stored.v || 1) < 2) pref = 'light';
           }
         } catch (_) { /* private mode / malformed json — SettingsProvider will reconcile */ }
+        if (pref === 'dark') { root.setAttribute('data-theme', 'dark'); root.classList.add('dark'); }
+        else if (pref === 'system') {
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            root.classList.add('dark');
+          }
+        } else { root.setAttribute('data-theme', 'light'); }
       })();
     </script>
   </head>

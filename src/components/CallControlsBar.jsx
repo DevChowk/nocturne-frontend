@@ -1,23 +1,32 @@
-// Shared bottom-bar of round controls used by both Lobby and Video Call.
-// Callers pass an array of `controls` describing which buttons to render
-// and how they behave; this component owns the layout, sizing, and visual
-// treatment so the two screens always look identical.
-import { GRADIENT } from '../constants/theme';
+// Bottom control bar for the in-call screen. Callers pass an array of
+// `controls` describing which buttons to render and how they behave; this
+// component owns the layout, sizing, and visual treatment.
+//
+// Design Book law: exactly one sticker button per view. In a call that's
+// Skip — the action people take most — so it renders as the yellow sticker
+// while everything else stays a round single-fill control. Colour carries
+// state: yellow = active/actionable, coral = danger/off, cobalt =
+// connected, grey = idle.
+
+import { FRIEND_STYLE, FRIEND_ICON, FRIEND_LABEL } from '../constants/friendStatus';
 
 const ICON_CLASS = 'material-symbols-outlined text-[18px] md:text-[22px]';
 
-function NextButton({ onClick, disabled, loading, title }) {
+function SkipButton({ onClick, disabled, loading, title }) {
   return (
     <button
       type="button"
       onClick={loading ? undefined : onClick}
       disabled={disabled || loading}
-      aria-label={loading ? 'Searching' : (title || 'Next')}
-      title={loading ? 'Searching' : (title || 'Next')}
-      className="flex items-center justify-center text-black rounded-full p-2 md:p-3 shadow-lg hover:scale-110 transition-transform duration-200 disabled:cursor-not-allowed"
-      style={{ backgroundImage: GRADIENT, boxShadow: '0 4px 20px rgba(255,212,0,0.2)', opacity: disabled && !loading ? 0.4 : 1 }}
+      aria-label={loading ? 'Searching' : (title || 'Skip')}
+      title={loading ? 'Searching' : (title || 'Skip')}
+      className="btn-sticker inline-flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+      style={{ paddingBlock: 10, paddingInline: 22, fontSize: 15, opacity: disabled && !loading ? 0.4 : 1 }}
     >
-      <span className={`${ICON_CLASS} ${loading ? 'animate-spin' : ''}`}>{loading ? 'progress_activity' : 'skip_next'}</span>
+      <span className={`${ICON_CLASS} ${loading ? 'animate-spin' : ''}`} aria-hidden="true">
+        {loading ? 'progress_activity' : 'skip_next'}
+      </span>
+      Skip
     </button>
   );
 }
@@ -31,7 +40,7 @@ function ToggleButton({ enabled, onClick, label, iconOn, iconOff }) {
       aria-label={label}
       className="flex items-center justify-center rounded-full p-2 md:p-3 shadow-lg transition-all duration-200 active:scale-95"
       style={enabled
-        // Solid yellow with a soft glow — same clean edge as NextButton.
+        // Solid yellow with a soft glow — no border ring.
         ? { background: 'rgb(var(--color-primary-rgb))', color: '#14000A', boxShadow: '0 4px 20px rgba(255,212,0,0.2)' }
         // Off/muted — solid coral, matching shadow style.
         : { background: 'rgb(var(--color-tertiary-rgb))', color: '#FFFFFF', boxShadow: '0 4px 20px rgba(255,79,79,0.2)' }}
@@ -41,16 +50,6 @@ function ToggleButton({ enabled, onClick, label, iconOn, iconOff }) {
   );
 }
 
-// Solid fills with soft glow shadows — matches the NextButton visual
-// vocabulary (clean edge, no border ring). State is signaled by color
-// alone: yellow for actionable, cobalt for connected, coral for danger.
-const FRIEND_STYLE = {
-  accepted: { background: 'rgb(var(--color-secondary-rgb))', color: '#FFFFFF', boxShadow: '0 4px 20px rgba(63,82,255,0.25)' },
-  sent:     { background: 'rgb(var(--color-primary-rgb))',   color: '#14000A', boxShadow: '0 4px 20px rgba(255,212,0,0.2)' },
-  received: { background: 'rgb(var(--color-tertiary-rgb))',  color: '#FFFFFF', boxShadow: '0 4px 20px rgba(255,79,79,0.25)' },
-  none:     { background: 'rgb(var(--color-primary-rgb))',   color: '#14000A', boxShadow: '0 4px 20px rgba(255,212,0,0.2)' },
-};
-const FRIEND_ICON = { accepted: 'check_circle', sent: 'hourglass_top', received: 'person_add_alt', none: 'person_add' };
 
 function FriendButton({ status = 'none', onClick, busy }) {
   const disabled = busy || status === 'accepted' || status === 'sent';
@@ -59,12 +58,7 @@ function FriendButton({ status = 'none', onClick, busy }) {
       type="button"
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      aria-label={
-        status === 'accepted' ? 'Friends'
-        : status === 'sent' ? 'Friend request sent'
-        : status === 'received' ? 'Accept friend request'
-        : 'Add friend'
-      }
+      aria-label={FRIEND_LABEL[status] || FRIEND_LABEL.none}
       className="flex items-center justify-center rounded-full p-2 md:p-3 shadow-lg transition-all duration-200 active:scale-95 disabled:cursor-default"
       style={{ ...FRIEND_STYLE[status] || FRIEND_STYLE.none, opacity: 1 }}
     >
@@ -137,7 +131,7 @@ function StopButton({ onClick, disabled, title }) {
 
 const renderControl = (c, i) => {
   switch (c.type) {
-    case 'next':   return <NextButton key={i} {...c} />;
+    case 'skip':   return <SkipButton key={i} {...c} />;
     case 'mic':    return <ToggleButton key={i} enabled={c.enabled} onClick={c.onClick} iconOn="mic" iconOff="mic_off" label={c.enabled ? 'Mute mic' : 'Unmute mic'} />;
     case 'cam':    return <ToggleButton key={i} enabled={c.enabled} onClick={c.onClick} iconOn="videocam" iconOff="videocam_off" label={c.enabled ? 'Turn off camera' : 'Turn on camera'} />;
     case 'friend': return <FriendButton key={i} {...c} />;
@@ -147,17 +141,16 @@ const renderControl = (c, i) => {
   }
 };
 
+// The bar is a ruled row on the page ground, not a floating glass card —
+// the Design Book separates it from the stage with the 2px layout rule
+// and nothing else.
 export default function CallControlsBar({ controls }) {
   return (
-    <div className="flex-shrink-0 w-full px-2 md:px-4 pt-2 md:pt-4 pb-4 md:pb-4">
-      <nav
-        className="w-full flex justify-center px-4 py-2 bg-surface-container-low/70 backdrop-blur-xl rounded-2xl border border-outline-variant/40"
-        style={{ boxShadow: '0 -8px 30px rgba(255,212,0,0.15)' }}
-      >
-        <div className="flex items-center justify-center gap-x-6 w-full">
-          {controls.map(renderControl)}
-        </div>
-      </nav>
-    </div>
+    <nav
+      className="flex-shrink-0 w-full flex items-center justify-center gap-3 md:gap-4 px-3 md:px-4 py-3 mt-2 md:mt-4"
+      style={{ borderTop: '2px solid rgb(var(--color-rule-rgb))' }}
+    >
+      {controls.map(renderControl)}
+    </nav>
   );
 }

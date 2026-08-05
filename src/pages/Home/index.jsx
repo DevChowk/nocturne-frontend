@@ -553,14 +553,11 @@ export default function HomePage() {
   return (
     <>
       {onboardingGate}
+      {/* /home never scrolls, and its ground is flat — the Design Book keeps
+          every gradient inside the video panels. */}
       <div
         className="flex flex-col h-[100dvh] min-h-[100dvh] overflow-hidden"
-        style={{
-          background:
-            'radial-gradient(circle at 12% 22%, rgba(255,212,0,0.18) 0%, transparent 45%),' +
-            'radial-gradient(circle at 88% 78%, rgba(63,82,255,0.14) 0%, transparent 45%),' +
-            'rgb(var(--color-bg-rgb))',
-        }}
+        style={{ background: 'rgb(var(--color-bg-rgb))' }}
       >
         <AppHeader
           user={user}
@@ -568,11 +565,15 @@ export default function HomePage() {
           isGuest={isGuest}
           onlineCount={onlineCount}
           onProfileClick={() => setShowProfile(true)}
+          onSettingsClick={() => setShowSettings(true)}
           onFriendsToggle={!isGuest && !isInCall ? handleFriendsHeaderClick : null}
           friendsCollapsed={friendsCollapsed}
         />
 
+        {/* Friends rail sits to the RIGHT of the stage (Design Book lobby),
+            mirroring where the chat panel docks during a call. */}
         <div className="flex flex-1 min-h-0 overflow-hidden">
+          {mainView}
           {!isGuest && !isInCall && (
             <FriendsSidebar
               friends={friends}
@@ -580,7 +581,6 @@ export default function HomePage() {
               collapsed={friendsCollapsed}
             />
           )}
-          {mainView}
         </div>
       </div>
       {showProfile && (

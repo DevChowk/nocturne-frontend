@@ -59,6 +59,12 @@
      is the classic Notion-sticker / meme-graphic look. In dark it inverts
      to paper white below. */
   --color-stroke-rgb: 20 0 10;              /* #14000A */
+  /* Structural 2px rules — header underline, rail dividers, control-bar
+     rule, video-panel frames. NOT the sticker stroke: the Design Book keeps
+     paper-white for things you can press (buttons, cards, fields) and rules
+     the layout itself in ink on light / #2A2A38 on dark, so dark mode never
+     gets a grid of glowing white lines. */
+  --color-rule-rgb: 20 0 10;                /* #14000A */
 }
 
 /* OS is dark AND user hasn't explicitly picked light → dark palette wins.
@@ -77,6 +83,7 @@
     --color-outline-rgb: 75 71 83;          /* #4B4753 */
     --color-outline-variant-rgb: 42 42 56;  /* #2A2A38 */
     --color-stroke-rgb: 247 244 238;        /* #F7F4EE */
+    --color-rule-rgb: 42 42 56;             /* #2A2A38 */
   }
 }
 
@@ -92,6 +99,7 @@
   --color-outline-rgb: 92 80 62;
   --color-outline-variant-rgb: 138 122 96;
   --color-stroke-rgb: 20 0 10;
+  --color-rule-rgb: 20 0 10;
 }
 
 :root[data-theme="dark"] {
@@ -105,6 +113,7 @@
   --color-outline-rgb: 75 71 83;
   --color-outline-variant-rgb: 42 42 56;
   --color-stroke-rgb: 247 244 238;
+  --color-rule-rgb: 42 42 56;
 }
 
 @layer base {
@@ -300,6 +309,53 @@
     height: 6px;
     border-radius: 50%;
     background: currentColor;
+  }
+
+  /* Video-overlay chip — the label vocabulary that sits ON a video panel
+     (YOU · PREVIEW, LIVE 0:37, STRANGER). Theme-independent black scrim
+     with paper-white mono text, no sticker stroke: video content is always
+     dark, so the chip only ever needs to separate itself from the footage.
+     Distinct from .chip-sticker, which lives on theme surfaces. */
+  .chip-video {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    padding: 4px 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #F7F4EE;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .chip-video .chip-dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Reconnect grace hairline — a coral rule that drains left-to-right over
+     the 5s ICE-restart window, so "we're still trying" is legible without a
+     spinner. Origin is the right edge so the bar empties from the left. */
+  .hairline-drain {
+    transform-origin: right center;
+    animation: hairline-drain 5s linear forwards;
+  }
+  @keyframes hairline-drain {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+  .reduce-motion .hairline-drain {
+    animation: none !important;
+    transform: scaleX(1);
   }
 
   /* Reduce-motion: applied as a class on <html> by the SettingsProvider when

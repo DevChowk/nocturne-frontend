@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { SettingsContext, DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './SettingsContext';
+import { SettingsContext, DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SETTINGS_VERSION } from './SettingsContext';
 
 // Pre-rename key. Read once on first load so users who set preferences
 // before the Bump rename don't lose their mirror toggle, match sound, or
@@ -19,10 +19,24 @@ function loadStoredSettings() {
     }
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    return migrate({ ...DEFAULT_SETTINGS, ...parsed }, parsed.v ?? 1);
   } catch {
     return DEFAULT_SETTINGS;
   }
+}
+
+// One-shot upgrades for settings blobs written by older builds. Runs before
+// the first render and its result is persisted immediately, so each step is
+// applied exactly once per browser.
+function migrate(settings, storedVersion) {
+  if (storedVersion >= SETTINGS_VERSION) return settings;
+  const next = { ...settings, v: SETTINGS_VERSION };
+  // v2 — light is now the product default. 'system' was the old default
+  // value rather than a considered choice, so those users move to light;
+  // anyone who picks System from here on keeps it, because the version
+  // marker is already current and this branch never runs again.
+  if (storedVersion < 2 && next.theme === 'system') next.theme = 'light';
+  return next;
 }
 
 export function SettingsProvider({ children }) {

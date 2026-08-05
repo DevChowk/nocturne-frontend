@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Desktop-only left rail listing the user's accepted friends with a
+// Desktop-only right rail listing the user's accepted friends with a
 // live online indicator. Hidden on mobile (md:flex). Online friends
 // float to the top so the user sees who's reachable first.
-// A floating chevron handle on the card's right edge collapses the rail
-// out of view; tap it again to bring it back. The handle stays visible
-// when collapsed (pinned to the screen's left edge) so the rail is always
-// re-openable.
+//
+// Per the Design Book lobby, the rail sits on the RIGHT of the stage,
+// separated by the 2px layout rule, and scrolls inside itself — the
+// body of /home never scrolls.
 //
 // `collapsed` is owned by HomePage so the AppHeader's friends button drives
 // the same state.
@@ -28,40 +28,38 @@ export default function FriendsSidebar({ friends, loading, collapsed }) {
   const onlineCount = friends.filter((f) => f.user.online).length;
 
   // The outer aside collapses to width 0 when hidden — flex stops giving it
-  // any horizontal space, the main view fills the row. The handle is anchored
-  // to the aside's right edge with a half-out translate, so it stays floating
-  // at x=0 of the viewport while collapsed and at the sidebar's outer edge
-  // when expanded. Transition the width for a smooth slide.
+  // any horizontal space and the main view fills the row. Transition the
+  // width for a smooth slide; the divider stroke goes with it.
   return (
     <aside
       className={`hidden md:flex flex-shrink-0 relative flex-col pb-2 md:pb-2 transition-[width,padding] duration-300 ease-out ${
         collapsed
           ? 'w-0 pl-0 pr-0 overflow-visible'
-          : 'w-64 lg:w-[300px] pl-3 md:pl-4 pr-0'
+          : 'w-60 lg:w-[280px] pl-0 pr-0'
       }`}
+      style={collapsed ? undefined : { borderLeft: '2px solid rgb(var(--color-rule-rgb))' }}
       aria-hidden={collapsed}
     >
       {!collapsed && (
-        <div className="flex-1 min-h-0 flex flex-col rounded-xl overflow-hidden" style={{ background: 'rgb(var(--color-surface-low-rgb))', border: '1px solid rgb(var(--color-outline-variant-rgb) / 0.5)' }}>
-          <div className="flex items-center justify-between px-5 pt-4 pb-2 flex-shrink-0">
-            <h2 className="font-headline font-bold text-on-surface text-base">Friends</h2>
-            <span className="text-on-surface-variant text-[10px] font-label uppercase tracking-widest tabular-nums">
-              {loading ? '…' : `${onlineCount}/${friends.length}`}
-            </span>
+        // No container border — the sidebar sits on the page ground per
+        // the Design Book Friends spec ("desktop-only, scrolls inside
+        // itself"). Just the mono header + row list.
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          {/* Mono uppercase header matching Design Book Friends sidebar spec:
+              "FRIENDS — N ONLINE" as a single label, no separate count chip. */}
+          <div className="px-5 pt-4 pb-3 flex-shrink-0">
+            <p className="font-mono text-on-surface-variant uppercase tabular-nums" style={{ fontSize: 11, letterSpacing: '0.16em' }}>
+              Friends — {loading ? '…' : `${onlineCount} online`}
+            </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar py-2 min-h-0">
+          <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0">
           {!loading && friends.length === 0 && (
             <div className="px-5 py-6 text-center">
               <p className="text-on-surface-variant text-xs font-label">
                 No friends yet. Tap the Friend button during a call to add the people you meet.
               </p>
             </div>
-          )}
-          {!loading && friends.length > 0 && (
-            <p className="px-5 pb-1.5 pt-1 text-on-surface-variant text-[10px] font-label uppercase tracking-widest">
-              Online — {onlineCount}
-            </p>
           )}
           {sorted.map((entry) => {
             const u = entry.user;
@@ -75,31 +73,47 @@ export default function FriendsSidebar({ friends, loading, collapsed }) {
                 className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-on-surface/5 transition-colors text-left"
               >
                 <div className="relative flex-shrink-0">
+                  {/* Dark ink avatar per Design Book Friends spec — solid
+                      flat #14000A circle with a small cobalt online dot at
+                      the bottom-right (bordered by the page ground so it
+                      reads clean when the row hovers). Yellow avatars are
+                      reserved for identity chips in headers / modals; the
+                      sidebar list needs quieter, denser rows. */}
                   <div
-                    className="flex items-center justify-center rounded-full font-bold font-headline bg-primary text-on-primary"
-                    style={{ width: 36, height: 36, fontSize: 14 }}
+                    className="flex items-center justify-center rounded-full font-bold font-headline"
+                    style={{
+                      width: 30, height: 30, fontSize: 13,
+                      background: 'rgb(var(--color-stroke-rgb))',
+                      color: 'rgb(var(--color-bg-rgb))',
+                    }}
                   >
                     {initial}
                   </div>
-                  <span
-                    className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
-                    style={{
-                      borderColor: 'rgb(var(--color-bg-rgb))',
-                      background: u.online ? '#3F52FF' : 'rgb(var(--color-outline-rgb))',
-                    }}
-                    aria-label={u.online ? 'Online' : 'Offline'}
-                  />
+                  {u.online && (
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 rounded-full"
+                      style={{
+                        width: 10, height: 10,
+                        background: '#3F52FF',
+                        border: '2px solid rgb(var(--color-bg-rgb))',
+                      }}
+                      aria-label="Online"
+                    />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-on-surface text-sm font-semibold truncate">{name}</p>
-                  <p className="text-on-surface-variant text-[11px] truncate">
-                    {u.online ? 'Online' : 'Offline'}
-                  </p>
+                  <p className="text-on-surface text-sm font-bold truncate">{name}</p>
                 </div>
               </button>
             );
           })}
           </div>
+          {/* Design Book footer annotation — small explanatory text sitting
+              at the bottom of the sidebar column so first-time users know
+              why the sidebar isn't on mobile. */}
+          <p className="px-5 pt-3 pb-4 text-on-surface-variant text-[11px] leading-snug">
+            Sidebar is desktop-only and scrolls inside itself.
+          </p>
         </div>
       )}
 
