@@ -68,12 +68,19 @@ export default function OnboardingModal() {
   // Note: this modal is intentionally NOT closable. The user lands on /home
   // after auth and gets stuck here until they fill in username + DOB.
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/90 backdrop-blur-md p-4" role="dialog" aria-modal="true">
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-background/90 backdrop-blur-md p-4"
+      role="dialog"
+      aria-modal="true"
+      style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+    >
+      {/* Height matches ModalBase: dvh so mobile browser chrome counts, and
+          the form below is the flex-1 part that scrolls. */}
       <div
-        className="relative w-full max-w-md flex flex-col bg-surface-container-low rounded-xl border border-outline-variant/40 overflow-hidden max-h-[90vh]"
-        style={{ boxShadow: '0 0 40px rgba(245,183,0,0.2)' }}
+        className="relative w-full max-w-md flex flex-col bg-surface-container-low rounded-xl border border-outline-variant/40 overflow-hidden"
+        style={{ boxShadow: '0 0 40px rgba(245,183,0,0.2)', maxHeight: 'calc(100dvh - 2rem)' }}
       >
-        <header className="px-6 pt-8 pb-6 text-center border-b border-outline-variant/40">
+        <header className="flex-shrink-0 px-6 pt-8 pb-6 text-center border-b border-outline-variant/40">
           <div
             className="mx-auto mb-4 flex items-center justify-center rounded-full font-bold font-headline bg-primary text-on-primary"
             style={{
@@ -87,7 +94,7 @@ export default function OnboardingModal() {
           <p className="text-on-surface-variant text-sm">Lowercase, 3–20 chars. Change it later if you hate it.</p>
         </header>
 
-        <form onSubmit={onSubmit} className="px-6 py-6 space-y-5 overflow-y-auto custom-scrollbar">
+        <form onSubmit={onSubmit} className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar px-6 py-6 space-y-5">
           <div className="space-y-2">
             <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide uppercase" htmlFor="onb-username">
               Username

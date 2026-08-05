@@ -26,7 +26,7 @@ export default function TermsModal({ onClose }) {
   return (
     <ModalBase onClose={onClose}>
       {/* Header */}
-      <header className="p-8 pb-4 flex items-center justify-between">
+      <header className="flex-shrink-0 p-8 pb-4 flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Terms of Service</h1>
           <div className="flex items-center gap-2">
@@ -42,7 +42,7 @@ export default function TermsModal({ onClose }) {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-8 custom-scrollbar">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-8 custom-scrollbar">
         <div className="space-y-10 text-on-surface-variant leading-relaxed">
           <article>
             <SectionHeading num="01" title="Introduction" />
@@ -86,7 +86,7 @@ export default function TermsModal({ onClose }) {
 
       {/* Footer */}
       <footer
-        className="p-8 pt-6 flex flex-col sm:flex-row items-center gap-4 border-t border-outline-variant/5"
+        className="flex-shrink-0 p-8 pt-6 flex flex-col sm:flex-row items-center gap-4 border-t border-outline-variant/5"
         style={{ background: 'linear-gradient(to top, rgb(var(--color-surface-low-rgb)), transparent)' }}
       >
         <p className="flex-1 text-xs text-on-surface-variant max-sm:text-center">

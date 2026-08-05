@@ -33,7 +33,7 @@ export default function ReportModal({ onClose, reportedUserId, roomId, onSubmitt
 
   return (
     <ModalBase maxWidth="max-w-lg" onClose={onClose}>
-      <header className="flex items-center justify-between px-6 py-5 border-b border-outline-variant/40">
+      <header className="flex-shrink-0 flex items-center justify-between px-6 py-5 border-b border-outline-variant/40">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-tertiary text-white">
             <span className="material-symbols-outlined" aria-hidden="true">flag</span>
@@ -49,7 +49,7 @@ export default function ReportModal({ onClose, reportedUserId, roomId, onSubmitt
         </button>
       </header>
 
-      <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
+      <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar px-6 py-6 space-y-5">
         <fieldset className="space-y-2">
           <legend className="text-xs font-label font-bold text-on-surface-variant tracking-wide uppercase mb-2">Reason</legend>
           {/* Solid-fill radio rows per Design Book Report spec — selected row

@@ -39,7 +39,7 @@ export default function GuestEntryModal({ onClose }) {
 
   return (
     <ModalBase maxWidth="max-w-md" onClose={onClose}>
-      <header className="px-6 pt-7 pb-4 text-center border-b border-outline-variant/40">
+      <header className="flex-shrink-0 px-6 pt-7 pb-4 text-center border-b border-outline-variant/40">
         <div
           className="mx-auto mb-3 flex items-center justify-center rounded-full bg-primary text-on-primary"
           style={{ width: 64, height: 64, boxShadow: '0 8px 30px rgba(255,212,0,0.35)' }}
@@ -51,7 +51,7 @@ export default function GuestEntryModal({ onClose }) {
         <p className="text-on-surface-variant text-sm">No signup. Random matches. Limited features.</p>
       </header>
 
-      <form onSubmit={onSubmit} className="px-6 py-5 space-y-4">
+      <form onSubmit={onSubmit} className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar px-6 py-5 space-y-4">
         <div className="space-y-2">
           <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide uppercase" htmlFor="guest-dob">
             Date of birth

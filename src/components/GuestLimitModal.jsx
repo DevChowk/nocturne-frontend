@@ -66,7 +66,7 @@ export default function GuestLimitModal({ info, onClose }) {
         </div>
       </div>
 
-      <div className="px-6 py-5">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar px-6 py-5">
         <ul className="text-sm text-on-surface space-y-2.5">
           <li className="flex items-start gap-3">
             <span className="material-symbols-outlined text-primary mt-px" aria-hidden="true" style={{ fontSize: 20, fontVariationSettings: "'FILL' 1" }}>all_inclusive</span>
@@ -83,7 +83,7 @@ export default function GuestLimitModal({ info, onClose }) {
         </ul>
       </div>
 
-      <footer className="px-6 pb-6 flex flex-col gap-2">
+      <footer className="flex-shrink-0 px-6 pb-6 pt-2 flex flex-col gap-2">
         <button
           type="button"
           onClick={handleSignup}

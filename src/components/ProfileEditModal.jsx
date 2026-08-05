@@ -77,7 +77,7 @@ export default function ProfileEditModal({ onClose }) {
 
   return (
     <ModalBase maxWidth="max-w-md" onClose={onClose}>
-      <header className="px-6 py-5 flex items-center justify-between border-b border-outline-variant/40">
+      <header className="flex-shrink-0 px-6 py-5 flex items-center justify-between border-b border-outline-variant/40">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary text-on-primary">
             <span className="material-symbols-outlined" aria-hidden="true">person</span>
@@ -93,7 +93,7 @@ export default function ProfileEditModal({ onClose }) {
         </button>
       </header>
 
-      <form onSubmit={onSubmit} className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
+      <form onSubmit={onSubmit} className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar px-6 py-5 space-y-5">
         <div className="space-y-2">
           <label className="text-xs font-label font-bold text-on-surface-variant tracking-wide uppercase" htmlFor="pe-username">
             Username
@@ -224,7 +224,7 @@ export default function ProfileEditModal({ onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1btn-sticker-outline text-sm"
+            className="flex-1 btn-sticker-outline text-sm"
           >
             Cancel
           </button>
