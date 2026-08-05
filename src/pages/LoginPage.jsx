@@ -119,14 +119,14 @@ export default function LoginPage() {
           {suspendedUntil && (
             <div
               role="alert"
-              className="mb-6 flex items-start gap-3 rounded-xl border p-4"
-              style={{ background: 'rgba(255,79,79,0.12)', borderColor: 'rgba(255,79,79,0.3)' }}
+              className="card-sticker mb-6 flex items-start gap-3 p-4"
+              style={{ background: 'rgb(var(--color-tertiary-rgb))', color: '#FFFFFF' }}
             >
-              <span className="material-symbols-outlined text-error mt-0.5" aria-hidden="true">block</span>
+              <span className="material-symbols-outlined mt-0.5" aria-hidden="true">block</span>
               <div className="flex-1 min-w-0">
-                <p className="font-headline font-bold text-error text-sm">Account suspended</p>
-                <p className="text-on-surface-variant text-xs mt-1">
-                  Try again after <span className="text-on-surface font-semibold">{formatSuspensionUntil(suspendedUntil)}</span>.
+                <p className="font-headline font-bold text-sm">Account suspended</p>
+                <p className="text-white/85 text-xs mt-1">
+                  Try again after <span className="font-semibold">{formatSuspensionUntil(suspendedUntil)}</span>.
                 </p>
               </div>
             </div>
@@ -134,13 +134,13 @@ export default function LoginPage() {
           {!suspendedUntil && sessionReplaced && (
             <div
               role="alert"
-              className="mb-6 flex items-start gap-3 rounded-xl border p-4"
-              style={{ background: 'rgba(255,212,0,0.10)', borderColor: 'rgba(255,212,0,0.30)' }}
+              className="card-sticker mb-6 flex items-start gap-3 p-4"
+              style={{ background: 'rgb(var(--color-primary-rgb))', color: '#14000A' }}
             >
-              <span className="material-symbols-outlined text-primary mt-0.5" aria-hidden="true">devices</span>
+              <span className="material-symbols-outlined mt-0.5" aria-hidden="true">devices</span>
               <div className="flex-1 min-w-0">
-                <p className="font-headline font-bold text-on-surface text-sm">Signed out on this device</p>
-                <p className="text-on-surface-variant text-xs mt-1">
+                <p className="font-headline font-bold text-sm">Signed out on this device</p>
+                <p className="text-xs mt-1 opacity-80">
                   Your account was signed in on another device. Log in again to keep using Bumpp here.
                 </p>
               </div>
@@ -148,8 +148,8 @@ export default function LoginPage() {
           )}
 
           {/* Login card */}
-          <div className="glass-panel border border-outline-variant/40 rounded-xl p-8 md:p-10"
-            style={{ boxShadow: '0 0 24px rgba(255,212,0,0.15)' }}>
+          <div className="card-sticker p-8 md:p-10"
+           >
 
             {/* Social auth */}
             <div className="space-y-4 mb-8">
@@ -157,7 +157,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 bg-surface-container-high hover:bg-surface-bright text-on-surface font-semibold py-3.5 px-6 rounded-full transition-all duration-300 active:scale-[0.98] disabled:opacity-60"
+                className="btn-sticker-outline w-full flex items-center justify-center gap-3 disabled:opacity-60"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -189,7 +189,7 @@ export default function LoginPage() {
                   onChange={e => setEmail(e.target.value)}
                   placeholder="name@bump.app"
                   required
-                  className="w-full bg-surface-container-highest border-none rounded-lg py-4 px-5 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all duration-300"
+                  className="w-full field-sticker px-5"
                 />
               </div>
               <div className="space-y-1.5">
@@ -207,7 +207,7 @@ export default function LoginPage() {
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-5 pr-12 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all duration-300"
+                    className="w-full field-sticker pl-5 pr-12"
                   />
                   <button
                     type="button"
@@ -227,7 +227,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-sticker w-full mt-4 py-4 px-6 text-lg disabled:opacity-60"
+                className="btn-sticker w-full mt-4 px-6 text-lg disabled:opacity-60"
               >
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>

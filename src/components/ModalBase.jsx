@@ -50,18 +50,9 @@ export default function ModalBase({ children, onClose, maxWidth = 'max-w-2xl' })
     >
       <div
         ref={panelRef}
-        className={`relative w-full ${maxWidth} flex flex-col bg-surface-container-low rounded-xl border border-outline-variant/40 overflow-hidden max-h-[90vh]`}
-        style={{ boxShadow: '0 0 40px rgba(245,183,0,0.15)' }}
+        className={`card-sticker relative w-full ${maxWidth} flex flex-col overflow-hidden max-h-[90vh]`}
       >
         {children}
-        <div
-          className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16"
-          style={{ background: 'rgba(255,212,0,0.05)' }}
-        />
-        <div
-          className="absolute bottom-0 left-0 w-32 h-32 rounded-full blur-3xl pointer-events-none -ml-16 -mb-16"
-          style={{ background: 'rgba(63,82,255,0.05)' }}
-        />
       </div>
     </div>
   );

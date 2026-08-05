@@ -153,19 +153,26 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               </div>
             )}
             {!peerMicEnabled && remoteConnected && (
-              <div className="absolute bottom-3 right-3 md:bottom-6 md:right-6 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md" style={{ background: 'rgba(255,79,79,0.6)' }}>
-                <span className="material-symbols-outlined text-white" aria-hidden="true" style={{ fontSize: 16 }}>mic_off</span>
-                <span className="text-white text-xs font-label uppercase tracking-wider">Muted</span>
+              <div
+                className="chip-sticker absolute bottom-3 right-3 md:bottom-6 md:right-6 z-10"
+                style={{ background: 'rgb(var(--color-tertiary-rgb))', color: '#FFFFFF', borderColor: 'rgb(var(--color-stroke-rgb))' }}
+              >
+                <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 12 }}>mic_off</span>
+                <span>Muted</span>
               </div>
             )}
             {!remoteConnected && (
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-surface-container-low/90">
-                <div className="flex items-center justify-center rounded-full w-14 h-14 md:w-20 md:h-20" style={{ background: 'rgb(var(--color-surface-high-rgb))', boxShadow: '0 0 40px rgba(255,212,0,0.25)' }}>
-                  <span className="material-symbols-outlined text-primary animate-pulse text-[28px] md:text-[40px]" aria-hidden="true" style={{ fontVariationSettings: "'FILL' 1" }}>cell_tower</span>
+              <div
+                className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-surface-container-low/90"
+                style={{ borderTop: '2px solid rgb(var(--color-tertiary-rgb))' }}
+              >
+                <div className="flex items-center justify-center rounded-full bg-tertiary text-white"
+                  style={{ width: 56, height: 56, boxShadow: '0 8px 30px rgba(255,79,79,0.35)' }}>
+                  <span className="material-symbols-outlined animate-pulse text-[28px]" aria-hidden="true" style={{ fontVariationSettings: "'FILL' 1" }}>cell_tower</span>
                 </div>
                 <div className="text-center">
-                  <h3 className="font-headline font-bold text-on-surface text-lg mb-1">Connecting...</h3>
-                  <p className="text-on-surface-variant text-xs font-label uppercase tracking-widest">Establishing secure link</p>
+                  <h3 className="font-headline font-bold text-on-surface text-lg mb-1">Hang on — bad line</h3>
+                  <p className="text-on-surface-variant text-xs font-label uppercase tracking-widest">reconnecting</p>
                 </div>
               </div>
             )}
@@ -192,9 +199,9 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
                 <span className="font-headline font-bold text-xs md:text-base text-white">{peerLabel}</span>
                 {peerCountry && (
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label uppercase tracking-wider backdrop-blur-md"
+                    className="chip-sticker"
                     title={countryName(peerCountry)}
-                    style={{ background: 'rgba(63,82,255,0.18)', color: '#3F52FF' }}
+                    style={{ background: 'rgb(var(--color-secondary-rgb))', color: '#FFFFFF', borderColor: 'rgb(var(--color-stroke-rgb))' }}
                   >
                     <span aria-hidden="true">{countryFlag(peerCountry)}</span>
                     <span>{peerCountry}</span>
@@ -277,7 +284,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             chat content. */}
         <aside
           className={`hidden md:flex relative flex-shrink-0 min-h-0 transition-[width] duration-300 ease-out ${
-            chatCollapsed ? 'w-0' : 'w-full md:w-96 lg:w-[420px]'
+            chatCollapsed ? 'w-0' : 'w-full md:w-[220px] lg:w-[240px]'
           }`}
           aria-hidden={chatCollapsed}
         >
@@ -302,17 +309,21 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
                   return blocks;
                 }, []).map((block, b) => (
                   <div key={b} className={`flex flex-col gap-1 ${block.mine ? 'items-end' : ''}`}>
-                    <span className={`text-[10px] font-bold uppercase tracking-tighter ${block.mine ? 'text-primary-fixed' : 'text-secondary'}`}>
+                    <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-on-surface-variant">
                       {block.mine ? 'You' : peerLabel}
                     </span>
                     {block.messages.map((msg, m) => (
                       <div
                         key={m}
-                        className={`p-3 max-w-[90%] text-sm text-on-surface leading-relaxed break-words [overflow-wrap:anywhere] ${
-                          block.mine
-                            ? 'bg-primary/10 border border-primary/20 rounded-tl-xl rounded-br-xl rounded-bl-xl'
-                            : 'bg-surface-container-highest rounded-tr-xl rounded-br-xl rounded-bl-xl'
-                        }`}
+                        className="max-w-[75%] text-[13px] leading-snug [overflow-wrap:anywhere]"
+                        style={{
+                          padding: '8px 12px',
+                          background: block.mine
+                            ? 'rgb(var(--color-primary-rgb))'
+                            : 'rgb(var(--color-surface-high-rgb))',
+                          color: block.mine ? '#14000A' : 'rgb(var(--color-on-surface-rgb))',
+                          borderRadius: block.mine ? '11px 11px 3px 11px' : '11px 11px 11px 3px',
+                        }}
                       >
                         {msg.message}
                       </div>
@@ -329,7 +340,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
                     onChange={e => setChatInput(e.target.value)}
                     placeholder="Type a message..."
                     autoComplete="off"
-                    className="w-full bg-surface-container-highest border-none rounded-lg py-3 pl-4 pr-20 md:pr-20 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                    className="w-full field-sticker pl-4 pr-20 md:pr-20 text-sm text-on-surface placeholder-on-surface-variant"
                   />
                   {/* Emoji picker — desktop only. */}
                   <button

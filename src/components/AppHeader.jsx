@@ -21,26 +21,24 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
           <img src="/logo-lockup-dark.svg" alt="Bumpp" aria-hidden="true" className="h-6 md:h-7 w-auto hidden dark:block" />
         </div>
         <div
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full flex-shrink-0"
-          style={{ background: 'rgb(var(--color-surface-low-rgb))' }}
+          className="chip-sticker flex-shrink-0 tabular-nums"
+          style={{ color: isConnected ? '#3F52FF' : '#FF4F4F' }}
           title={isConnected ? 'People online now' : 'Disconnected from server'}
         >
           <span
-            className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'animate-pulse' : ''}`}
-            style={{ background: isConnected ? '#3F52FF' : '#FF4F4F', boxShadow: isConnected ? '0 0 6px #3F52FF' : 'none' }}
+            className={`chip-dot ${isConnected ? 'animate-pulse' : ''}`}
+            style={{ boxShadow: isConnected ? '0 0 6px #3F52FF' : 'none' }}
           />
-          <span className="font-label tabular-nums" style={{ fontSize: 11 }}>
-            {!isConnected ? (
-              <span className="text-on-surface-variant uppercase tracking-wider">Disconnected</span>
-            ) : typeof onlineCount === 'number' ? (
-              <>
-                <span className="font-semibold text-on-surface">{onlineCount.toLocaleString()}</span>
-                <span className="text-on-surface-variant ml-1 uppercase tracking-wider hidden sm:inline">online</span>
-              </>
-            ) : (
-              <span className="text-on-surface-variant uppercase tracking-wider">Online</span>
-            )}
-          </span>
+          {!isConnected ? (
+            <span>Disconnected</span>
+          ) : typeof onlineCount === 'number' ? (
+            <>
+              <span className="text-on-surface">{onlineCount.toLocaleString()}</span>
+              <span className="text-on-surface-variant hidden sm:inline">online</span>
+            </>
+          ) : (
+            <span>Online</span>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2 min-w-0">

@@ -108,7 +108,7 @@ export default function ProfileEditModal({ onClose }) {
               minLength={3}
               maxLength={20}
               required
-              className="w-full bg-surface-container-highest border-none rounded-lg py-3 pl-9 pr-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30"
+              className="w-full field-sticker pl-9 pr-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30"
             />
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function ProfileEditModal({ onClose }) {
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={DISPLAY_NAME_MAX}
             placeholder="Alex Rivera"
-            className="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30"
+            className="w-full field-sticker px-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30"
           />
         </div>
 
@@ -139,7 +139,7 @@ export default function ProfileEditModal({ onClose }) {
             maxLength={BIO_MAX}
             rows={3}
             placeholder="A line or two about you."
-            className="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 resize-none"
+            className="w-full field-sticker px-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 resize-none"
           />
           <p className="text-xs text-on-surface-variant text-right">{bio.length}/{BIO_MAX}</p>
         </div>
@@ -224,14 +224,14 @@ export default function ProfileEditModal({ onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-5 py-3 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm hover:bg-surface-bright transition-colors active:scale-95"
+            className="flex-1btn-sticker-outline text-sm"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={submitting}
-            className="btn-sticker flex-1 px-5 py-3 text-sm disabled:opacity-60"
+            className="btn-sticker flex-1 px-5 text-sm disabled:opacity-60"
           >
             {submitting ? 'Saving…' : 'Save'}
           </button>

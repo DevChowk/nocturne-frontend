@@ -530,6 +530,7 @@ export default function HomePage() {
   ) : (
     <LobbyView
       user={user}
+      isGuest={isGuest}
       isConnected={isConnected}
       socketError={socketError}
       status={status}

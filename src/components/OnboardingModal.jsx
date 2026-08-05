@@ -1,7 +1,25 @@
-import { useState } from 'react';
-import { GRADIENT } from '../constants/theme';
+import { useState, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { MIN_AGE_YEARS, USERNAME_REGEX, ageInYears } from '../constants/policy';
+
+// Playful pool of username suggestions per the Design Book onboarding
+// spec ("Pick a name strangers will remember."). Kept small and rotated
+// so shuffling shows a visible change without pulling from a giant list.
+const NAME_POOL = [
+  'yolkgoblin', '2am_nate', 'shuffle.pls', 'bumppfan_04', 'someone.here',
+  'no_camera_kid', 'phonestand', 'bad_wifi_ari', 'not_a_bot',
+  'up_late_late', 'stranger.jpg', 'quiet_type_9', 'mic_off_pls',
+];
+function pickThree(exclude = new Set()) {
+  const pool = NAME_POOL.filter((n) => !exclude.has(n));
+  const out = [];
+  const copy = [...pool];
+  while (out.length < 3 && copy.length) {
+    const i = Math.floor(Math.random() * copy.length);
+    out.push(copy.splice(i, 1)[0]);
+  }
+  return out;
+}
 
 export default function OnboardingModal() {
   const { user, updateProfile } = useAuth();
@@ -9,6 +27,11 @@ export default function OnboardingModal() {
   const [dob, setDob] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  // Initial 3 suggestions — a Set is passed to pickThree so re-picking
+  // avoids the ones already visible (subsequent shuffle iterations feel
+  // "fresh" instead of showing the same options).
+  const [suggestions, setSuggestions] = useState(() => pickThree());
+  const shuffle = () => setSuggestions((prev) => pickThree(new Set(prev)));
 
   const validateLocal = () => {
     if (!USERNAME_REGEX.test(username)) {
@@ -60,8 +83,8 @@ export default function OnboardingModal() {
           >
             {initial}
           </div>
-          <h2 className="font-headline font-extrabold text-on-surface text-2xl mb-1">Welcome to Bumpp</h2>
-          <p className="text-on-surface-variant text-sm">Pick a username so people know who they're meeting.</p>
+          <h2 className="font-headline font-extrabold text-on-surface text-2xl mb-1">Pick a name strangers will remember.</h2>
+          <p className="text-on-surface-variant text-sm">Lowercase, 3–20 chars. Change it later if you hate it.</p>
         </header>
 
         <form onSubmit={onSubmit} className="px-6 py-6 space-y-5 overflow-y-auto custom-scrollbar">
@@ -81,10 +104,35 @@ export default function OnboardingModal() {
                 required
                 minLength={3}
                 maxLength={20}
-                className="w-full bg-surface-container-highest border-none rounded-lg py-3.5 pl-9 pr-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                className="w-full field-sticker pl-9 pr-4"
               />
             </div>
-            <p className="text-xs text-on-surface-variant">3–20 characters. Lowercase letters, digits, underscore, or dot.</p>
+            {/* Suggestion chips — three at a time; the "shuffle" chip re-rolls
+                the pool (excluding what's currently shown) so a user hunting
+                for the "vibe" of a name sees fresh options each tap. */}
+            <div className="flex items-center gap-2 flex-wrap pt-1">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setUsername(s)}
+                  className="chip-sticker hover:opacity-80"
+                  style={{ background: 'rgb(var(--color-surface-high-rgb))' }}
+                >
+                  {s}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={shuffle}
+                aria-label="Shuffle suggestions"
+                className="chip-sticker"
+                style={{ background: 'rgb(var(--color-primary-rgb))', color: '#14000A' }}
+              >
+                <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 12 }}>shuffle</span>
+                shuffle
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -98,7 +146,7 @@ export default function OnboardingModal() {
               onChange={(e) => setDob(e.target.value)}
               max={today}
               required
-              className="w-full bg-surface-container-highest border-none rounded-lg py-3.5 px-4 text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+              className="w-full field-sticker px-4"
             />
             <p className="text-xs text-on-surface-variant">You must be at least {MIN_AGE_YEARS}. We never share this.</p>
           </div>
@@ -108,7 +156,7 @@ export default function OnboardingModal() {
           <button
             type="submit"
             disabled={submitting}
-            className="btn-sticker w-full mt-2 py-3.5 disabled:opacity-60"
+            className="btn-sticker w-full mt-2 disabled:opacity-60"
           >
             {submitting ? 'Saving…' : 'Continue'}
           </button>

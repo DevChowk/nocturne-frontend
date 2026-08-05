@@ -15,7 +15,7 @@ function ConversationRow({ convo }) {
   return (
     <Link
       to={`/messages/${user.id}`}
-      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container-low border border-outline-variant/40 hover:border-primary/20 transition-colors active:scale-[0.99]"
+      className="flex items-center gap-3 px-4 rounded-xl bg-surface-container-low border border-outline-variant/40 hover:border-primary/20 transition-colors active:scale-[0.99]"
     >
       <div
         className="flex-shrink-0 flex items-center justify-center rounded-full font-bold font-headline bg-primary text-on-primary"

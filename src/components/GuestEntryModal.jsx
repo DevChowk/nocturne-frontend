@@ -63,7 +63,7 @@ export default function GuestEntryModal({ onClose }) {
             onChange={(e) => setDob(e.target.value)}
             max={today}
             required
-            className="block w-full min-w-0 appearance-none bg-surface-container-highest border-none rounded-lg py-3 px-4 text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all [&::-webkit-date-and-time-value]:text-left [&::-webkit-date-and-time-value]:min-h-[1.5em]"
+            className="block w-full min-w-0 appearance-none field-sticker px-4 [&::-webkit-date-and-time-value]:text-left [&::-webkit-date-and-time-value]:min-h-[1.5em]"
             style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
           />
           <p className="text-xs text-on-surface-variant">You must be at least {MIN_AGE_YEARS}. We don't store your DOB for guests, just attest 18+.</p>
@@ -90,7 +90,7 @@ export default function GuestEntryModal({ onClose }) {
           <button
             type="submit"
             disabled={submitting}
-            className="btn-sticker w-full py-3 disabled:opacity-60"
+            className="btn-sticker w-full disabled:opacity-60"
           >
             {submitting ? 'Starting…' : 'Start chatting'}
           </button>
@@ -98,7 +98,8 @@ export default function GuestEntryModal({ onClose }) {
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="w-full py-2.5 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm hover:bg-surface-bright transition-colors active:scale-95 disabled:opacity-50"
+            className="w-full py-3 rounded-xl bg-surface-container-high text-on-surface font-bold text-sm hover:bg-surface-bright transition-colors active:scale-[0.98] disabled:opacity-50"
+            style={{ border: '2px solid rgb(var(--color-stroke-rgb))' }}
           >
             Cancel
           </button>

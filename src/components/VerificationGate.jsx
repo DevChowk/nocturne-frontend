@@ -62,7 +62,7 @@ export default function VerificationGate() {
             type="button"
             onClick={recheck}
             disabled={checking}
-            className="btn-sticker inline-flex items-center justify-center gap-2 px-8 py-3.5 disabled:opacity-60"
+            className="btn-sticker inline-flex items-center justify-center gap-2 px-8 disabled:opacity-60"
           >
             {checking ? 'Checking…' : "I've verified — continue"}
             <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>arrow_forward</span>
@@ -72,7 +72,7 @@ export default function VerificationGate() {
             type="button"
             onClick={resend}
             disabled={sending || cooldown > 0}
-            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm hover:bg-surface-bright transition-colors disabled:opacity-50"
+            className="inline-flex items-center justify-centerbtn-sticker-outline text-sm disabled:opacity-50"
           >
             {resendLabel}
           </button>

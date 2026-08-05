@@ -61,19 +61,22 @@
   --color-stroke-rgb: 20 0 10;              /* #14000A */
 }
 
-/* OS is dark AND user hasn't explicitly picked light → dark palette wins. */
+/* OS is dark AND user hasn't explicitly picked light → dark palette wins.
+   Nightbumpp values from the Design Book — cobalt-biased surface tones,
+   paper-white (#F7F4EE, not pure white) as the text + stroke so hard drop
+   shadows and 2px borders read as sticker-warm, not sterile. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --color-bg-rgb: 15 15 20;               /* #0F0F14 */
-    --color-surface-rgb: 26 26 40;          /* #1A1A28 */
+    --color-surface-rgb: 23 23 30;          /* #17171E */
     --color-surface-low-rgb: 19 19 32;      /* #131320 */
-    --color-surface-high-rgb: 34 34 46;     /* #22222E */
+    --color-surface-high-rgb: 31 31 41;     /* #1F1F29 */
     --color-surface-highest-rgb: 42 42 56;  /* #2A2A38 */
-    --color-on-surface-rgb: 253 253 247;    /* #FDFDF7 */
-    --color-on-surface-variant-rgb: 150 145 160; /* #9691A0 */
+    --color-on-surface-rgb: 247 244 238;    /* #F7F4EE */
+    --color-on-surface-variant-rgb: 140 133 152; /* #8C8598 */
     --color-outline-rgb: 75 71 83;          /* #4B4753 */
-    --color-outline-variant-rgb: 51 49 62;  /* #33313E */
-    --color-stroke-rgb: 253 253 247;        /* #FDFDF7 */
+    --color-outline-variant-rgb: 42 42 56;  /* #2A2A38 */
+    --color-stroke-rgb: 247 244 238;        /* #F7F4EE */
   }
 }
 
@@ -93,15 +96,15 @@
 
 :root[data-theme="dark"] {
   --color-bg-rgb: 15 15 20;
-  --color-surface-rgb: 26 26 40;
+  --color-surface-rgb: 23 23 30;
   --color-surface-low-rgb: 19 19 32;
-  --color-surface-high-rgb: 34 34 46;
+  --color-surface-high-rgb: 31 31 41;
   --color-surface-highest-rgb: 42 42 56;
-  --color-on-surface-rgb: 253 253 247;
-  --color-on-surface-variant-rgb: 150 145 160;
+  --color-on-surface-rgb: 247 244 238;
+  --color-on-surface-variant-rgb: 140 133 152;
   --color-outline-rgb: 75 71 83;
-  --color-outline-variant-rgb: 51 49 62;
-  --color-stroke-rgb: 253 253 247;
+  --color-outline-variant-rgb: 42 42 56;
+  --color-stroke-rgb: 247 244 238;
 }
 
 @layer base {
@@ -161,26 +164,131 @@
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   /* Sticker CTA — yellow fill, theme-aware stroke + drop shadow.
-     Signature hover/press micro-interaction: hover nudges the button up-
-     and-left and grows the shadow (like the sticker's peeling off);
-     active presses it into the shadow. */
+     Hover peels the button up-and-left and grows the shadow (as if it's
+     being lifted off a page); active presses it into the shadow. Offsets
+     match the Design Book exactly: rest 4/4 → hover 7/7 → active 1/1. */
   .btn-sticker {
     background: rgb(var(--color-primary-rgb));
     color: #14000A;
     border: 2px solid rgb(var(--color-stroke-rgb));
     box-shadow: var(--shadow-sticker);
     border-radius: 0.75rem;
+    /* Default sizing matches the Design Book CTA (13px 22px). Split by
+       axis so a callsite's Tailwind px- / py- utilities always win
+       cleanly without needing !important — no more thin/short buttons
+       when a callsite only overrides one axis. */
+    padding-block: 13px;
+    padding-inline: 22px;
     font-weight: 900;
     letter-spacing: 0.02em;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
   .btn-sticker:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 5px 5px 0 rgb(var(--color-stroke-rgb));
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0 rgb(var(--color-stroke-rgb));
   }
   .btn-sticker:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 rgb(var(--color-stroke-rgb));
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 rgb(var(--color-stroke-rgb));
+  }
+
+  /* Neutral / outline sticker button — same 2px stroke + hard drop
+     shadow micro-interactions as the primary yellow, but on a surface
+     background with theme-aware text. Use for secondary CTAs like
+     "Continue with Google", modal Cancel, or any companion action that
+     sits next to the primary. Reads as "same visual family, different
+     hierarchy" instead of the primary's shouty yellow. */
+  .btn-sticker-outline {
+    background: rgb(var(--color-surface-high-rgb));
+    color: rgb(var(--color-on-surface-rgb));
+    border: 2px solid rgb(var(--color-stroke-rgb));
+    box-shadow: var(--shadow-sticker);
+    border-radius: 0.75rem;
+    padding-block: 13px;
+    padding-inline: 22px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-sticker-outline:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0 rgb(var(--color-stroke-rgb));
+  }
+  .btn-sticker-outline:active {
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 rgb(var(--color-stroke-rgb));
+  }
+
+  /* Sticker text field — 2px stroke on a raised surface. Focus flips the
+     border to cobalt and lays down a soft cobalt aura so keyboard users
+     always know where they are. Error state uses coral for both stroke
+     and text. Placeholder inherits muted color. */
+  .field-sticker {
+    background: rgb(var(--color-surface-high-rgb));
+    color: rgb(var(--color-on-surface-rgb));
+    border: 2px solid rgb(var(--color-stroke-rgb));
+    border-radius: 10px;
+    /* Axis-split so Tailwind pl- / pr- at the callsite (icon-slot inputs)
+       always wins on the horizontal axis without needing !important. */
+    padding-block: 11px;
+    padding-inline: 13px;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+  }
+  .field-sticker::placeholder {
+    color: rgb(var(--color-on-surface-variant-rgb));
+    font-weight: 500;
+  }
+  .field-sticker:focus,
+  .field-sticker:focus-visible {
+    border-color: rgb(var(--color-secondary-rgb));
+    box-shadow: 0 0 0 3px rgb(var(--color-secondary-rgb) / 0.2);
+  }
+  .field-sticker.field-error {
+    border-color: rgb(var(--color-tertiary-rgb));
+    color: rgb(var(--color-tertiary-rgb));
+  }
+
+  /* Sticker card — flat surface with 2px stroke and a 5px hard drop
+     shadow. No hover/active states; cards don't move. Use for modal
+     wrappers, auth forms, callout tiles. */
+  .card-sticker {
+    background: rgb(var(--color-surface-rgb));
+    border: 2px solid rgb(var(--color-stroke-rgb));
+    box-shadow: 5px 5px 0 rgb(var(--color-stroke-rgb));
+    border-radius: 14px;
+  }
+
+  /* Status chip — uppercase monospace pill. Padding, letter-spacing, and
+     font-size are load-bearing (they define the compact look); color is
+     applied via modifier utilities (bg-primary/tertiary/secondary + text-*)
+     at the callsite, so a chip can adopt any accent without more classes. */
+  .chip-sticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border: 2px solid rgb(var(--color-stroke-rgb));
+    background: rgb(var(--color-surface-rgb));
+    color: rgb(var(--color-on-surface-rgb));
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .chip-sticker .chip-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
   }
 
   /* Reduce-motion: applied as a class on <html> by the SettingsProvider when

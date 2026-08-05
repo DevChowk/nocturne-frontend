@@ -46,7 +46,7 @@ const QUIET_MESSAGES = [
 const pickQuietMessage = () =>
   QUIET_MESSAGES[Math.floor(Math.random() * QUIET_MESSAGES.length)];
 
-export default function LobbyView({ user, isConnected, socketError, status, findMatch, cancel, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, lastEndReason, onlineCount, onProfileClick }) {
+export default function LobbyView({ user, isGuest, isConnected, socketError, status, findMatch, cancel, localStream, mediaError, micEnabled, cameraEnabled, toggleMic, toggleCamera, localVideoRef, mirrorLocal, lastEndReason, onlineCount, onProfileClick }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
 
@@ -153,28 +153,26 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                 </div>
               </div>
             ) : status === 'waiting' ? (
-              <div className="relative flex items-center justify-center w-full h-full shimmer">
-                <div className="absolute w-40 h-40 rounded-full border border-primary/30 pulse-ring" />
-                <div className="absolute w-56 h-56 rounded-full border border-primary/20 pulse-ring" style={{ animationDelay: '0.5s' }} />
-                <div className="absolute w-72 h-72 rounded-full border border-primary/10 pulse-ring" style={{ animationDelay: '1s' }} />
+              <div
+                className="relative flex items-center justify-center w-full h-full overflow-hidden"
+                style={{ background: 'radial-gradient(circle at 50% 45%, rgba(255,212,0,0.14), transparent 58%)' }}
+              >
+                {/* Concentric sonar rings — sizes match the Design Book radar
+                    (58 / 104 / 150px), with alternating pulse cadence so the
+                    rings never all fire together. */}
+                <div className="absolute rounded-full border-2 border-primary/50 pulse-ring" style={{ width: 58, height: 58 }} />
+                <div className="absolute rounded-full border-2 border-primary/30 pulse-ring" style={{ width: 104, height: 104, animationDelay: '0.5s' }} />
+                <div className="absolute rounded-full border-2 border-primary/20 pulse-ring" style={{ width: 150, height: 150, animationDelay: '1s' }} />
                 <div className="z-10 text-center px-6">
-                  <div className="flex items-center justify-center mx-auto mb-3 md:mb-5 rounded-full w-14 h-14 md:w-20 md:h-20"
-                    style={{ background: 'rgb(var(--color-surface-high-rgb))', boxShadow: '0 0 40px rgba(255,212,0,0.25)' }}>
-                    <span className="material-symbols-outlined text-primary text-[28px] md:text-[40px]" style={{ fontVariationSettings: "'FILL' 1" }}>radar</span>
+                  <div className="flex items-center justify-center mx-auto mb-4 rounded-full bg-primary text-on-primary"
+                    style={{ width: 56, height: 56, boxShadow: '0 8px 30px rgba(255,212,0,0.35)' }}>
+                    <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>sensors</span>
                   </div>
-                  <h3 className="text-base md:text-xl font-bold font-headline text-on-surface mb-1.5 md:mb-2">Searching for Stranger...</h3>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-on-surface-variant font-label uppercase tracking-widest" style={{ fontSize: 10 }}>Scanning nodes</span>
-                    <span className="flex gap-1">
-                      {[0, 0.2, 0.4].map((d, i) => (
-                        <span key={i} className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: `${d}s` }} />
-                      ))}
-                    </span>
-                  </div>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}>
-                  <h2 className="text-base font-bold font-headline text-on-surface-variant">Incoming Connection...</h2>
-                  <p className="text-on-surface-variant font-label uppercase tracking-widest" style={{ fontSize: 10 }}>Secure Bumpp Pulse</p>
+                  <h3 className="text-base md:text-xl font-bold font-headline text-on-surface mb-2">Finding someone…</h3>
+                  <span className="chip-sticker" style={{ background: 'rgb(var(--color-surface-high-rgb))' }}>
+                    <span className="chip-dot" style={{ background: '#3F52FF' }} />
+                    {typeof onlineCount === 'number' ? `${onlineCount.toLocaleString()} online` : 'searching'}
+                  </span>
                 </div>
               </div>
             ) : (
@@ -186,9 +184,9 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                   <p className="text-error text-sm mb-4 font-label">Your match disconnected.</p>
                 )}
                 {socketError && <p className="text-error text-sm mb-4 font-label">Couldn't connect to the server. Check your internet connection.</p>}
-                <div className="flex items-center justify-center mx-auto mb-3 md:mb-5 rounded-full w-14 h-14 md:w-20 md:h-20"
-                  style={{ background: 'rgb(var(--color-surface-high-rgb))', boxShadow: '0 0 40px rgba(255,212,0,0.2)' }}>
-                  <span className="material-symbols-outlined text-primary text-[28px] md:text-[40px]">people</span>
+                <div className="flex items-center justify-center mx-auto mb-3 md:mb-5 rounded-full bg-primary text-on-primary"
+                  style={{ width: 56, height: 56, boxShadow: '0 8px 30px rgba(255,212,0,0.35)' }}>
+                  <span className="material-symbols-outlined text-[28px]">group</span>
                 </div>
                 <h3 className="text-base md:text-xl font-bold font-headline text-on-surface mb-1.5 md:mb-2">
                   {status === 'peer_left' ? 'Match Ended' : 'Ready to Connect'}
@@ -203,6 +201,18 @@ export default function LobbyView({ user, isConnected, socketError, status, find
                 >
                   {status === 'peer_left' ? 'Find New Match' : 'Find Match'}
                 </button>
+                {/* Guest expectation-setter — no live count (server doesn't
+                    expose one), so we surface the cap as a static hint. */}
+                {isGuest && (
+                  <div className="mt-6 flex justify-center">
+                    <span
+                      className="chip-sticker"
+                      style={{ background: 'rgb(var(--color-primary-rgb))', color: '#14000A' }}
+                    >
+                      Guest · 3 matches / session
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>

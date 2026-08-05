@@ -111,7 +111,7 @@ export default function PrivacyModal({ onClose }) {
         <p className="text-xs text-on-surface-variant text-center md:text-left">By continuing to use Bumpp, you acknowledge these terms.</p>
         <button
           onClick={onClose}
-          className="btn-sticker w-full md:w-auto px-10 py-3 text-sm"
+          className="btn-sticker w-full md:w-auto px-10 text-sm"
         >
           I Understand
         </button>

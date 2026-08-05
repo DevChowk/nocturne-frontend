@@ -1,6 +1,10 @@
 import ModalBase from './ModalBase';
 import { useSettings } from '../hooks/useSettings';
 
+// Sticker toggle — 2px theme-aware stroke, yellow fill on, near-black knob.
+// 32×18 pill per the Design Book spec; knob is 12×12 so it sits with 2px
+// breathing room inside the stroke on both extremes. Focus lays down a
+// cobalt aura like the field.
 function Toggle({ checked, onChange, ariaLabel }) {
   return (
     <button
@@ -9,14 +13,24 @@ function Toggle({ checked, onChange, ariaLabel }) {
       aria-checked={checked}
       aria-label={ariaLabel}
       onClick={() => onChange(!checked)}
-      className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+      className="relative inline-flex flex-shrink-0 items-center rounded-full transition-colors focus:outline-none"
       style={{
-        background: checked ? 'rgb(var(--color-primary-rgb))' : 'rgb(var(--color-outline-rgb) / 0.6)',
+        width: 34,
+        height: 20,
+        border: '2px solid rgb(var(--color-stroke-rgb))',
+        background: checked
+          ? 'rgb(var(--color-primary-rgb))'
+          : 'rgb(var(--color-surface-highest-rgb))',
       }}
     >
       <span
-        className="inline-block h-5 w-5 transform rounded-full bg-on-primary shadow transition-transform"
-        style={{ transform: checked ? 'translateX(22px)' : 'translateX(2px)' }}
+        className="inline-block rounded-full transition-transform"
+        style={{
+          width: 12,
+          height: 12,
+          background: 'rgb(var(--color-stroke-rgb))',
+          transform: checked ? 'translateX(16px)' : 'translateX(2px)',
+        }}
       />
     </button>
   );
@@ -43,10 +57,9 @@ function SectionHeader({ icon, title }) {
   );
 }
 
-// Segmented control for theme picking. Three options laid out as a
-// pill trio so the choice reads at a glance and there's no dropdown to
-// open. Selected state uses the sticker primary; unselected uses the
-// surface container so both themes read cleanly.
+// Sticker segmented control — 2px black stroke wraps the trio, each
+// segment separated by internal 2px dividers, selected segment yellow.
+// Matches the Design Book segmented spec (Foundations page 03).
 function ThemeSwitch({ value, onChange }) {
   const options = [
     { key: 'system', icon: 'devices', label: 'System' },
@@ -57,9 +70,14 @@ function ThemeSwitch({ value, onChange }) {
     <div
       role="radiogroup"
       aria-label="Theme"
-      className="inline-flex rounded-full p-1 bg-surface-container-high"
+      className="inline-flex overflow-hidden"
+      style={{
+        border: '2px solid rgb(var(--color-stroke-rgb))',
+        borderRadius: 10,
+        background: 'rgb(var(--color-surface-high-rgb))',
+      }}
     >
-      {options.map((o) => {
+      {options.map((o, i) => {
         const active = value === o.key;
         return (
           <button
@@ -68,11 +86,12 @@ function ThemeSwitch({ value, onChange }) {
             role="radio"
             aria-checked={active}
             onClick={() => onChange(o.key)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 ${
-              active
-                ? 'bg-primary text-on-primary shadow-sm'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-colors"
+            style={{
+              background: active ? 'rgb(var(--color-primary-rgb))' : 'transparent',
+              color: active ? '#14000A' : 'rgb(var(--color-on-surface-variant-rgb))',
+              borderLeft: i === 0 ? 'none' : '2px solid rgb(var(--color-stroke-rgb))',
+            }}
           >
             <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>{o.icon}</span>
             <span>{o.label}</span>
@@ -109,7 +128,7 @@ export default function SettingsModal({ onClose, devices }) {
         </button>
       </header>
 
-      <div className="px-6 py-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+      <div className="px-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
         {/* Video */}
         <SectionHeader icon="videocam" title="Video" />
         <Row
@@ -233,7 +252,7 @@ export default function SettingsModal({ onClose, devices }) {
         />
       </div>
 
-      <footer className="px-6 py-4 border-t border-outline-variant/40 flex justify-end">
+      <footer className="px-6 border-t border-outline-variant/40 flex justify-end">
         <button
           type="button"
           onClick={onClose}

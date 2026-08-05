@@ -42,7 +42,7 @@ export default function TermsModal({ onClose }) {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-8 py-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-8 custom-scrollbar">
         <div className="space-y-10 text-on-surface-variant leading-relaxed">
           <article>
             <SectionHeading num="01" title="Introduction" />
@@ -94,7 +94,7 @@ export default function TermsModal({ onClose }) {
         </p>
         <button
           onClick={onClose}
-          className="btn-sticker w-full sm:w-auto px-10 py-3 text-sm tracking-wide"
+          className="btn-sticker w-full sm:w-auto px-10 text-sm tracking-wide"
         >
           Close
         </button>

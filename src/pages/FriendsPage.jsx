@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../hooks/useAuth';
-import { GRADIENT } from '../constants/theme';
 
 function Avatar({ user }) {
   const label = user?.displayName || user?.username || '?';
@@ -20,7 +19,7 @@ function Avatar({ user }) {
 function FriendRow({ entry, busy, onPrimary, primaryLabel, primaryIcon, onSecondary, secondaryLabel, onMessage }) {
   const { user } = entry;
   return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container-low border border-outline-variant/40">
+    <div className="flex items-center gap-3 px-4 rounded-xl bg-surface-container-low border border-outline-variant/40">
       <Avatar user={user} />
       <div className="flex-1 min-w-0">
         <p className="font-headline font-semibold text-on-surface text-sm truncate">
@@ -37,9 +36,10 @@ function FriendRow({ entry, busy, onPrimary, primaryLabel, primaryIcon, onSecond
             onClick={onMessage}
             aria-label="Message"
             title="Message"
-            className="flex items-center justify-center w-9 h-9 rounded-full bg-surface-container-high text-primary hover:bg-surface-bright transition-colors active:scale-95"
+            className="btn-sticker inline-flex items-center gap-1 !px-3 !py-1.5 text-xs"
           >
-            <span className="material-symbols-outlined text-lg" aria-hidden="true">chat_bubble</span>
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>chat_bubble</span>
+            Message
           </button>
         )}
         {onSecondary && (
@@ -47,7 +47,7 @@ function FriendRow({ entry, busy, onPrimary, primaryLabel, primaryIcon, onSecond
             type="button"
             onClick={onSecondary}
             disabled={busy}
-            className="px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-on-surface hover:bg-surface-bright text-xs font-semibold transition-colors disabled:opacity-50"
+            className="btn-sticker-outline !px-3 !py-1.5 text-xs disabled:opacity-50"
           >
             {secondaryLabel}
           </button>
@@ -58,10 +58,9 @@ function FriendRow({ entry, busy, onPrimary, primaryLabel, primaryIcon, onSecond
             onClick={onPrimary}
             disabled={busy}
             aria-label={primaryLabel}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-black text-xs font-bold transition-colors active:scale-95 disabled:opacity-50"
-            style={{ backgroundImage: GRADIENT }}
+            className="btn-sticker inline-flex items-center gap-1 !px-3 !py-1.5 text-xs disabled:opacity-50"
           >
-            {primaryIcon && <span className="material-symbols-outlined text-base" aria-hidden="true">{primaryIcon}</span>}
+            {primaryIcon && <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>{primaryIcon}</span>}
             {primaryLabel}
           </button>
         )}
@@ -70,15 +69,56 @@ function FriendRow({ entry, busy, onPrimary, primaryLabel, primaryIcon, onSecond
   );
 }
 
-function Section({ title, count, children }) {
+// Horizontal 3-tab strip per the Design Book Friends spec: one row of
+// ACCEPTED / RECEIVED / SENT with inline counts; selected tab wears the
+// sticker yellow. Matches the segmented-control vocabulary used by
+// SettingsModal's ThemeSwitch so the whole app speaks the same shape.
+function TabBar({ tab, setTab, counts }) {
+  const tabs = [
+    { key: 'accepted', label: 'Accepted', count: counts.accepted },
+    { key: 'received', label: 'Received', count: counts.received },
+    { key: 'sent',     label: 'Sent',     count: counts.sent },
+  ];
   return (
-    <section className="space-y-3">
-      <header className="flex items-baseline justify-between px-1">
-        <h2 className="font-headline font-bold text-on-surface text-sm uppercase tracking-widest">{title}</h2>
-        <span className="text-on-surface-variant text-xs font-label">{count}</span>
-      </header>
-      {children}
-    </section>
+    <div
+      className="inline-flex w-full overflow-hidden"
+      style={{
+        border: '2px solid rgb(var(--color-stroke-rgb))',
+        borderRadius: 12,
+        background: 'rgb(var(--color-surface-high-rgb))',
+      }}
+      role="tablist"
+    >
+      {tabs.map((t, i) => {
+        const active = tab === t.key;
+        return (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => setTab(t.key)}
+            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 text-sm font-bold transition-colors"
+            style={{
+              background: active ? 'rgb(var(--color-primary-rgb))' : 'transparent',
+              color: active ? '#14000A' : 'rgb(var(--color-on-surface-variant-rgb))',
+              borderLeft: i === 0 ? 'none' : '2px solid rgb(var(--color-stroke-rgb))',
+            }}
+          >
+            <span className="uppercase tracking-wider text-[11px]">{t.label}</span>
+            <span
+              className="font-mono tabular-nums text-[10px] px-1.5 py-0.5 rounded"
+              style={{
+                background: active ? 'rgba(20,0,10,0.15)' : 'rgb(var(--color-surface-highest-rgb))',
+                color: 'inherit',
+              }}
+            >
+              {t.count}
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -89,6 +129,17 @@ export default function FriendsPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [error, setError] = useState('');
+  // Default tab lands on "received" when there's a pending request to
+  // action, otherwise the main "accepted" list. Users usually come here
+  // to respond to someone, so surfacing that first saves a tap.
+  const [tab, setTab] = useState('accepted');
+  useEffect(() => {
+    if (data.pendingReceived.length > 0 && tab === 'accepted' && data.friends.length === 0) {
+      setTab('received');
+    }
+    // Only nudges on initial load; user's manual tab picks are respected after.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.pendingReceived.length, data.friends.length]);
 
   const load = useCallback(async () => {
     try {
@@ -138,7 +189,7 @@ export default function FriendsPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-6 space-y-8">
+      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-6 space-y-4">
         {loading && (
           <div className="flex items-center justify-center py-16">
             <span className="material-symbols-outlined animate-pulse text-primary" aria-hidden="true" style={{ fontSize: 36 }}>hourglass</span>
@@ -151,30 +202,19 @@ export default function FriendsPage() {
 
         {!loading && !error && (
           <>
-            <Section title="Requests received" count={data.pendingReceived.length}>
-              {data.pendingReceived.length === 0 ? (
-                <p className="text-on-surface-variant text-sm px-1">No new requests.</p>
-              ) : (
-                <div className="space-y-2">
-                  {data.pendingReceived.map((entry) => (
-                    <FriendRow
-                      key={entry.id}
-                      entry={entry}
-                      busy={busyId === entry.user.id}
-                      onPrimary={() => accept(entry.user.id)}
-                      primaryLabel="Accept"
-                      primaryIcon="check"
-                      onSecondary={() => remove(entry.user.id)}
-                      secondaryLabel="Decline"
-                    />
-                  ))}
-                </div>
-              )}
-            </Section>
+            <TabBar
+              tab={tab}
+              setTab={setTab}
+              counts={{
+                accepted: data.friends.length,
+                received: data.pendingReceived.length,
+                sent: data.pendingSent.length,
+              }}
+            />
 
-            <Section title="Friends" count={data.friends.length}>
-              {data.friends.length === 0 ? (
-                <p className="text-on-surface-variant text-sm px-1">
+            {tab === 'accepted' && (
+              data.friends.length === 0 ? (
+                <p className="text-on-surface-variant text-sm px-1 pt-2">
                   Match someone you click with — when you both tap Add Friend in a call, they show up here.
                 </p>
               ) : (
@@ -190,11 +230,34 @@ export default function FriendsPage() {
                     />
                   ))}
                 </div>
-              )}
-            </Section>
+              )
+            )}
 
-            {data.pendingSent.length > 0 && (
-              <Section title="Requests sent" count={data.pendingSent.length}>
+            {tab === 'received' && (
+              data.pendingReceived.length === 0 ? (
+                <p className="text-on-surface-variant text-sm px-1 pt-2">No new requests.</p>
+              ) : (
+                <div className="space-y-2">
+                  {data.pendingReceived.map((entry) => (
+                    <FriendRow
+                      key={entry.id}
+                      entry={entry}
+                      busy={busyId === entry.user.id}
+                      onPrimary={() => accept(entry.user.id)}
+                      primaryLabel="Accept"
+                      primaryIcon="check"
+                      onSecondary={() => remove(entry.user.id)}
+                      secondaryLabel="Decline"
+                    />
+                  ))}
+                </div>
+              )
+            )}
+
+            {tab === 'sent' && (
+              data.pendingSent.length === 0 ? (
+                <p className="text-on-surface-variant text-sm px-1 pt-2">You haven't sent any requests.</p>
+              ) : (
                 <div className="space-y-2">
                   {data.pendingSent.map((entry) => (
                     <FriendRow
@@ -206,7 +269,7 @@ export default function FriendsPage() {
                     />
                   ))}
                 </div>
-              </Section>
+              )
             )}
           </>
         )}

@@ -29,7 +29,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
       </header>
 
       {/* Actions */}
-      <div className="px-4 py-3 space-y-1">
+      <div className="px-4 space-y-1">
         {isGuest ? (
           // Guest profile menu — settings still works (mic device pick),
           // but Edit Profile is irrelevant and Log out becomes "End guest
@@ -39,7 +39,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
             <button
               type="button"
               onClick={() => { onClose?.(); navigate('/signup'); }}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-black font-bold transition-transform active:scale-[0.98]"
+              className="w-full flex items-center gap-4 px-4 rounded-lg text-left text-black font-bold transition-transform active:scale-[0.98]"
               style={{ backgroundImage: GRADIENT, boxShadow: '0 0 18px rgba(255,212,0,0.25)' }}
             >
               <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>auto_awesome</span>
@@ -51,7 +51,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
               type="button"
               onClick={onSettings}
               aria-label="Open settings"
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
+              className="w-full flex items-center gap-4 px-4 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
             >
               <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: 22 }}>settings</span>
               <span className="flex-1 text-sm font-semibold">Settings</span>
@@ -61,7 +61,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
             <button
               type="button"
               onClick={onLogout}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-error hover:bg-error-container/15 transition-colors active:scale-[0.99]"
+              className="w-full flex items-center gap-4 px-4 rounded-lg text-left text-error hover:bg-error-container/15 transition-colors active:scale-[0.99]"
             >
               <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>logout</span>
               <span className="flex-1 text-sm font-semibold">End guest session</span>
@@ -74,7 +74,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
               type="button"
               onClick={onEditProfile}
               aria-label="Edit profile"
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
+              className="w-full flex items-center gap-4 px-4 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
             >
               <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: 22 }}>person</span>
               <span className="flex-1 text-sm font-semibold">Edit profile</span>
@@ -85,7 +85,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
               type="button"
               onClick={onSettings}
               aria-label="Open settings"
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
+              className="w-full flex items-center gap-4 px-4 rounded-lg text-left text-on-surface hover:bg-primary/10 transition-colors active:scale-[0.99]"
             >
               <span className="material-symbols-outlined text-primary" aria-hidden="true" style={{ fontSize: 22 }}>settings</span>
               <span className="flex-1 text-sm font-semibold">Settings</span>
@@ -95,7 +95,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
             <button
               type="button"
               onClick={onLogout}
-              className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-left text-error hover:bg-error-container/15 transition-colors active:scale-[0.99]"
+              className="w-full flex items-center gap-4 px-4 rounded-lg text-left text-error hover:bg-error-container/15 transition-colors active:scale-[0.99]"
             >
               <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>logout</span>
               <span className="flex-1 text-sm font-semibold">Log out</span>
@@ -106,7 +106,7 @@ export default function ProfileModal({ user, onClose, onSettings, onEditProfile,
       </div>
 
       {/* Footer */}
-      <footer className="px-6 py-4 border-t border-outline-variant/40 flex justify-end">
+      <footer className="px-6 border-t border-outline-variant/40 flex justify-end">
         <button
           type="button"
           onClick={onClose}
