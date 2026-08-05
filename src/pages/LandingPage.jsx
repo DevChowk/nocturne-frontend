@@ -20,9 +20,9 @@ export default function LandingPage() {
 
       {/* ── Header ── */}
       <header className="absolute top-0 left-0 right-0 z-30 flex justify-between items-center px-6 py-4">
-        <div className="flex items-center gap-3">
-          <img src="/favicon.png" alt="Bumpp" className="w-8 h-8 rounded-lg object-cover" />
-          <span className="text-xl font-bold tracking-tighter text-on-surface uppercase font-headline">Bumpp</span>
+        <div className="flex items-center">
+          <img src="/logo-lockup.svg" alt="Bumpp" className="h-8 w-auto dark:hidden" />
+          <img src="/logo-lockup-dark.svg" alt="Bumpp" aria-hidden="true" className="h-8 w-auto hidden dark:block" />
         </div>
       </header>
 

@@ -6,14 +6,11 @@ export default function AuthHeader({ to, linkText, linkHighlight }) {
       className="fixed top-0 w-full z-50 backdrop-blur-2xl flex justify-between items-center gap-3 h-20 px-4 sm:px-6 md:px-12 border-b border-outline-variant/40"
       style={{ background: 'rgb(var(--color-bg-rgb) / 0.8)' }}
     >
-      <div className="flex items-center gap-2 min-w-0">
-        <img src="/favicon.png" alt="Bumpp" className="w-10 h-10 flex-shrink-0 rounded-xl object-cover" />
-        {/* Solid on-surface color (near-black in light, paper-white in dark)
-            so the wordmark stays legible in both themes. The yellow gradient
-            was invisible on the cream light-mode ground. */}
-        <span className="text-xl sm:text-2xl font-bold tracking-tighter font-headline text-on-surface">
-          Bumpp
-        </span>
+      <div className="flex items-center min-w-0">
+        {/* Theme-aware lockup — .dark class on <html> swaps to the paper-
+            white version in dark mode. */}
+        <img src="/logo-lockup.svg" alt="Bumpp" className="h-8 sm:h-10 w-auto dark:hidden" />
+        <img src="/logo-lockup-dark.svg" alt="Bumpp" aria-hidden="true" className="h-8 sm:h-10 w-auto hidden dark:block" />
       </div>
       {/* Link highlight uses on-surface (solid dark/white) for guaranteed
           contrast, with a chunky yellow underline as the brand nod — reads

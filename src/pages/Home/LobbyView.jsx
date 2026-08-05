@@ -129,9 +129,9 @@ export default function LobbyView({ user, isConnected, socketError, status, find
             )}
             {/* Brand mark — top-right of the local panel. Same look as the
                 in-call brand mark so users see consistent branding. */}
-            <div className="absolute top-3 right-3 md:top-5 md:right-5 flex items-center gap-1 opacity-65 pointer-events-none select-none z-10">
-              <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
-              <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bumpp</span>
+            <div className="absolute top-3 right-3 md:top-5 md:right-5 opacity-65 pointer-events-none select-none z-10">
+              {/* Local video panel — always dark ground, always dark lockup. */}
+              <img src="/logo-lockup-dark.svg" alt="" aria-hidden="true" className="h-4 md:h-5 w-auto" />
             </div>
           </div>
 

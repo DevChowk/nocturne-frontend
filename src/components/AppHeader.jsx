@@ -13,9 +13,12 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
       style={{ background: 'rgb(var(--color-bg-rgb))' }}
     >
       <div className="flex items-center gap-4 min-w-0">
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <img src="/favicon.png" alt="Bumpp" className="w-6 h-6 md:w-7 md:h-7 rounded-lg object-cover" />
-          <span className="text-base md:text-xl font-bold tracking-tighter text-on-surface uppercase font-headline">Bumpp</span>
+        {/* Theme-aware lockup — light version has dark navy wordmark; dark
+            version has paper-white wordmark. The `.dark` class on <html>
+            is stamped by SettingsProvider based on the theme setting. */}
+        <div className="flex-shrink-0">
+          <img src="/logo-lockup.svg" alt="Bumpp" className="h-6 md:h-7 w-auto dark:hidden" />
+          <img src="/logo-lockup-dark.svg" alt="Bumpp" aria-hidden="true" className="h-6 md:h-7 w-auto hidden dark:block" />
         </div>
         <div
           className="flex items-center gap-1.5 px-3 py-1 rounded-full flex-shrink-0"

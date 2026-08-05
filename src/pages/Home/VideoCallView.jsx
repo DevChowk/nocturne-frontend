@@ -182,9 +182,10 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             {/* Brand mark — same top-right placement as the local panel so
                 both feeds carry consistent branding. */}
-            <div className="absolute top-3 right-3 md:top-6 md:right-6 flex items-center gap-1 opacity-65 pointer-events-none select-none">
-              <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
-              <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bumpp</span>
+            <div className="absolute top-3 right-3 md:top-6 md:right-6 opacity-65 pointer-events-none select-none">
+              {/* Video content is always visually dark, so use the dark-mode
+                  lockup regardless of app theme. */}
+              <img src="/logo-lockup-dark.svg" alt="" aria-hidden="true" className="h-4 md:h-5 w-auto" />
             </div>
             <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 flex flex-col">
               <div className="flex items-center gap-2 flex-wrap">
@@ -227,9 +228,10 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
             {/* Brand mark — top-right of the local panel. Matches the
                 stranger-panel watermark style (40% opacity, non-interactive). */}
-            <div className="absolute top-3 right-3 md:top-6 md:right-6 flex items-center gap-1 opacity-65 pointer-events-none select-none">
-              <img src="/favicon.png" alt="" aria-hidden="true" className="w-4 h-4 md:w-5 md:h-5 rounded object-cover" />
-              <span className="text-white font-bold tracking-tighter uppercase font-headline text-xs md:text-sm">Bumpp</span>
+            <div className="absolute top-3 right-3 md:top-6 md:right-6 opacity-65 pointer-events-none select-none">
+              {/* Video content is always visually dark, so use the dark-mode
+                  lockup regardless of app theme. */}
+              <img src="/logo-lockup-dark.svg" alt="" aria-hidden="true" className="h-4 md:h-5 w-auto" />
             </div>
           </div>
 
