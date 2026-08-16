@@ -202,12 +202,8 @@ export default function HomePage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Apply reduce-motion class on <html> based on user setting (with OS fallback).
-  useEffect(() => {
-    const osPrefers = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    const should = settings.reduceMotion === null ? osPrefers : settings.reduceMotion;
-    document.documentElement.classList.toggle('reduce-motion', should);
-  }, [settings.reduceMotion]);
+  // (The reduce-motion class used to be applied here. It now lives in
+  // SettingsProvider so it covers every route, not just /home.)
 
   // Tab-title alert when a match arrives while the tab is in the background.
   useEffect(() => {

@@ -90,6 +90,34 @@ export function SettingsProvider({ children }) {
     }
   }, [settings.theme]);
 
+  // Reduce-motion wiring. This lives here, next to the theme, because it is
+  // the same kind of work: one global class on <html> that every page's CSS
+  // keys off. It used to live inside HomePage, which meant the class was
+  // never applied on /, /login, /signup or /verify — a motion-sensitive
+  // visitor got the full animation set on every page until they happened to
+  // reach /home. The landing page's clip wall makes that a real problem.
+  //
+  // `settings.reduceMotion` is tri-state: null = follow the OS, true/false =
+  // the user overrode it in Settings. That's why this is a class and not a
+  // bare `@media (prefers-reduced-motion)` rule in the CSS — a media query
+  // can't be turned back OFF by someone who explicitly asked for motion.
+  useEffect(() => {
+    const html = document.documentElement;
+    const mql = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const apply = () => {
+      const should = settings.reduceMotion === null
+        ? !!mql?.matches
+        : settings.reduceMotion;
+      html.classList.toggle('reduce-motion', should);
+    };
+    apply();
+    // Only follow live OS changes while the user hasn't overridden it.
+    if (settings.reduceMotion === null && mql) {
+      mql.addEventListener?.('change', apply);
+      return () => mql.removeEventListener?.('change', apply);
+    }
+  }, [settings.reduceMotion]);
+
   return (
     <SettingsContext.Provider value={{ settings, updateSetting }}>
       {children}

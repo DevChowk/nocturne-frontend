@@ -342,6 +342,75 @@
     background: currentColor;
   }
 
+  /* ── Landing clip wall ───────────────────────────────────────────────
+     Columns of mini in-call tiles drifting vertically, forever.
+
+     Each track holds its tile list TWICE and translates by exactly -50% of
+     its own height, which lands copy 2 precisely where copy 1 started — so
+     the loop has no seam.
+
+     Spacing is margin-bottom on EVERY child, never `gap`. With gap, 2N
+     items produce 2N-1 gaps, so half the track is half a gap short of one
+     copy and the wrap visibly jumps once per loop — an every-72-seconds
+     bug that survives review and then annoys everyone in production.
+
+     Speed and phase come from custom properties set per column at the
+     callsite, so no two columns ever march in step. */
+  .clip-column { --drift-duration: 72s; --drift-delay: 0s; }
+  .clip-track {
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+    animation: clip-drift var(--drift-duration) linear infinite;
+    animation-delay: var(--drift-delay);
+  }
+  .clip-track > * { margin-bottom: var(--clip-gap, 10px); }
+  /* Downward columns replay the same keyframes backwards, so both
+     directions share one animation and stay identical in length. */
+  .clip-track-down { animation-direction: reverse; }
+  @keyframes clip-drift {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(0, -50%, 0); }
+  }
+
+  /* Toggled by ClipWall from an IntersectionObserver + visibilitychange.
+     A landing page nobody is looking at should cost 0% CPU. */
+  .clip-wall-paused .clip-track { animation-play-state: paused; }
+
+  /* Reduce-motion: the wall becomes a plain static grid. Without the
+     explicit transform reset, the blanket `.reduce-motion *` rule below
+     collapses the animation to its END state (-50%) and every column
+     renders half-scrolled. */
+  .reduce-motion .clip-track {
+    animation: none !important;
+    transform: none !important;
+  }
+  /* Belt and braces: the class above is applied by React on mount, so this
+     covers the very first frame before hydration. */
+  @media (prefers-reduced-motion: reduce) {
+    .clip-track { animation: none !important; transform: none !important; }
+  }
+
+  /* Edge fades — two gradient overlays rather than mask-image: cheaper on
+     low-end GPUs than compositing a mask over promoted tracks, no Safari
+     mask quirks, and it can't fade the frame's own border. */
+  .clip-wall-fade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 14%;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .clip-wall-fade-top {
+    top: 0;
+    background: linear-gradient(to bottom, rgb(var(--color-bg-rgb)), transparent);
+  }
+  .clip-wall-fade-bottom {
+    bottom: 0;
+    background: linear-gradient(to top, rgb(var(--color-bg-rgb)), transparent);
+  }
+
   /* Reconnect grace hairline — a coral rule that drains left-to-right over
      the 5s ICE-restart window, so "we're still trying" is legible without a
      spinner. Origin is the right edge so the bar empties from the left. */
@@ -358,8 +427,10 @@
     transform: scaleX(1);
   }
 
-  /* Reduce-motion: applied as a class on <html> by the SettingsProvider when
-     either the user opted in OR (if untouched) the OS reports the preference. */
+  /* Reduce-motion: applied as a class on <html> by SettingsProvider when
+     either the user opted in OR (if untouched) the OS reports the preference.
+     A class rather than a bare media query, because the setting is tri-state
+     — someone who explicitly turns motion back ON must win over the OS. */
   .reduce-motion *,
   .reduce-motion *::before,
   .reduce-motion *::after {
