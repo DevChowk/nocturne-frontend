@@ -1,0 +1,22 @@
+Landing-page clip wall — source footage
+==============================================
+
+All clips are from Pexels (https://www.pexels.com) under the Pexels
+Licence: free for commercial use, no attribution required. Credits are
+listed here anyway, because the people who shot them deserve it.
+
+Trimmed to 5s, cropped to 9:16, audio stripped. Re-fetch with
+scripts/fetch-pexels-clips.sh (needs PEXELS_API_KEY).
+
+  c01.mp4   pexels.com/video/36931662/   Pexels User
+  c02.mp4   pexels.com/video/6297759/   Klaus Nielsen
+  c03.mp4   pexels.com/video/7688648/   KoolShooters
+  c04.mp4   pexels.com/video/6574006/   Andres  Ayrton
+  c05.mp4   pexels.com/video/7327601/   KoolShooters
+  c06.mp4   pexels.com/video/8264005/   Henri Mathieu-Saint-Laurent
+  c07.mp4   pexels.com/video/7314159/   Yan Krukau
+  c08.mp4   pexels.com/video/7981421/   Kampus Production
+  c09.mp4   pexels.com/video/7957036/   Artem Podrez
+  c10.mp4   pexels.com/video/8628282/   Pavel Danilyuk
+  c11.mp4   pexels.com/video/7957246/   Artem Podrez
+  c12.mp4   pexels.com/video/8496473/   Ivan S

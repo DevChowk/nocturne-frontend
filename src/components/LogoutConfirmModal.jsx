@@ -18,14 +18,14 @@ export default function LogoutConfirmModal({ onCancel, onConfirm }) {
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-5 py-3 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm hover:bg-surface-bright transition-colors active:scale-95"
+          className="flex-1btn-sticker-outline text-sm"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={onConfirm}
-          className="btn-sticker flex-1 px-5 py-3 text-sm"
+          className="btn-sticker flex-1 px-5 text-sm"
         >
           Log out
         </button>

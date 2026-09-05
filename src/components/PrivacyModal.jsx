@@ -28,7 +28,7 @@ export default function PrivacyModal({ onClose }) {
   return (
     <ModalBase maxWidth="max-w-3xl" onClose={onClose}>
       {/* Header */}
-      <header className="flex items-center justify-between px-8 py-6 border-b border-outline-variant/40">
+      <header className="flex-shrink-0 flex items-center justify-between px-8 py-6 border-b border-outline-variant/40">
         <div>
           <h1 className="font-headline text-2xl font-extrabold tracking-tight" style={gradientTextStyle}>
             Privacy Policy
@@ -46,7 +46,7 @@ export default function PrivacyModal({ onClose }) {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-8 py-10 space-y-12 no-scrollbar">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-8 py-10 space-y-12 no-scrollbar">
         {/* Data Collection */}
         <section>
           <SectionHeader icon="analytics" iconBg="rgba(255,212,0,0.1)" iconColor="text-primary" title="Data Collection" />
@@ -107,11 +107,11 @@ export default function PrivacyModal({ onClose }) {
       </div>
 
       {/* Footer */}
-      <footer className="p-8 bg-surface-container-low/80 backdrop-blur-md border-t border-outline-variant/40 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <footer className="flex-shrink-0 p-8 bg-surface-container-low/80 backdrop-blur-md border-t border-outline-variant/40 flex flex-col md:flex-row gap-4 items-center justify-between">
         <p className="text-xs text-on-surface-variant text-center md:text-left">By continuing to use Bumpp, you acknowledge these terms.</p>
         <button
           onClick={onClose}
-          className="btn-sticker w-full md:w-auto px-10 py-3 text-sm"
+          className="btn-sticker w-full md:w-auto px-10 text-sm"
         >
           I Understand
         </button>

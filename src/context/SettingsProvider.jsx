@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { SettingsContext, DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY } from './SettingsContext';
+import { SettingsContext, DEFAULT_SETTINGS, SETTINGS_STORAGE_KEY, SETTINGS_VERSION } from './SettingsContext';
 
 // Pre-rename key. Read once on first load so users who set preferences
 // before the Bump rename don't lose their mirror toggle, match sound, or
@@ -19,10 +19,24 @@ function loadStoredSettings() {
     }
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    return migrate({ ...DEFAULT_SETTINGS, ...parsed }, parsed.v ?? 1);
   } catch {
     return DEFAULT_SETTINGS;
   }
+}
+
+// One-shot upgrades for settings blobs written by older builds. Runs before
+// the first render and its result is persisted immediately, so each step is
+// applied exactly once per browser.
+function migrate(settings, storedVersion) {
+  if (storedVersion >= SETTINGS_VERSION) return settings;
+  const next = { ...settings, v: SETTINGS_VERSION };
+  // v2 — light is now the product default. 'system' was the old default
+  // value rather than a considered choice, so those users move to light;
+  // anyone who picks System from here on keeps it, because the version
+  // marker is already current and this branch never runs again.
+  if (storedVersion < 2 && next.theme === 'system') next.theme = 'light';
+  return next;
 }
 
 export function SettingsProvider({ children }) {
@@ -75,6 +89,34 @@ export function SettingsProvider({ children }) {
       return () => mql.removeEventListener?.('change', onChange);
     }
   }, [settings.theme]);
+
+  // Reduce-motion wiring. This lives here, next to the theme, because it is
+  // the same kind of work: one global class on <html> that every page's CSS
+  // keys off. It used to live inside HomePage, which meant the class was
+  // never applied on /, /login, /signup or /verify — a motion-sensitive
+  // visitor got the full animation set on every page until they happened to
+  // reach /home. The landing page's clip wall makes that a real problem.
+  //
+  // `settings.reduceMotion` is tri-state: null = follow the OS, true/false =
+  // the user overrode it in Settings. That's why this is a class and not a
+  // bare `@media (prefers-reduced-motion)` rule in the CSS — a media query
+  // can't be turned back OFF by someone who explicitly asked for motion.
+  useEffect(() => {
+    const html = document.documentElement;
+    const mql = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const apply = () => {
+      const should = settings.reduceMotion === null
+        ? !!mql?.matches
+        : settings.reduceMotion;
+      html.classList.toggle('reduce-motion', should);
+    };
+    apply();
+    // Only follow live OS changes while the user hasn't overridden it.
+    if (settings.reduceMotion === null && mql) {
+      mql.addEventListener?.('change', apply);
+      return () => mql.removeEventListener?.('change', apply);
+    }
+  }, [settings.reduceMotion]);
 
   return (
     <SettingsContext.Provider value={{ settings, updateSetting }}>

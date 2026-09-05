@@ -65,7 +65,7 @@ export default function VerifyPage() {
             <p className="text-on-surface-variant mb-8">{message}</p>
             <Link
               to={authToken ? '/home' : '/login'}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-surface-container-high text-on-surface font-semibold text-sm hover:bg-surface-bright transition-colors"
+              className="inline-flex items-center gap-2btn-sticker-outline text-sm"
             >
               {authToken ? 'Back to home' : 'Back to login'}
             </Link>

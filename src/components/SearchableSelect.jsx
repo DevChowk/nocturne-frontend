@@ -106,7 +106,7 @@ export default function SearchableSelect({
         onFocus={() => { setOpen(true); setQuery(''); setActiveIdx(0); }}
         onChange={(e) => { setQuery(e.target.value); setOpen(true); setActiveIdx(0); }}
         placeholder={placeholder}
-        className="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30"
+        className="w-full field-sticker px-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30"
       />
       {open && (
         <ul

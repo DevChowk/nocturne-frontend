@@ -59,21 +59,31 @@
      is the classic Notion-sticker / meme-graphic look. In dark it inverts
      to paper white below. */
   --color-stroke-rgb: 20 0 10;              /* #14000A */
+  /* Structural 2px rules — header underline, rail dividers, control-bar
+     rule, video-panel frames. NOT the sticker stroke: the Design Book keeps
+     paper-white for things you can press (buttons, cards, fields) and rules
+     the layout itself in ink on light / #2A2A38 on dark, so dark mode never
+     gets a grid of glowing white lines. */
+  --color-rule-rgb: 20 0 10;                /* #14000A */
 }
 
-/* OS is dark AND user hasn't explicitly picked light → dark palette wins. */
+/* OS is dark AND user hasn't explicitly picked light → dark palette wins.
+   Nightbumpp values from the Design Book — cobalt-biased surface tones,
+   paper-white (#F7F4EE, not pure white) as the text + stroke so hard drop
+   shadows and 2px borders read as sticker-warm, not sterile. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --color-bg-rgb: 15 15 20;               /* #0F0F14 */
-    --color-surface-rgb: 26 26 40;          /* #1A1A28 */
+    --color-surface-rgb: 23 23 30;          /* #17171E */
     --color-surface-low-rgb: 19 19 32;      /* #131320 */
-    --color-surface-high-rgb: 34 34 46;     /* #22222E */
+    --color-surface-high-rgb: 31 31 41;     /* #1F1F29 */
     --color-surface-highest-rgb: 42 42 56;  /* #2A2A38 */
-    --color-on-surface-rgb: 253 253 247;    /* #FDFDF7 */
-    --color-on-surface-variant-rgb: 150 145 160; /* #9691A0 */
+    --color-on-surface-rgb: 247 244 238;    /* #F7F4EE */
+    --color-on-surface-variant-rgb: 140 133 152; /* #8C8598 */
     --color-outline-rgb: 75 71 83;          /* #4B4753 */
-    --color-outline-variant-rgb: 51 49 62;  /* #33313E */
-    --color-stroke-rgb: 253 253 247;        /* #FDFDF7 */
+    --color-outline-variant-rgb: 42 42 56;  /* #2A2A38 */
+    --color-stroke-rgb: 247 244 238;        /* #F7F4EE */
+    --color-rule-rgb: 42 42 56;             /* #2A2A38 */
   }
 }
 
@@ -89,19 +99,21 @@
   --color-outline-rgb: 92 80 62;
   --color-outline-variant-rgb: 138 122 96;
   --color-stroke-rgb: 20 0 10;
+  --color-rule-rgb: 20 0 10;
 }
 
 :root[data-theme="dark"] {
   --color-bg-rgb: 15 15 20;
-  --color-surface-rgb: 26 26 40;
+  --color-surface-rgb: 23 23 30;
   --color-surface-low-rgb: 19 19 32;
-  --color-surface-high-rgb: 34 34 46;
+  --color-surface-high-rgb: 31 31 41;
   --color-surface-highest-rgb: 42 42 56;
-  --color-on-surface-rgb: 253 253 247;
-  --color-on-surface-variant-rgb: 150 145 160;
+  --color-on-surface-rgb: 247 244 238;
+  --color-on-surface-variant-rgb: 140 133 152;
   --color-outline-rgb: 75 71 83;
-  --color-outline-variant-rgb: 51 49 62;
-  --color-stroke-rgb: 253 253 247;
+  --color-outline-variant-rgb: 42 42 56;
+  --color-stroke-rgb: 247 244 238;
+  --color-rule-rgb: 42 42 56;
 }
 
 @layer base {
@@ -151,6 +163,17 @@
        would be unreadable against the video content. Kept as literal black. */
     background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 40%);
   }
+  /* Video-stage empty background — the specific 3-stop dark gradient from
+     the Design Book spec (page 03 Components + page 10 In-call). Used on
+     the local + remote panels so the "waiting for video" state has a
+     designed dark ground instead of a flat surface color. Theme-
+     independent since real video content is always visually dark. */
+  .video-stage {
+    background: linear-gradient(150deg, #25252F 0%, #0B0B10 60%, #131320 100%);
+  }
+  .video-stage-alt {
+    background: linear-gradient(150deg, #2A2A36 0%, #0B0B10 60%, #15151F 100%);
+  }
   .custom-scrollbar::-webkit-scrollbar { width: 4px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -161,30 +184,253 @@
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   /* Sticker CTA — yellow fill, theme-aware stroke + drop shadow.
-     Signature hover/press micro-interaction: hover nudges the button up-
-     and-left and grows the shadow (like the sticker's peeling off);
-     active presses it into the shadow. */
+     Hover peels the button up-and-left and grows the shadow (as if it's
+     being lifted off a page); active presses it into the shadow. Offsets
+     match the Design Book exactly: rest 4/4 → hover 7/7 → active 1/1. */
   .btn-sticker {
     background: rgb(var(--color-primary-rgb));
     color: #14000A;
     border: 2px solid rgb(var(--color-stroke-rgb));
     box-shadow: var(--shadow-sticker);
     border-radius: 0.75rem;
+    /* Default sizing matches the Design Book CTA (13px 22px). Split by
+       axis so a callsite's Tailwind px- / py- utilities always win
+       cleanly without needing !important — no more thin/short buttons
+       when a callsite only overrides one axis. */
+    padding-block: 13px;
+    padding-inline: 22px;
     font-weight: 900;
     letter-spacing: 0.02em;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
   .btn-sticker:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 5px 5px 0 rgb(var(--color-stroke-rgb));
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0 rgb(var(--color-stroke-rgb));
   }
   .btn-sticker:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 rgb(var(--color-stroke-rgb));
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 rgb(var(--color-stroke-rgb));
   }
 
-  /* Reduce-motion: applied as a class on <html> by the SettingsProvider when
-     either the user opted in OR (if untouched) the OS reports the preference. */
+  /* Neutral / outline sticker button — same 2px stroke + hard drop
+     shadow micro-interactions as the primary yellow, but on a surface
+     background with theme-aware text. Use for secondary CTAs like
+     "Continue with Google", modal Cancel, or any companion action that
+     sits next to the primary. Reads as "same visual family, different
+     hierarchy" instead of the primary's shouty yellow. */
+  .btn-sticker-outline {
+    background: rgb(var(--color-surface-high-rgb));
+    color: rgb(var(--color-on-surface-rgb));
+    border: 2px solid rgb(var(--color-stroke-rgb));
+    box-shadow: var(--shadow-sticker);
+    border-radius: 0.75rem;
+    padding-block: 13px;
+    padding-inline: 22px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-sticker-outline:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0 rgb(var(--color-stroke-rgb));
+  }
+  .btn-sticker-outline:active {
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 rgb(var(--color-stroke-rgb));
+  }
+
+  /* Sticker text field — 2px stroke on a raised surface. Focus flips the
+     border to cobalt and lays down a soft cobalt aura so keyboard users
+     always know where they are. Error state uses coral for both stroke
+     and text. Placeholder inherits muted color. */
+  .field-sticker {
+    background: rgb(var(--color-surface-high-rgb));
+    color: rgb(var(--color-on-surface-rgb));
+    border: 2px solid rgb(var(--color-stroke-rgb));
+    border-radius: 10px;
+    /* Axis-split so Tailwind pl- / pr- at the callsite (icon-slot inputs)
+       always wins on the horizontal axis without needing !important. */
+    padding-block: 11px;
+    padding-inline: 13px;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+  }
+  .field-sticker::placeholder {
+    color: rgb(var(--color-on-surface-variant-rgb));
+    font-weight: 500;
+  }
+  .field-sticker:focus,
+  .field-sticker:focus-visible {
+    border-color: rgb(var(--color-secondary-rgb));
+    box-shadow: 0 0 0 3px rgb(var(--color-secondary-rgb) / 0.2);
+  }
+  .field-sticker.field-error {
+    border-color: rgb(var(--color-tertiary-rgb));
+    color: rgb(var(--color-tertiary-rgb));
+  }
+
+  /* Sticker card — flat surface with 2px stroke and a 5px hard drop
+     shadow. No hover/active states; cards don't move. Use for modal
+     wrappers, auth forms, callout tiles. */
+  .card-sticker {
+    background: rgb(var(--color-surface-rgb));
+    border: 2px solid rgb(var(--color-stroke-rgb));
+    box-shadow: 5px 5px 0 rgb(var(--color-stroke-rgb));
+    border-radius: 14px;
+  }
+
+  /* Status chip — uppercase monospace pill. Padding, letter-spacing, and
+     font-size are load-bearing (they define the compact look); color is
+     applied via modifier utilities (bg-primary/tertiary/secondary + text-*)
+     at the callsite, so a chip can adopt any accent without more classes. */
+  .chip-sticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border: 2px solid rgb(var(--color-stroke-rgb));
+    background: rgb(var(--color-surface-rgb));
+    color: rgb(var(--color-on-surface-rgb));
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .chip-sticker .chip-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Video-overlay chip — the label vocabulary that sits ON a video panel
+     (YOU · PREVIEW, LIVE 0:37, STRANGER). Theme-independent black scrim
+     with paper-white mono text, no sticker stroke: video content is always
+     dark, so the chip only ever needs to separate itself from the footage.
+     Distinct from .chip-sticker, which lives on theme surfaces. */
+  .chip-video {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    padding: 4px 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #F7F4EE;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .chip-video .chip-dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* ── Landing clip wall ───────────────────────────────────────────────
+     Columns of mini in-call tiles drifting vertically, forever.
+
+     Each track holds its tile list TWICE and translates by exactly -50% of
+     its own height, which lands copy 2 precisely where copy 1 started — so
+     the loop has no seam.
+
+     Spacing is margin-bottom on EVERY child, never `gap`. With gap, 2N
+     items produce 2N-1 gaps, so half the track is half a gap short of one
+     copy and the wrap visibly jumps once per loop — an every-72-seconds
+     bug that survives review and then annoys everyone in production.
+
+     Speed and phase come from custom properties set per column at the
+     callsite, so no two columns ever march in step. */
+  .clip-column { --drift-duration: 72s; --drift-delay: 0s; }
+  .clip-track {
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+    animation: clip-drift var(--drift-duration) linear infinite;
+    animation-delay: var(--drift-delay);
+  }
+  .clip-track > * { margin-bottom: var(--clip-gap, 10px); }
+  /* Downward columns replay the same keyframes backwards, so both
+     directions share one animation and stay identical in length. */
+  .clip-track-down { animation-direction: reverse; }
+  @keyframes clip-drift {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(0, -50%, 0); }
+  }
+
+  /* Toggled by ClipWall from an IntersectionObserver + visibilitychange.
+     A landing page nobody is looking at should cost 0% CPU. */
+  .clip-wall-paused .clip-track { animation-play-state: paused; }
+
+  /* Reduce-motion: the wall becomes a plain static grid. Without the
+     explicit transform reset, the blanket `.reduce-motion *` rule below
+     collapses the animation to its END state (-50%) and every column
+     renders half-scrolled. */
+  .reduce-motion .clip-track {
+    animation: none !important;
+    transform: none !important;
+  }
+  /* Belt and braces: the class above is applied by React on mount, so this
+     covers the very first frame before hydration. */
+  @media (prefers-reduced-motion: reduce) {
+    .clip-track { animation: none !important; transform: none !important; }
+  }
+
+  /* Edge fades — two gradient overlays rather than mask-image: cheaper on
+     low-end GPUs than compositing a mask over promoted tracks, no Safari
+     mask quirks, and it can't fade the frame's own border. */
+  .clip-wall-fade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 14%;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .clip-wall-fade-top {
+    top: 0;
+    background: linear-gradient(to bottom, rgb(var(--color-bg-rgb)), transparent);
+  }
+  .clip-wall-fade-bottom {
+    bottom: 0;
+    background: linear-gradient(to top, rgb(var(--color-bg-rgb)), transparent);
+  }
+
+  /* Reconnect grace hairline — a coral rule that drains left-to-right over
+     the 5s ICE-restart window, so "we're still trying" is legible without a
+     spinner. Origin is the right edge so the bar empties from the left. */
+  .hairline-drain {
+    transform-origin: right center;
+    animation: hairline-drain 5s linear forwards;
+  }
+  @keyframes hairline-drain {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+  .reduce-motion .hairline-drain {
+    animation: none !important;
+    transform: scaleX(1);
+  }
+
+  /* Reduce-motion: applied as a class on <html> by SettingsProvider when
+     either the user opted in OR (if untouched) the OS reports the preference.
+     A class rather than a bare media query, because the setting is tri-state
+     — someone who explicitly turns motion back ON must win over the OS. */
   .reduce-motion *,
   .reduce-motion *::before,
   .reduce-motion *::after {

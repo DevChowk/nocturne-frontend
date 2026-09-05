@@ -15,22 +15,35 @@ const OPACITY_CAPS = [0.95, 0.78, 0.6, 0.42, 0.26, 0.14];
 // One pill = one message. Owns its own `expanded` state so tapping toggles
 // between the clamped 2-line preview and the full text without forcing the
 // parent to track a set of expanded ids.
+// Sticker bubble variant of the IG-Live pill. Same fade-per-position
+// mechanism (each pill still owns its own opacity), but shape + color
+// now match the desktop chat panel spec: own messages = solid yellow
+// with black text, peer messages = surface with warm text; both use
+// the asymmetric-radius bottom-corner-reduced trick (bottom-right for
+// own, bottom-left for peer) so which side "spoke" reads at a glance.
 function ChatPill({ msg, peerLabel, opacity }) {
   const [expanded, setExpanded] = useState(false);
+  const mine = msg.mine;
   return (
     <button
       type="button"
       onClick={() => setExpanded((e) => !e)}
       aria-expanded={expanded}
       aria-label={expanded ? 'Collapse message' : 'Expand message'}
-      className="bg-black/55 backdrop-blur-md rounded-2xl px-3 py-1 max-w-full flex-shrink-0 text-left cursor-pointer"
-      style={{ opacity }}
+      className="max-w-full flex-shrink-0 text-left cursor-pointer backdrop-blur-md"
+      style={{
+        opacity,
+        padding: '6px 11px',
+        background: mine ? 'rgb(var(--color-primary-rgb))' : 'rgb(var(--color-surface-high-rgb) / 0.92)',
+        color: mine ? '#14000A' : 'rgb(var(--color-on-surface-rgb))',
+        borderRadius: mine ? '11px 11px 3px 11px' : '11px 11px 11px 3px',
+      }}
     >
       <p className={`text-[13px] leading-snug [overflow-wrap:anywhere] text-left m-0 ${expanded ? '' : 'line-clamp-2'}`}>
-        <span className={`font-bold mr-1.5 ${msg.mine ? 'text-primary' : 'text-secondary'}`}>
-          {msg.mine ? 'You' : peerLabel}
+        <span className="font-mono font-bold mr-1.5 text-[9px] uppercase tracking-[0.14em] opacity-70">
+          {mine ? 'You' : peerLabel}
         </span>
-        <span className="text-white">{msg.message}</span>
+        <span>{msg.message}</span>
       </p>
     </button>
   );

@@ -202,12 +202,8 @@ export default function HomePage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Apply reduce-motion class on <html> based on user setting (with OS fallback).
-  useEffect(() => {
-    const osPrefers = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    const should = settings.reduceMotion === null ? osPrefers : settings.reduceMotion;
-    document.documentElement.classList.toggle('reduce-motion', should);
-  }, [settings.reduceMotion]);
+  // (The reduce-motion class used to be applied here. It now lives in
+  // SettingsProvider so it covers every route, not just /home.)
 
   // Tab-title alert when a match arrives while the tab is in the background.
   useEffect(() => {
@@ -530,6 +526,7 @@ export default function HomePage() {
   ) : (
     <LobbyView
       user={user}
+      isGuest={isGuest}
       isConnected={isConnected}
       socketError={socketError}
       status={status}
@@ -552,14 +549,11 @@ export default function HomePage() {
   return (
     <>
       {onboardingGate}
+      {/* /home never scrolls, and its ground is flat — the Design Book keeps
+          every gradient inside the video panels. */}
       <div
         className="flex flex-col h-[100dvh] min-h-[100dvh] overflow-hidden"
-        style={{
-          background:
-            'radial-gradient(circle at 12% 22%, rgba(255,212,0,0.18) 0%, transparent 45%),' +
-            'radial-gradient(circle at 88% 78%, rgba(63,82,255,0.14) 0%, transparent 45%),' +
-            'rgb(var(--color-bg-rgb))',
-        }}
+        style={{ background: 'rgb(var(--color-bg-rgb))' }}
       >
         <AppHeader
           user={user}
@@ -567,11 +561,15 @@ export default function HomePage() {
           isGuest={isGuest}
           onlineCount={onlineCount}
           onProfileClick={() => setShowProfile(true)}
+          onSettingsClick={() => setShowSettings(true)}
           onFriendsToggle={!isGuest && !isInCall ? handleFriendsHeaderClick : null}
           friendsCollapsed={friendsCollapsed}
         />
 
+        {/* Friends rail sits to the RIGHT of the stage (Design Book lobby),
+            mirroring where the chat panel docks during a call. */}
         <div className="flex flex-1 min-h-0 overflow-hidden">
+          {mainView}
           {!isGuest && !isInCall && (
             <FriendsSidebar
               friends={friends}
@@ -579,7 +577,6 @@ export default function HomePage() {
               collapsed={friendsCollapsed}
             />
           )}
-          {mainView}
         </div>
       </div>
       {showProfile && (

@@ -10,19 +10,23 @@ function MessageBubble({ msg, peerLabel }) {
   const time = new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   return (
     <div className={`flex flex-col gap-1 ${msg.mine ? 'items-end' : ''}`}>
-      <span className={`text-[10px] font-bold uppercase tracking-tighter ${msg.mine ? 'text-primary-fixed' : 'text-secondary'}`}>
+      <span className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-on-surface-variant">
         {msg.mine ? 'You' : peerLabel}
       </span>
       <div
-        className={`p-3 max-w-[80%] text-sm text-on-surface leading-relaxed break-words [overflow-wrap:anywhere] ${
-          msg.mine
-            ? 'bg-primary/10 border border-primary/20 rounded-tl-xl rounded-br-xl rounded-bl-xl'
-            : 'bg-surface-container-highest rounded-tr-xl rounded-br-xl rounded-bl-xl'
-        }`}
+        className="max-w-[75%] text-[13px] leading-snug [overflow-wrap:anywhere]"
+        style={{
+          padding: '8px 12px',
+          background: msg.mine
+            ? 'rgb(var(--color-primary-rgb))'
+            : 'rgb(var(--color-surface-high-rgb))',
+          color: msg.mine ? '#14000A' : 'rgb(var(--color-on-surface-rgb))',
+          borderRadius: msg.mine ? '11px 11px 3px 11px' : '11px 11px 11px 3px',
+        }}
       >
         {msg.body}
       </div>
-      <span className="text-[10px] text-on-surface-variant/60">{time}</span>
+      <span className="font-mono text-[9px] text-on-surface-variant uppercase tracking-widest">{time}</span>
     </div>
   );
 }
@@ -163,7 +167,7 @@ export default function ConversationPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-4 overflow-y-auto custom-scrollbar">
+      <main className="flex-1 max-w-2xl w-full mx-auto px-4 overflow-y-auto custom-scrollbar">
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <span className="material-symbols-outlined animate-pulse text-primary" aria-hidden="true" style={{ fontSize: 36 }}>hourglass</span>
@@ -187,7 +191,7 @@ export default function ConversationPage() {
 
       <form
         onSubmit={send}
-        className="sticky bottom-0 max-w-2xl w-full mx-auto px-4 py-3 border-t border-outline-variant/40"
+        className="sticky bottom-0 max-w-2xl w-full mx-auto px-4 border-t border-outline-variant/40"
         style={{ background: 'rgb(var(--color-bg-rgb))' }}
       >
         <div className="relative flex items-center">
@@ -198,7 +202,7 @@ export default function ConversationPage() {
             placeholder="Type a message..."
             maxLength={2000}
             autoComplete="off"
-            className="w-full bg-surface-container-highest border-none rounded-full py-3 pl-5 pr-24 md:pr-24 text-sm text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+            className="field-sticker w-full pl-5 pr-24 md:pr-24 text-sm !rounded-full"
           />
           {/* Emoji picker — desktop only. Mobile keyboards ship with one. */}
           <button

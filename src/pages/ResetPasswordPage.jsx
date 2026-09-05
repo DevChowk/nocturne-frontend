@@ -55,8 +55,8 @@ export default function ResetPasswordPage() {
           style={{ background: 'rgba(63,82,255,0.1)' }} />
 
         <div className="w-full max-w-[480px] z-10">
-          <div className="glass-panel border border-outline-variant/40 rounded-xl p-8 md:p-10"
-            style={{ boxShadow: '0 0 24px rgba(255,212,0,0.15)' }}>
+          <div className="card-sticker p-8 md:p-10"
+           >
 
             {done ? (
               <div className="text-center space-y-4">
@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
                         autoComplete="new-password"
                         required
                         minLength={MIN_PASSWORD_LENGTH}
-                        className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-5 pr-12 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all duration-300"
+                        className="w-full field-sticker pl-5 pr-12"
                       />
                       <button
                         type="button"
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
                       autoComplete="new-password"
                       required
                       minLength={MIN_PASSWORD_LENGTH}
-                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 px-5 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all duration-300"
+                      className="w-full field-sticker px-5"
                     />
                   </div>
 
@@ -121,7 +121,7 @@ export default function ResetPasswordPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="btn-sticker w-full mt-4 py-4 px-6 text-lg disabled:opacity-60"
+                    className="btn-sticker w-full mt-4 px-6 text-lg disabled:opacity-60"
                   >
                     {loading ? 'Updating…' : 'Update password'}
                   </button>

@@ -93,7 +93,7 @@ export default function SignupPage() {
 
           {/* Registration form */}
           <div className="w-full">
-            <div className="bg-surface-container-low rounded-xl p-8 md:p-10 border border-on-surface/[0.03]"
+            <div className="card-sticker p-8 md:p-10"
               style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
               <div className="mb-8">
                 <h2 className="text-3xl font-headline font-bold text-on-surface mb-2">Create Account</h2>
@@ -112,7 +112,7 @@ export default function SignupPage() {
                       placeholder="alex@example.com"
                       autoComplete="email"
                       required
-                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-12 pr-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                      className="w-full field-sticker pl-12 pr-4"
                     />
                   </div>
                 </div>
@@ -130,7 +130,7 @@ export default function SignupPage() {
                       required
                       minLength={3}
                       maxLength={20}
-                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-9 pr-4 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                      className="w-full field-sticker pl-9 pr-4"
                     />
                   </div>
                   <p className="text-xs text-on-surface-variant px-1">3–20 characters. Lowercase letters, digits, underscore, or dot.</p>
@@ -146,7 +146,7 @@ export default function SignupPage() {
                       onChange={e => setDob(e.target.value)}
                       max={today}
                       required
-                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-12 pr-4 text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                      className="w-full field-sticker pl-12 pr-4"
                     />
                   </div>
                   <p className="text-xs text-on-surface-variant px-1">You must be at least {MIN_AGE_YEARS}.</p>
@@ -163,7 +163,7 @@ export default function SignupPage() {
                       placeholder="••••••••"
                       minLength={6}
                       required
-                      className="w-full bg-surface-container-highest border-none rounded-lg py-4 pl-12 pr-12 text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-all"
+                      className="w-full field-sticker pl-12 pr-12"
                     />
                     <button
                       type="button"
@@ -200,7 +200,7 @@ export default function SignupPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-sticker w-full py-4 flex items-center justify-center gap-2 mt-4 disabled:opacity-60"
+                  className="btn-sticker w-full flex items-center justify-center gap-2 mt-4 disabled:opacity-60"
                 >
                   {loading ? 'Creating...' : 'Create Account'}
                   {!loading && <span className="material-symbols-outlined">arrow_forward</span>}

@@ -1,0 +1,15 @@
+# Netlify header rules. Sits beside _redirects.
+#
+# Files under public/ ship UNHASHED, so `immutable` is only safe because the
+# clip directory is versioned (/clips/v1/...). To change a clip, bump the
+# version in src/components/landing/clips.js — never edit a file in place.
+/clips/v1/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Vite's own output is content-hashed, so it can be cached forever too.
+# Without this rule Netlify revalidates the main bundle on every load.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# index.html is deliberately absent: it must stay revalidated, or a deploy
+# never reaches anyone already holding the old one.
