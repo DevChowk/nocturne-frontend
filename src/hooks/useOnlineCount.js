@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SHOW_ONLINE_COUNT } from '../constants/features';
 
 // Live headcount for the landing page.
 //
@@ -10,30 +11,22 @@ import { useEffect, useState } from 'react';
 // marketing page.
 //
 // Returns { count, state } where state is 'loading' | 'ok' | 'error'.
-// While ENABLED is false it stays { count: null, state: 'loading' } and
-// never touches the network.
+// While SHOW_ONLINE_COUNT is false it stays { count: null, state:
+// 'loading' } and never touches the network.
 // The caller decides what to render; this hook never invents a number.
 
 const POLL_MS = 30000;
 const TIMEOUT_MS = 4000;
 
-// ── FETCHING IS OFF ───────────────────────────────────────────────────
-// The landing page no longer renders the count (its markup is parked in a
-// comment in src/pages/LandingPage.jsx), so nothing should be hitting
-// /api/stats/online every 30s on every visit.
-//
-// A flag rather than commented-out lines on purpose: everything below stays
-// real, linted, type-checked code that can't quietly rot, and turning the
-// count back on is this one word. The backend endpoint is untouched and
-// still live either way.
-const ENABLED = false;
+// Fetching follows the same switch as the display: with the count hidden,
+// nothing should be hitting /api/stats/online every 30s on every visit.
 
 export function useOnlineCount() {
   const [count, setCount] = useState(null);
   const [state, setState] = useState('loading');
 
   useEffect(() => {
-    if (!ENABLED) return;
+    if (!SHOW_ONLINE_COUNT) return;
 
     const base = import.meta.env.VITE_API_URL || '';
     let cancelled = false;

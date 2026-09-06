@@ -3,6 +3,8 @@
 // settings gear, avatar. Ruled off from the body with the 2px layout
 // rule. Identical look and responsive sizing on every page so the user
 // always sees the same header regardless of which screen they're on.
+import { SHOW_ONLINE_COUNT } from '../constants/features';
+
 export default function AppHeader({ user, isConnected, onlineCount, onProfileClick, onFriendsToggle, friendsCollapsed, isGuest, onSettingsClick }) {
   const initial = isGuest
     ? 'G'
@@ -24,24 +26,30 @@ export default function AppHeader({ user, isConnected, onlineCount, onProfileCli
       </div>
       {/* Right cluster — Design Book header order: online count, settings,
           avatar. The count is bare mono type on the ground, not a chip: it's
-          data, and the only number on the screen, so it needs no container
-          to be found. Coral only when the socket is actually down. */}
+          data, so it needs no container to be found.
+
+          The server-wide total is currently switched off (see
+          constants/features.js). The DISCONNECTED state deliberately still
+          shows: that isn't a headcount, it's the user needing to know their
+          socket dropped and matching won't work. */}
       <div className="flex items-center gap-3 md:gap-4 min-w-0">
-        <span
-          className="font-mono uppercase tabular-nums flex-shrink-0 whitespace-nowrap"
-          style={{
-            fontSize: 11,
-            letterSpacing: '0.16em',
-            color: isConnected ? 'rgb(var(--color-on-surface-rgb))' : '#FF4F4F',
-          }}
-          title={isConnected ? 'People online now' : 'Disconnected from server'}
-        >
-          {!isConnected
-            ? 'Disconnected'
-            : typeof onlineCount === 'number'
-              ? <>Online <span aria-hidden="true" className="opacity-40">—</span> {onlineCount.toLocaleString()}</>
-              : 'Online'}
-        </span>
+        {(!isConnected || SHOW_ONLINE_COUNT) && (
+          <span
+            className="font-mono uppercase tabular-nums flex-shrink-0 whitespace-nowrap"
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.16em',
+              color: isConnected ? 'rgb(var(--color-on-surface-rgb))' : '#FF4F4F',
+            }}
+            title={isConnected ? 'People online now' : 'Disconnected from server'}
+          >
+            {!isConnected
+              ? 'Disconnected'
+              : typeof onlineCount === 'number'
+                ? <>Online <span aria-hidden="true" className="opacity-40">—</span> {onlineCount.toLocaleString()}</>
+                : 'Online'}
+          </span>
+        )}
         {/* Friends toggle — desktop only (sidebar is desktop-only). Shows
             people-icon at all times so users see the friends list exists;
             click to collapse/expand. A small dot indicator on the icon when

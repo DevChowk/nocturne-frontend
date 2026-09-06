@@ -17,8 +17,9 @@ import { useAuth } from '../hooks/useAuth';
    Hidden from the landing page for now. Everything it needs still exists
    and still works: the useOnlineCount hook, and GET /api/stats/online on
    the backend. To bring it back, un-comment the import, this component,
-   and the markup in the header below, then flip ENABLED to true in
-   src/hooks/useOnlineCount.js (which is what stops it polling).
+   and the markup in the header below, then flip SHOW_ONLINE_COUNT to true
+   in src/constants/features.js (one switch covers the landing page, the app
+   header and the searching screen, and re-enables the fetching).
 
 import { useOnlineCount } from '../hooks/useOnlineCount';
 
