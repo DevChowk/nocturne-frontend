@@ -74,12 +74,17 @@ export default function LandingPage() {
           <img src="/logo-lockup.svg" alt="Bumpp" className="h-8 w-auto dark:hidden" />
           <img src="/logo-lockup-dark.svg" alt="Bumpp" aria-hidden="true" className="h-8 w-auto hidden dark:block" />
         </div>
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-3 md:gap-5">
           <OnlineCount />
+          {/* A real button, not underlined text. Returning users arrive
+              looking for a way back in, and the only affordance here used to
+              be a small text link that reads as body copy. Outline, never
+              yellow — the sticker fill belongs to the one CTA in the hero. */}
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="text-on-surface font-bold text-sm underline decoration-primary decoration-[3px] underline-offset-4 hover:decoration-4"
+            className="btn-sticker-outline text-sm whitespace-nowrap"
+            style={{ paddingBlock: 8, paddingInline: 18, fontWeight: 800 }}
           >
             log in
           </button>
