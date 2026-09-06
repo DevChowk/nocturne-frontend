@@ -422,6 +422,14 @@
     from { transform: scaleX(1); }
     to { transform: scaleX(0); }
   }
+  /* A piece landing on a board. Short and single-shot: this plays on every
+     move, so anything longer reads as lag on a turn-based game. */
+  @keyframes piece-drop {
+    from { transform: translateY(-30%) scale(0.8); opacity: 0; }
+    to   { transform: none; opacity: 1; }
+  }
+  .piece-drop { animation: piece-drop 160ms ease-out both; }
+
   .reduce-motion .hairline-drain {
     animation: none !important;
     transform: scaleX(1);
@@ -444,4 +452,8 @@
     background: rgb(var(--color-surface-low-rgb)) !important;
   }
   .reduce-motion .btn-sticker { transition: none !important; }
+  /* Game pieces land with a CSS animation, never a rAF tween — the blanket
+     rule above only reaches CSS, so a JS-driven tween would stay visible to
+     someone who explicitly asked for less motion. */
+  .reduce-motion .piece-drop { animation: none !important; }
 }

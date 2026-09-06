@@ -129,6 +129,37 @@ function StopButton({ onClick, disabled, title }) {
   );
 }
 
+// Modelled on ChatButton — the file's own template for "toggle with a badge".
+// Deliberately NOT a second .btn-sticker: the Design Book allows exactly one
+// sticker button per view, and in-call that is Skip.
+function GameButton({ active, onClick, unread = 0, attention = false }) {
+  const hasBadge = !active && (attention || unread > 0);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={attention ? 'Game invite waiting' : active ? 'Hide game' : 'Play a game'}
+      aria-pressed={active}
+      title={active ? 'Hide game' : 'Play a game'}
+      className="relative flex items-center justify-center rounded-full p-2 md:p-3 shadow-lg transition-all duration-200 active:scale-95"
+      style={active
+        ? { background: 'rgb(var(--color-primary-rgb))', color: '#14000A', boxShadow: '0 4px 20px rgba(255,212,0,0.2)' }
+        : { background: 'rgb(var(--color-surface-highest-rgb))', color: 'rgb(var(--color-on-surface-variant-rgb))' }}
+    >
+      <span className={ICON_CLASS}>sports_esports</span>
+      {hasBadge && (
+        <span
+          className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 inline-flex items-center justify-center rounded-full text-[10px] font-bold leading-none text-black"
+          style={{ background: '#FFD400', boxShadow: '0 0 8px rgba(255,212,0,0.6)' }}
+          aria-hidden="true"
+        >
+          {attention ? '!' : unread > 3 ? '3+' : String(unread)}
+        </span>
+      )}
+    </button>
+  );
+}
+
 const renderControl = (c, i) => {
   switch (c.type) {
     case 'skip':   return <SkipButton key={i} {...c} />;
@@ -136,6 +167,7 @@ const renderControl = (c, i) => {
     case 'cam':    return <ToggleButton key={i} enabled={c.enabled} onClick={c.onClick} iconOn="videocam" iconOff="videocam_off" label={c.enabled ? 'Turn off camera' : 'Turn on camera'} />;
     case 'friend': return <FriendButton key={i} {...c} />;
     case 'chat':   return <ChatButton key={i} {...c} />;
+    case 'game':   return <GameButton key={i} {...c} />;
     case 'stop':   return <StopButton key={i} {...c} />;
     default:       return null;
   }
@@ -147,7 +179,7 @@ const renderControl = (c, i) => {
 export default function CallControlsBar({ controls }) {
   return (
     <nav
-      className="flex-shrink-0 w-full flex items-center justify-center gap-3 md:gap-4 px-3 md:px-4 py-3 mt-2 md:mt-4"
+      className="flex-shrink-0 w-full flex items-center justify-center gap-2 md:gap-4 px-3 md:px-4 py-3 mt-2 md:mt-4"
       style={{ borderTop: '2px solid rgb(var(--color-rule-rgb))' }}
     >
       {controls.map(renderControl)}

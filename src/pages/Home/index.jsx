@@ -5,6 +5,7 @@ import { useLocalMedia } from '../../hooks/useLocalMedia';
 import { useWebRTC } from '../../hooks/useWebRTC';
 import { useSettings } from '../../hooks/useSettings';
 import { useNsfwScanner } from '../../hooks/useNsfwScanner';
+import { useGameSession, GAMES_ENABLED } from '../../hooks/useGameSession';
 import { useFriends } from '../../hooks/useFriends';
 import api from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
@@ -108,6 +109,16 @@ export default function HomePage() {
     && typeof window.matchMedia === 'function'
     && window.matchMedia('(max-width: 767px)').matches;
 
+  // In-call mini games. Mounted here because HomePage is the only owner of
+  // `socket` and `matchInfo` — and must stay that way: useSocket passes
+  // forceNew:true, so a second call would open a second connection whose
+  // socket.id fails every membership check on the server.
+  const game = useGameSession({
+    socket,
+    roomId: matchInfo?.roomId,
+    enabled: GAMES_ENABLED && status === 'matched',
+  });
+
   const [chatCollapsed, setChatCollapsed] = useState(() => {
     if (isMobileViewport()) return true;
     try { return localStorage.getItem('bump.chatCollapsed') === '1'; } catch { return false; }
@@ -117,11 +128,24 @@ export default function HomePage() {
   // chat back up, and resets whenever the active match changes so a
   // stale badge from a previous peer doesn't leak into a new call.
   const [unreadChat, setUnreadChat] = useState(0);
-  const chatCollapsedRef = useRef(chatCollapsed);
+  // The game dock and the chat rail are mutually exclusive on desktop — at
+  // 768px, 240 + 300 + gaps leaves ~164px for two video panels, which is
+  // unusable. Derived, never stateful, so opening a game doesn't clobber the
+  // user's own persisted chat preference: closing the game restores it.
+  const gameOpen = game.panelOpen;
+  const chatHidden = chatCollapsed || gameOpen;
+  // Read inside the document-level keydown handler so it doesn't have to be
+  // rebuilt (and re-registered) on every game state change — the same ref
+  // idiom already used for matchInfoRef / chatCollapsedRef above.
+  const gameRef = useRef(game);
+  useEffect(() => { gameRef.current = game; }, [game]);
+  const chatCollapsedRef = useRef(chatHidden);
   useEffect(() => {
-    chatCollapsedRef.current = chatCollapsed;
-    if (!chatCollapsed) setUnreadChat(0);
-  }, [chatCollapsed]);
+    // Counts messages that arrive while the GAME is covering the rail too,
+    // not just while the user collapsed it themselves.
+    chatCollapsedRef.current = chatHidden;
+    if (!chatHidden) setUnreadChat(0);
+  }, [chatHidden]);
   useEffect(() => { setUnreadChat(0); }, [matchInfo?.roomId]);
   useEffect(() => {
     if (isMobileViewport()) return;
@@ -190,13 +214,13 @@ export default function HomePage() {
     if (localVideoRef.current && localStream && localVideoRef.current.srcObject !== localStream) {
       localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream, isInCall, swapped]);
+  }, [localStream, isInCall, swapped, gameOpen]);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream && remoteVideoRef.current.srcObject !== remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream;
     }
-  }, [remoteStream, isInCall, swapped]);
+  }, [remoteStream, isInCall, swapped, gameOpen]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -457,6 +481,10 @@ export default function HomePage() {
     const onKey = (e) => {
       const tag = e.target.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+      // A game board is a grid of real <button>s: Space and Enter must play the
+      // move, not skip the call and requeue. Anything inside the game surface
+      // opts out of the in-call shortcut set wholesale.
+      if (e.target.closest?.('[data-game-surface]')) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       switch (e.key.toLowerCase()) {
         case ' ':
@@ -466,6 +494,9 @@ export default function HomePage() {
           break;
         case 'escape':
           e.preventDefault();
+          // Peel one layer at a time: with the game dock open, Esc closes it.
+          // A second Esc ends the call, as before.
+          if (gameRef.current?.panelOpen) { gameRef.current.closePanel(); break; }
           endCall();
           break;
         case 'm':
@@ -517,11 +548,12 @@ export default function HomePage() {
       mirrorLocal={settings.mirrorLocal}
       friendStatus={friendStatus}
       onFriendStatusChange={setFriendStatus}
-      chatCollapsed={chatCollapsed}
+      chatCollapsed={chatHidden}
       onChatToggle={toggleChatCollapsed}
       unreadChat={unreadChat}
       isGuest={isGuest}
       peerIsGuest={matchInfo?.peerIsGuest}
+      game={game}
     />
   ) : (
     <LobbyView

@@ -66,7 +66,7 @@ export default function PrivacyModal({ onClose }) {
         {/* Use of Information */}
         <section className="p-6 rounded-xl bg-surface-container-high/40" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,212,0,0.1)' }}>
           <SectionHeader icon="share" iconBg="rgba(63,82,255,0.1)" iconColor="text-secondary" title="Use of Information" />
-          <p className="text-on-surface-variant leading-relaxed">We leverage information solely to curate the "Electric Pulse" of our community. Your data is never sold. We use anonymized usage patterns to improve our matching algorithms and prevent malicious activity within the ecosystem.</p>
+          <p className="text-on-surface-variant leading-relaxed">We use your information to run the service and keep it safe. Your data is never sold. Anonymised usage patterns help us improve matching and catch abuse.</p>
         </section>
 
         {/* Video Security */}
