@@ -178,7 +178,7 @@ export default function FriendsPage() {
   };
 
   return (
-    <div className="bg-background text-on-surface font-body min-h-screen flex flex-col">
+    <div className="bg-background text-on-surface font-body min-h-full flex flex-col">
       {/* Header */}
       <header className="px-4 py-2.5 md:px-6 md:py-4 flex items-center justify-between border-b border-outline-variant/40 sticky top-0 z-10" style={{ background: 'rgb(var(--color-bg-rgb))' }}>
         <div className="flex items-center gap-3">
