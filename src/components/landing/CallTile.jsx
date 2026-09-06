@@ -2,10 +2,15 @@ import { memo, useEffect, useRef } from 'react';
 import { clipSrc, clipPoster } from './clips';
 
 // One mini in-call screen. This is a deliberate hand-copy of the real thing
-// (pages/Home/VideoCallView.jsx L179-343): same two-panel stack, same
-// .chip-video vocabulary, same --color-rule-rgb frames, shrunk to a wall
+// (the video stage in pages/Home/VideoCallView.jsx): same two-panel stack,
+// same .chip-video vocabulary, same --color-rule-rgb frames, shrunk to a wall
 // tile. The wall's whole job is to be a picture of the product, so if the
 // in-call screen changes, THIS MUST CHANGE TOO.
+//
+// The mini-game dock is deliberately NOT depicted: it is an opt-in surface
+// that only appears once both people agree to play, and the game-closed
+// in-call render is unchanged by it. That is why this file needed no edit
+// when games landed — don't "fix" the omission.
 //
 // Not shared with the real panels on purpose: those carry WebRTC refs,
 // friend/report actions, reconnect overlays and a chat dock, none of which

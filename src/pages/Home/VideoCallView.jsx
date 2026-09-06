@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { countryFlag, countryName } from '../../constants/locale';
 import ReportModal from '../../components/ReportModal';
+import GamePanel from '../../components/game/GamePanel';
+import GameInviteBanner from '../../components/game/GameInviteBanner';
 import EmojiPicker from '../../components/EmojiPicker';
 import MobileLiveChat from '../../components/MobileLiveChat';
 import CallControlsBar from '../../components/CallControlsBar';
@@ -30,7 +32,7 @@ function PanelActionButton({ icon, label, onClick, disabled, style }) {
   );
 }
 
-export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange, chatCollapsed, onChatToggle, unreadChat, isGuest, peerIsGuest }) {
+export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange, chatCollapsed, onChatToggle, unreadChat, isGuest, peerIsGuest, game }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
   const [chatEmojiOpen, setChatEmojiOpen] = useState(false);
@@ -64,6 +66,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
     return () => clearTimeout(t);
   }, [friendStatus, bannerDismissed]);
 
+  const gameOpen = !!game?.panelOpen;
   const showFriendBanner = friendStatus === 'received' && !bannerDismissed && !!peerUserId;
 
   const handleAddFriend = async () => {
@@ -171,11 +174,31 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           </div>
         )}
 
+        {game?.incomingInvite && game.phase === 'invited' && (
+          <GameInviteBanner
+            key={game.incomingInvite.inviteId}
+            invite={game.incomingInvite}
+            peerLabel={peerLabel}
+            offset={showFriendBanner}
+            onAccept={game.acceptInvite}
+            onDecline={game.declineInvite}
+          />
+        )}
+
         {/* Video stage — two equal 50/50 panels: the stranger above you on
             mobile, to your left on desktop (Design Book in-call note 01).
             Never picture-in-picture. */}
         <div className="flex-1 relative flex flex-col md:flex-row gap-2 md:gap-4 min-w-0 min-h-0">
-          {/* Remote (stranger) panel */}
+          {/* Remote (stranger) panel.
+              INVARIANT: this <video> is never conditionally rendered, never
+              portalled, and never moved in the tree — game modes and layout
+              changes only ever swap classNames on it or its ancestors. The
+              srcObject rebind in HomePage keys on stream identity, not element
+              identity, so a remounted node would keep srcObject === null and
+              the stranger's video would go permanently black. The NSFW scanner
+              also early-returns when videoRef.current is null at the moment
+              scanning is enabled. Don't display:none it either — mobile Safari
+              can reclaim a hidden video's decoder. */}
           <div className="video-stage relative flex-1 min-w-0 min-h-0 rounded-xl overflow-hidden" style={{ border: '2px solid rgb(var(--color-rule-rgb))' }}>
             <video
               ref={remoteVideoRef}
@@ -286,7 +309,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
             </div>
             {/* Brand mark — same top-right placement as the local panel so
                 both feeds carry consistent branding. */}
-            <div className="absolute top-3 right-3 md:top-6 md:right-6 opacity-65 pointer-events-none select-none">
+            <div className={`absolute top-3 right-3 md:top-6 md:right-6 opacity-65 pointer-events-none select-none ${gameOpen ? 'hidden md:block' : ''}`}>
               {/* Video content is always visually dark, so use the dark-mode
                   lockup regardless of app theme. */}
               <img src="/logo-lockup-dark.svg" alt="" aria-hidden="true" className="h-4 md:h-5 w-auto" />
@@ -308,7 +331,19 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           </div>
 
           {/* Local (self) panel */}
-          <div className="video-stage-alt relative flex-1 min-w-0 min-h-0 rounded-xl overflow-hidden" style={{ border: '2px solid rgb(var(--color-rule-rgb))' }}>
+          {/* While the game dock is open on phones, this panel demotes to a
+              108x74 corner tile so the stranger's video keeps the full stage
+              row. It is a className change on the SAME element — never a
+              remount, or the video's srcObject is lost (the rebind effect in
+              HomePage keys on stream identity, not element identity). */}
+          <div
+            className={`video-stage-alt relative min-w-0 min-h-0 rounded-xl overflow-hidden ${
+              gameOpen
+                ? 'absolute left-3 bottom-3 z-10 w-[108px] h-[74px] md:static md:z-auto md:w-auto md:h-auto md:flex-1'
+                : 'flex-1'
+            }`}
+            style={{ border: '2px solid rgb(var(--color-rule-rgb))' }}
+          >
             <video
               ref={localVideoRef}
               className="w-full h-full object-cover"
@@ -319,7 +354,9 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               <div className="absolute inset-0 flex items-center justify-center bg-surface-container-high">
                 <div className="flex flex-col items-center gap-3 text-center px-6">
                   <div
-                    className="flex items-center justify-center rounded-full font-bold font-headline w-24 h-24 text-4xl md:w-[120px] md:h-[120px] md:text-5xl bg-primary text-on-primary"
+                    className={`flex items-center justify-center rounded-full font-bold font-headline bg-primary text-on-primary ${
+                      gameOpen ? 'w-8 h-8 text-sm md:w-[120px] md:h-[120px] md:text-5xl' : 'w-24 h-24 text-4xl md:w-[120px] md:h-[120px] md:text-5xl'
+                    }`}
                     style={{ boxShadow: '0 8px 30px rgba(255,212,0,0.35)' }}
                   >
                     {initial}
@@ -337,7 +374,7 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               <img src="/logo-lockup-dark.svg" alt="" aria-hidden="true" className="h-4 md:h-5 w-auto" />
             </div>
             {/* YOU — same chip vocabulary and corner as the stranger panel. */}
-            <div className="absolute top-3 left-3 md:top-6 md:left-6 z-10">
+            <div className={`absolute top-3 left-3 md:top-6 md:left-6 z-10 ${gameOpen ? 'hidden md:block' : ''}`}>
               <span className="chip-video">You</span>
             </div>
           </div>
@@ -348,6 +385,27 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               together; collapsed = no input AND no message overlay. */}
           {!chatCollapsed && <MobileLiveChat messages={messages} peerLabel={peerLabel} />}
         </div>
+
+        {/* Mini-game dock. One element serves both breakpoints because <main>
+            flips flex-col → md:flex-row: on phones this is the second row of
+            the in-call screen (the 50/50 law re-applied one level up — stage
+            above, game below), on desktop it docks to the right of the stage
+            exactly like the chat rail, and is mutually exclusive with it.
+            The video elements above NEVER unmount when this opens; only their
+            container classes change.
+            `data-game-surface` is load-bearing: HomePage's document-level
+            keydown handler uses it to opt the board out of the in-call
+            shortcuts, so Space plays a move instead of skipping the call. */}
+        {gameOpen && (
+          <section
+            data-game-surface
+            aria-label="Mini game"
+            className="flex flex-col min-h-0 min-w-0 overflow-hidden flex-1 md:flex-none md:flex-shrink-0 md:w-[300px] lg:w-[340px] border-t-2 md:border-t-0 md:border-l-2"
+            style={{ borderColor: 'rgb(var(--color-rule-rgb))' }}
+          >
+            <GamePanel game={game} peerLabel={peerLabel} />
+          </section>
+        )}
 
         {/* Phone-only chat input bar — inline, sits just below the user's
             panel and above the bottom nav. Toggled by the chat button in
@@ -480,6 +538,13 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
           { type: 'skip', onClick: skip },
           { type: 'stop', onClick: endCall, title: 'End call' },
           { type: 'chat', active: !chatCollapsed, unread: unreadChat, onClick: onChatToggle },
+          ...(game?.available ? [{
+            type: 'game',
+            active: game.panelOpen,
+            unread: game.unseen,
+            attention: game.phase === 'invited',
+            onClick: game.togglePanel,
+          }] : []),
         ]}
       />
 

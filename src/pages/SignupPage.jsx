@@ -7,9 +7,13 @@ import useAuthModals from '../hooks/useAuthModals';
 import { GRADIENT, gradientTextStyle } from '../constants/theme';
 import { MIN_AGE_YEARS, USERNAME_REGEX, ageInYears } from '../constants/policy';
 
+// What signing up actually gets you. Every line here is a real, checkable
+// difference between a guest session and an account — no adjectives that
+// can't be verified in the code.
 const FEATURES = [
-  { icon: 'videocam', color: 'text-secondary', title: 'Cinema-Grade Video', desc: 'Ultra-low latency streaming for real-time vibe.' },
-  { icon: 'security', color: 'text-primary', title: 'Private & Secure', desc: 'End-to-end encryption for every interaction.' },
+  { icon: 'all_inclusive', color: 'text-primary', title: 'Bumpp all night', desc: 'No three-a-session cap. Skip as many as you like.' },
+  { icon: 'group', color: 'text-secondary', title: 'Keep the good ones', desc: 'Add someone mid-call, message them whenever.' },
+  { icon: 'alternate_email', color: 'text-primary', title: 'A name they remember', desc: 'Claim your username before someone else does.' },
 ];
 
 export default function SignupPage() {
@@ -67,14 +71,15 @@ export default function SignupPage() {
         <div className="w-full max-w-[1100px] grid md:grid-cols-2 gap-12 items-center">
           {/* Left branding */}
           <div className="hidden md:block">
+            {/* Lands the promise the landing page's signup link makes
+                ("or sign up and never run out"), in the same voice. */}
             <h1 className="text-6xl font-headline font-extrabold tracking-tighter leading-tight mb-6">
-              Enter the <br />
-              <span style={gradientTextStyle}>
-                Electric Pulse.
-              </span>
+              never run out <br />
+              of <span style={gradientTextStyle}>strangers.</span>
             </h1>
             <p className="text-on-surface-variant text-lg max-w-md mb-8 leading-relaxed">
-              Experience high-fidelity human connection. Minimalist, atmospheric, Join the next generation of social interaction.
+              Guests get three bumpps. Then it's over. Sign up and it isn't —
+              add the people you actually click with, and message them whenever.
             </p>
             <div className="space-y-4">
               {FEATURES.map(f => (
@@ -96,8 +101,8 @@ export default function SignupPage() {
             <div className="card-sticker p-8 md:p-10"
               style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
               <div className="mb-8">
-                <h2 className="text-3xl font-headline font-bold text-on-surface mb-2">Create Account</h2>
-                <p className="text-on-surface-variant">Join the community and start connecting tonight.</p>
+                <h2 className="text-3xl font-headline font-bold text-on-surface mb-2">Create your account</h2>
+                <p className="text-on-surface-variant">Takes a minute. Then you're straight back in.</p>
               </div>
 
               <form className="space-y-5" onSubmit={handleSubmit}>
