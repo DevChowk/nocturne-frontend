@@ -582,9 +582,15 @@ export default function HomePage() {
     <>
       {onboardingGate}
       {/* /home never scrolls, and its ground is flat — the Design Book keeps
-          every gradient inside the video panels. */}
+          every gradient inside the video panels.
+
+          Sized with flex-1, NOT h-[100dvh]: ProtectedRoute may put the
+          email-verification banner above this, and a hardcoded viewport
+          height inside a container the banner has already shortened
+          overflows by exactly the banner's height — which pushed the whole
+          lobby down and put a scrollbar on a page that must not scroll. */}
       <div
-        className="flex flex-col h-[100dvh] min-h-[100dvh] overflow-hidden"
+        className="flex flex-col flex-1 min-h-0 overflow-hidden"
         style={{ background: 'rgb(var(--color-bg-rgb))' }}
       >
         <AppHeader

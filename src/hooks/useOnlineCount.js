@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SHOW_ONLINE_COUNT } from '../constants/features';
 
 // Live headcount for the landing page.
 //
@@ -10,16 +11,23 @@ import { useEffect, useState } from 'react';
 // marketing page.
 //
 // Returns { count, state } where state is 'loading' | 'ok' | 'error'.
+// While SHOW_ONLINE_COUNT is false it stays { count: null, state:
+// 'loading' } and never touches the network.
 // The caller decides what to render; this hook never invents a number.
 
 const POLL_MS = 30000;
 const TIMEOUT_MS = 4000;
+
+// Fetching follows the same switch as the display: with the count hidden,
+// nothing should be hitting /api/stats/online every 30s on every visit.
 
 export function useOnlineCount() {
   const [count, setCount] = useState(null);
   const [state, setState] = useState('loading');
 
   useEffect(() => {
+    if (!SHOW_ONLINE_COUNT) return;
+
     const base = import.meta.env.VITE_API_URL || '';
     let cancelled = false;
     let timer = null;

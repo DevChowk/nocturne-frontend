@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../../hooks/useSettings';
+import { SHOW_ONLINE_COUNT } from '../../constants/features';
 
 // Elapsed time is withheld for the first few seconds of a search — see the
 // comment at the callsite.
@@ -218,7 +219,9 @@ export default function LobbyView({
                   className="font-mono uppercase tabular-nums mt-3"
                   style={{ fontSize: 11, letterSpacing: '0.16em', color: 'rgba(247,244,238,0.6)' }}
                 >
-                  {typeof onlineCount === 'number' ? `${onlineCount.toLocaleString()} online` : 'Searching'}
+                  {SHOW_ONLINE_COUNT && typeof onlineCount === 'number'
+                    ? `${onlineCount.toLocaleString()} online`
+                    : 'Searching'}
                   {elapsed >= TIMER_REVEAL_S && (
                     <>
                       <span aria-hidden="true" className="opacity-50"> · </span>

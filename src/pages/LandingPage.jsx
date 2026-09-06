@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GuestEntryModal from '../components/GuestEntryModal';
 import ClipWall from '../components/landing/ClipWall';
-import { useOnlineCount } from '../hooks/useOnlineCount';
 import { useAuth } from '../hooks/useAuth';
 
 // Landing hero per the Design Book cover + page 06: display H1 with the
@@ -14,10 +13,20 @@ import { useAuth } from '../hooks/useAuth';
 // Below 1024px the page stays the original single centred column, with the
 // wall occupying the slot the decorative striped panel used to.
 
-// The count is real (GET /api/stats/online). Below this many people it
-// renders as the bare word "Online" instead of a figure: on a young product
-// the honest number is often single digits, and "ONLINE — 3" does more
-// damage than no number. Omitting is truthful; inflating would not be.
+/* ─── ONLINE COUNT — PARKED, NOT DELETED ──────────────────────────────
+   Hidden from the landing page for now. Everything it needs still exists
+   and still works: the useOnlineCount hook, and GET /api/stats/online on
+   the backend. To bring it back, un-comment the import, this component,
+   and the markup in the header below, then flip SHOW_ONLINE_COUNT to true
+   in src/constants/features.js (one switch covers the landing page, the app
+   header and the searching screen, and re-enables the fetching).
+
+import { useOnlineCount } from '../hooks/useOnlineCount';
+
+// Below this many people the count renders as the bare word "Online"
+// instead of a figure: on a young product the honest number is often
+// single digits, and "ONLINE — 3" does more damage than no number.
+// Omitting is truthful; inflating would not be.
 const COUNT_FLOOR = 5;
 
 function OnlineCount() {
@@ -40,15 +49,19 @@ function OnlineCount() {
     </span>
   );
 }
+─────────────────────────────────────────────────────────────────────── */
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const { token, isGuest } = useAuth();
   const [showGuestEntry, setShowGuestEntry] = useState(false);
 
-  // The yellow button starts a session, per the Design Book: "One yellow
-  // Start. Signup is text, never a competing sticker button — guest entry is
-  // the default path."
+  // Guest entry. NOTE this is a deliberate departure from the Design Book's
+  // landing law ("one yellow Start, signup is text, guest entry is the
+  // default path"): sign-up now leads and the trial is the text link. The
+  // book was written before the page had a wall of faces on it — the wall
+  // now does the proving the trial used to do. Don't "fix" this back to the
+  // book without checking which way converts.
   //
   // A guest who already has a live session can be sitting on this page
   // (PublicOnlyRoute lets guests through so they can convert). Sending them
@@ -69,21 +82,17 @@ export default function LandingPage() {
       />
 
       {/* ── Header ── */}
-      <header className="relative z-30 flex justify-between items-center px-6 py-5 md:px-10">
+      <header className="relative z-30 flex items-center px-6 py-5 md:px-10">
         <div className="flex items-center">
           <img src="/logo-lockup.svg" alt="Bumpp" className="h-8 w-auto dark:hidden" />
           <img src="/logo-lockup-dark.svg" alt="Bumpp" aria-hidden="true" className="h-8 w-auto hidden dark:block" />
         </div>
-        <div className="flex items-center gap-4 md:gap-6">
+
+        {/* Online count used to live here — parked, see the block above.
+        <div className="ml-auto flex items-center">
           <OnlineCount />
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="text-on-surface font-bold text-sm underline decoration-primary decoration-[3px] underline-offset-4 hover:decoration-4"
-          >
-            log in
-          </button>
         </div>
+        */}
       </header>
 
       {/* ── Hero ──
@@ -142,30 +151,43 @@ export default function LandingPage() {
                              lg:col-start-2 lg:row-start-1 lg:row-span-2" />
 
         <div className="flex flex-col items-center lg:items-start w-full lg:col-start-1 lg:row-start-2">
-          {/* Primary CTA — starts a guest session. */}
+          {/* Account actions lead. Sign up is the yellow sticker, sign in
+              the matching outline beside it — same geometry, no yellow, so
+              it reads as the alternative rather than a rival. */}
+          <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/signup')}
+              className="btn-sticker inline-flex items-center gap-3 px-8 py-4 text-lg"
+            >
+              Sign up free
+              <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>arrow_forward</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="btn-sticker-outline inline-flex items-center px-8 py-4 text-lg"
+            >
+              Sign in
+            </button>
+          </div>
+
+          {/* The trial, demoted to text. The label has to say what actually
+              happens: "bumpp me" on a big yellow button read as sign-in and
+              then opened an age gate, which is a surprise nobody asked for. */}
           <button
             type="button"
             onClick={start}
-            className="btn-sticker mt-10 inline-flex items-center gap-3 px-9 py-4 text-lg"
+            className="mt-4 text-on-surface-variant hover:text-on-surface text-sm font-semibold underline underline-offset-4 decoration-[2px]"
           >
-            bumpp me
-            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>arrow_forward</span>
-          </button>
-
-          {/* Signup is text, never a competing sticker button. */}
-          <button
-            type="button"
-            onClick={() => navigate('/signup')}
-            className="mt-3 text-on-surface-variant hover:text-on-surface text-sm font-semibold underline underline-offset-4 decoration-[2px]"
-          >
-            or sign up and never run out
+            or try it now — no signup
           </button>
 
           <p
             className="font-mono uppercase text-on-surface-variant mt-6"
             style={{ fontSize: 10.5, letterSpacing: '0.16em' }}
           >
-            18+ only · 3 free bumpps, no signup
+            18+ only · 3 free bumpps as a guest
           </p>
         </div>
       </main>
