@@ -6,6 +6,7 @@ import GameInviteBanner from '../../components/game/GameInviteBanner';
 import EmojiPicker from '../../components/EmojiPicker';
 import MobileLiveChat from '../../components/MobileLiveChat';
 import CallControlsBar from '../../components/CallControlsBar';
+import ReactionOverlay, { ReactionStatusChip } from '../../components/ReactionOverlay';
 import { FRIEND_STYLE, FRIEND_ICON, FRIEND_LABEL } from '../../constants/friendStatus';
 import api from '../../api/axios';
 
@@ -32,7 +33,7 @@ function PanelActionButton({ icon, label, onClick, disabled, style }) {
   );
 }
 
-export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange, chatCollapsed, onChatToggle, unreadChat, isGuest, peerIsGuest, game }) {
+export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange, chatCollapsed, onChatToggle, unreadChat, isGuest, peerIsGuest, game, reactions, reactionStatus, autoReactions }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
   const [chatEmojiOpen, setChatEmojiOpen] = useState(false);
@@ -288,6 +289,12 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
 
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
 
+            {/* The stranger's camera reactions. A sibling of the <video>
+                above, never a wrapper — see the invariant on this panel. */}
+            {reactions?.available && (
+              <ReactionOverlay items={reactions.peerItems} onExpire={reactions.dismiss} announce />
+            )}
+
             {/* Safety + friend actions live on the stranger's panel, not in
                 the control bar — they are about them. */}
             <div className="absolute bottom-3 right-3 md:bottom-6 md:right-6 z-10 flex items-center gap-2">
@@ -366,6 +373,16 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               </div>
             )}
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
+            {/* Your own camera reactions, as your peer sees them. Outside the
+                mirrored <video>, so GIF text isn't flipped. Hidden on the
+                108x74 corner tile while a game is open on phones. */}
+            {reactions?.available && (
+              <ReactionOverlay
+                items={reactions.selfItems}
+                onExpire={reactions.dismiss}
+                className={gameOpen ? 'hidden md:flex' : ''}
+              />
+            )}
             {/* Brand mark — top-right of the local panel. Matches the
                 stranger-panel watermark style (40% opacity, non-interactive). */}
             <div className="absolute top-3 right-3 md:top-6 md:right-6 opacity-65 pointer-events-none select-none">
@@ -374,8 +391,15 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               <img src="/logo-lockup-dark.svg" alt="" aria-hidden="true" className="h-4 md:h-5 w-auto" />
             </div>
             {/* YOU — same chip vocabulary and corner as the stranger panel. */}
-            <div className={`absolute top-3 left-3 md:top-6 md:left-6 z-10 ${gameOpen ? 'hidden md:block' : ''}`}>
+            <div className={`absolute top-3 left-3 md:top-6 md:left-6 z-10 flex items-center gap-1.5 ${gameOpen ? 'hidden md:flex' : ''}`}>
               <span className="chip-video">You</span>
+              {autoReactions && reactions?.available && (
+                <ReactionStatusChip
+                  status={reactionStatus}
+                  paused={reactions.paused}
+                  onToggle={reactions.togglePaused}
+                />
+              )}
             </div>
           </div>
 

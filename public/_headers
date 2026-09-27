@@ -6,6 +6,11 @@
 /clips/v1/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Camera-reaction models (~12MB), versioned the same way. To change one, bump
+# to /models/v2/ via scripts/fetch-mediapipe-models.sh — never edit in place.
+/models/v1/*
+  Cache-Control: public, max-age=31536000, immutable
+
 # Vite's own output is content-hashed, so it can be cached forever too.
 # Without this rule Netlify revalidates the main bundle on every load.
 /assets/*

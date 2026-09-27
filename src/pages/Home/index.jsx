@@ -6,7 +6,10 @@ import { useWebRTC } from '../../hooks/useWebRTC';
 import { useSettings } from '../../hooks/useSettings';
 import { useNsfwScanner } from '../../hooks/useNsfwScanner';
 import { useGameSession, GAMES_ENABLED } from '../../hooks/useGameSession';
+import { useReactions } from '../../hooks/useReactions';
+import { useReactionDetector } from '../../hooks/useReactionDetector';
 import { useFriends } from '../../hooks/useFriends';
+import { REACTIONS_ENABLED } from '../../constants/features';
 import api from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import OnboardingModal from '../../components/OnboardingModal';
@@ -25,6 +28,28 @@ import VideoCallView from './VideoCallView';
 // caused unwanted call drops. Set VITE_NSFW_SCAN_ENABLED=true to re-enable
 // the runtime check + auto-end-call behavior unchanged.
 const NSFW_SCAN_ENABLED = import.meta.env.VITE_NSFW_SCAN_ENABLED === 'true';
+
+// Idle-time preload + warm-up of the camera-reaction models, used from the
+// lobby. Kept at module scope (rather than inline in an effect) so the hooks
+// lint rules can still analyse HomePage — an async callback inside the
+// component makes them bail and silently drop their other findings.
+// Returns a cleanup function, so an effect can `return` it directly.
+function preloadReactionModels(getVideo) {
+  if (typeof navigator !== 'undefined' && navigator.connection?.saveData === true) return undefined;
+  let cancelled = false;
+  const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 500));
+  const cancelIdle = window.cancelIdleCallback || clearTimeout;
+  const handle = idle(() => {
+    import('../../reactions/vision')
+      .then(({ getVision, warmUp }) => getVision().then((vision) => {
+        if (!cancelled) warmUp(vision, getVideo());
+      }))
+      .catch(() => {
+        // Model load failed — the in-call detector surfaces it on its chip.
+      });
+  });
+  return () => { cancelled = true; cancelIdle(handle); };
+}
 
 // Short two-tone chime via Web Audio (no asset). Browsers gate AudioContext
 // behind a user gesture; on initial app load there's none, so the first ping
@@ -475,6 +500,29 @@ export default function HomePage() {
     onFlag: onNsfwFlag,
   });
 
+  // Camera reactions. Receiving follows the feature flag alone, so you see
+  // your peer's reactions whether or not you opted in. DETECTING on your own
+  // camera also needs your opt-in, a live camera and a connected peer, and
+  // stops while paused from the chip on your self-view.
+  const reactions = useReactions({
+    socket,
+    roomId: matchInfo?.roomId,
+    enabled: REACTIONS_ENABLED && !!isInCall,
+  });
+  // Load and warm the reaction models while the user waits in the lobby, so
+  // the first gesture of a call pays neither the one-time download nor
+  // MediaPipe's per-task warm-up. Fail-open: the detector retries in-call.
+  useEffect(() => {
+    if (!REACTIONS_ENABLED || !settings.autoReactions || isInCall) return undefined;
+    return preloadReactionModels(() => localVideoRef.current);
+  }, [settings.autoReactions, isInCall]);
+
+  const { status: reactionStatus } = useReactionDetector({
+    videoRef: localVideoRef,
+    enabled: reactions.available && settings.autoReactions && !reactions.paused && cameraEnabled && !!remoteConnected,
+    onDetect: reactions.send,
+  });
+
   // Keyboard shortcuts — only active in-call. Skip when typing in chat or other inputs.
   useEffect(() => {
     if (!isInCall) return;
@@ -554,6 +602,9 @@ export default function HomePage() {
       isGuest={isGuest}
       peerIsGuest={matchInfo?.peerIsGuest}
       game={game}
+      reactions={reactions}
+      reactionStatus={reactionStatus}
+      autoReactions={REACTIONS_ENABLED && settings.autoReactions}
     />
   ) : (
     <LobbyView

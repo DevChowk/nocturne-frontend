@@ -1,5 +1,6 @@
 import ModalBase from './ModalBase';
 import { GRADIENT, gradientTextStyle } from '../constants/theme';
+import { REACTIONS_ENABLED } from '../constants/features';
 
 const DATA_ITEMS = [
   { strong: 'Session Data:', text: 'Temporary tokens used to maintain secure handshakes between peers.' },
@@ -9,6 +10,10 @@ const DATA_ITEMS = [
 const VIDEO_ITEMS = [
   { title: 'End-to-End Privacy', desc: 'Real-time video streams are routed via WebRTC protocols with DTLS encryption. We cannot view or record your sessions.' },
   { title: 'Zero Storage Policy', desc: 'Bumpp does not store video frames on our servers. Once a session ends, the transient data is purged from memory.' },
+  ...(REACTIONS_ENABLED ? [{
+    title: 'Camera Reactions',
+    desc: 'If you turn them on, gestures and expressions are recognised on your device and only the gesture name is sent. The GIFs both of you see load directly from GIPHY, which can see your IP address.',
+  }] : []),
 ];
 
 const RIGHTS = ['Right to Erasure', 'Data Portability', 'Object to Processing'];

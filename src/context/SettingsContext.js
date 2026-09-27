@@ -14,6 +14,10 @@ export const DEFAULT_SETTINGS = {
   videoDeviceId: null,      // S4 — null = system default
   audioDeviceId: null,      // S5 — null = system default
   theme: 'light',           // S6 — 'light' | 'dark' | 'system'
+  // S7 — camera reactions. Off until the user opts in: it runs ML on their
+  // camera and sends GIFs to strangers automatically. No SETTINGS_VERSION
+  // bump needed — SettingsProvider merges defaults under stored values.
+  autoReactions: false,
   v: SETTINGS_VERSION,
 };
 

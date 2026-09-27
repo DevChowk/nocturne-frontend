@@ -12,3 +12,11 @@
 // NOT related to the friends sidebar's "Friends — 3 online", which counts
 // the user's own friends rather than the whole server, and stays visible.
 export const SHOW_ONLINE_COUNT = false;
+
+// Camera reactions: on-device hand-gesture + expression detection that floats
+// a matching GIF over the call for both people. Opt-in twice over — this env
+// flag shows the Settings toggle, and each user still has to turn it on.
+//
+// Cosmetic only. The backend's REACTIONS_ENABLED is authoritative: with it
+// off, the client sees its reactions time out and stops offering the feature.
+export const REACTIONS_ENABLED = import.meta.env.VITE_REACTIONS_ENABLED === 'true';

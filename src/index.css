@@ -447,6 +447,15 @@
   }
   .piece-drop { animation: piece-drop 160ms ease-out both; }
 
+  /* A camera reaction landing on a video panel. Plays once per reaction and
+     a few times a minute at most, so it can afford a little overshoot. */
+  @keyframes reaction-pop {
+    0%   { transform: translateY(12%) scale(0.6); opacity: 0; }
+    60%  { transform: translateY(-3%) scale(1.06); opacity: 1; }
+    100% { transform: none; opacity: 1; }
+  }
+  .reaction-pop { animation: reaction-pop 280ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+
   .reduce-motion .hairline-drain {
     animation: none !important;
     transform: scaleX(1);
@@ -473,4 +482,5 @@
      rule above only reaches CSS, so a JS-driven tween would stay visible to
      someone who explicitly asked for less motion. */
   .reduce-motion .piece-drop { animation: none !important; }
+  .reduce-motion .reaction-pop { animation: none !important; }
 }

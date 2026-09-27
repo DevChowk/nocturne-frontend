@@ -1,5 +1,6 @@
 import ModalBase from './ModalBase';
 import { useSettings } from '../hooks/useSettings';
+import { REACTIONS_ENABLED } from '../constants/features';
 
 // Sticker toggle — 2px theme-aware stroke, yellow fill on, near-black knob.
 // 32×18 pill per the Design Book spec; knob is 12×12 so it sits with 2px
@@ -181,6 +182,24 @@ export default function SettingsModal({ onClose, devices }) {
             </select>
           }
         />
+
+        {/* Camera reactions */}
+        {REACTIONS_ENABLED && (
+          <>
+            <SectionHeader icon="add_reaction" title="Reactions" />
+            <Row
+              label="Camera reactions"
+              hint="In a call, a 👍 ✌️ 👋, a laugh or a wink sends a matching GIF to both of you, automatically. Your camera is read on this device only. Just the gesture name is sent. The first use downloads about 24MB."
+              control={
+                <Toggle
+                  checked={settings.autoReactions}
+                  onChange={(v) => updateSetting('autoReactions', v)}
+                  ariaLabel="Camera reactions"
+                />
+              }
+            />
+          </>
+        )}
 
         {/* Audio */}
         <SectionHeader icon="mic" title="Audio" />

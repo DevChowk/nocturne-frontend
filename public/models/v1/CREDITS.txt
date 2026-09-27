@@ -1,0 +1,4 @@
+gesture_recognizer.task and face_landmarker.task
+MediaPipe models by Google LLC, licensed under the Apache License 2.0.
+https://ai.google.dev/edge/mediapipe/solutions/vision/gesture_recognizer
+https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker

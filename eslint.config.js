@@ -26,4 +26,9 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  // Zero-dependency check scripts run under plain Node (`npm test`).
+  {
+    files: ['**/__check.js'],
+    languageOptions: { globals: globals.node },
+  },
 ])
