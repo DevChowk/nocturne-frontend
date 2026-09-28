@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../../hooks/useSettings';
 import ReactionOverlay, { ReactionStatusChip } from '../../components/ReactionOverlay';
+import FaceFrames from '../../components/FaceFrames';
 import { SHOW_ONLINE_COUNT } from '../../constants/features';
 
 // Elapsed time is withheld for the first few seconds of a search — see the
@@ -114,7 +115,7 @@ export default function LobbyView({
   localStream, mediaError,
   micEnabled, cameraEnabled, toggleMic, toggleCamera,
   localVideoRef, mirrorLocal, lastEndReason, onlineCount,
-  reactions, reactionStatus, autoReactions,
+  reactions, reactionStatus, autoReactions, faceBoxes,
 }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
@@ -318,6 +319,10 @@ export default function LobbyView({
               <div className="absolute top-3 right-3 md:top-5 md:right-5 opacity-65 pointer-events-none select-none z-10">
                 <img src="/logo-lockup-dark.svg" alt="" aria-hidden="true" className="h-4 md:h-5 w-auto" />
               </div>
+
+              {/* Framing boxes on your own face(s) — the lobby is where people
+                  check they're in shot before joining a call. */}
+              <FaceFrames boxes={faceBoxes} videoRef={localVideoRef} mirrored={mirrorLocal} />
 
               {/* Camera reactions, previewed on your own picture. Nothing is
                   sent anywhere here — there is no peer yet. A sibling of the

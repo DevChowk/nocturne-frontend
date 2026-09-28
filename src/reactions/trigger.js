@@ -3,32 +3,38 @@
 // only thing standing between a user's face and a GIF on a stranger's screen.
 // The rules, in order:
 //
-//  1. Hold — a label must be seen for `holdMs` (face: `faceHoldMs`, wink:
-//     shorter) across at least `minHits` frames. One frame never fires.
-//  2. One dropped frame is tolerated; `maxMisses + 1` in a row ends the hold.
-//     A different label restarts it.
-//  3. Fire once per hold. The label that fired can't fire again until it has
-//     been gone for `neutralFrames` frames AND `neutralMs` — so smiling
-//     through a whole call sends one GIF, not one every cooldown.
-//  4. Hands outrank face: while a hand gesture is being held, the face channel
+//  1. Fast path — a HAND candidate scoring at or above `fastScore` fires on
+//     its first frame. A clear thumbs up is unambiguous, and waiting for a
+//     second frame was the main source of missed gestures.
+//  2. Hold — anything weaker must be seen for `holdMs` (face: `faceHoldMs`,
+//     wink: shorter) across at least `minHits` frames. One frame never fires.
+//  3. Up to `maxMisses` dropped frames are tolerated mid-hold; more than that
+//     ends it. A different label restarts it.
+//  4. Fire once per hold. The label that fired can't fire again until it has
+//     been gone for `neutralFrames` frames AND `neutralMs` — so holding one
+//     gesture sends one GIF, however long you hold it.
+//  5. Hands outrank face: while a hand gesture is being held, the face channel
 //     can't fire (people smile while giving a thumbs up).
-//  5. Cooldowns — `globalCooldownMs` between any two reactions,
+//  6. Cooldowns — `globalCooldownMs` between any two reactions,
 //     `labelCooldownMs` between two of the same label.
-//  6. A channel not observed for `staleMs` (tab hidden, camera off, model
+//  7. A channel not observed for `staleMs` (tab hidden, camera off, model
 //     paused) drops its hold, so an old half-hold can't complete later.
 //
 // Pure, no imports: src/reactions/__check.js drives it with synthetic clocks.
 
 export const TRIGGER_DEFAULTS = Object.freeze({
-  holdMs: 450,
-  faceHoldMs: 600,
-  labelHoldMs: Object.freeze({ wink: 350 }), // a deliberate wink is short; a blink is ~150ms on both eyes
+  // Tuned for the worker's ~10-12 samples/sec. A clear gesture fires on frame
+  // one; everything else still needs sustained evidence.
+  fastScore: 0.85,
+  holdMs: 250,
+  faceHoldMs: 400,
+  labelHoldMs: Object.freeze({ wink: 250 }), // a deliberate wink is short; a blink is ~150ms on both eyes
   minHits: 2,
-  maxMisses: 1,
+  maxMisses: 2,
   neutralFrames: 2,
-  neutralMs: 500,
-  globalCooldownMs: 3000,
-  labelCooldownMs: 10000,
+  neutralMs: 350,
+  globalCooldownMs: 1500,
+  labelCooldownMs: 4000,
   staleMs: 1500,
 });
 
@@ -42,6 +48,16 @@ const freshChannel = () => ({
   firedLastSeen: 0,
   firedGoneFrames: 0,
 });
+
+// Accepts `{ label, score }` (what classify.js returns), a bare label string,
+// or null/undefined for "nothing this frame".
+const readCandidate = (candidate) => {
+  if (typeof candidate === 'string') return { label: candidate, score: 0 };
+  if (candidate && typeof candidate.label === 'string') {
+    return { label: candidate.label, score: typeof candidate.score === 'number' ? candidate.score : 0 };
+  }
+  return { label: null, score: 0 };
+};
 
 export function createTrigger(options = {}) {
   const o = { ...TRIGGER_DEFAULTS, ...options };
@@ -65,12 +81,11 @@ export function createTrigger(options = {}) {
     return h.label !== null && now - h.lastObservedAt <= o.staleMs;
   };
 
-  // `candidate` is a label string, or null for "nothing this frame".
   // Returns the label to send, or null.
   const observe = ({ channel, candidate }, now) => {
     const ch = channel === 'hand' || channel === 'face' ? channels[channel] : null;
     if (!ch) return null;
-    const label = typeof candidate === 'string' ? candidate : null;
+    const { label, score } = readCandidate(candidate);
 
     if (now - ch.lastObservedAt > o.staleMs) {
       ch.label = null;
@@ -114,7 +129,11 @@ export function createTrigger(options = {}) {
     }
 
     if (label === ch.firedLabel) return null;
-    if (ch.hits < o.minHits || now - ch.since < holdFor(channel, label)) return null;
+
+    // Rule 1: an unmistakable hand gesture doesn't wait for a second frame.
+    const strong = channel === 'hand' && score >= o.fastScore;
+    if (!strong && (ch.hits < o.minHits || now - ch.since < holdFor(channel, label))) return null;
+
     if (channel === 'face' && handActive(now)) return null;
     if (now - lastFireAt < o.globalCooldownMs) return null;
     if (now - (labelFiredAt.get(label) ?? -Infinity) < o.labelCooldownMs) return null;

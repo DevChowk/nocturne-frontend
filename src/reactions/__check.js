@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { classifyGesture, classifyFace, GESTURE_ALLOWLIST } from './classify.js';
 import { createTrigger } from './trigger.js';
 import { REACTION_LABELS, isReactionLabel, isSafeGifUrl } from './labels.js';
+import { boundsFromLandmarks, padBounds, projectBox, isOffscreen } from './faceBox.js';
 
 let passed = 0;
 const test = (name, fn) => {
@@ -164,109 +165,210 @@ test('face: malformed input returns null', () => {
   }
 });
 
+// ── face framing boxes ───────────────────────────────────────────────────
+const lm = (...pts) => pts.map(([x, y]) => ({ x, y, z: 0 }));
+
+const near = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} vs ${b}`);
+
+test('faceBox: bounds are the extremes of the landmarks', () => {
+  const b = boundsFromLandmarks(lm([0.4, 0.3], [0.6, 0.3], [0.5, 0.7], [0.45, 0.5]));
+  near(b.x, 0.4, 'x');
+  near(b.y, 0.3, 'y');
+  near(b.w, 0.2, 'w');
+  near(b.h, 0.4, 'h');
+});
+
+test('faceBox: malformed landmarks give no box', () => {
+  for (const bad of [null, undefined, [], 'x', [{}], [{ x: 'a', y: 1 }], [{ x: NaN, y: NaN }]]) {
+    assert.equal(boundsFromLandmarks(bad), null, JSON.stringify(bad));
+  }
+});
+
+test('faceBox: padding grows the box but never leaves the frame', () => {
+  const padded = padBounds({ x: 0.4, y: 0.3, w: 0.2, h: 0.4 });
+  assert.ok(padded.w > 0.2 && padded.h > 0.4);
+  const clamped = padBounds({ x: 0.0, y: 0.0, w: 1, h: 1 });
+  assert.ok(clamped.x >= 0 && clamped.y >= 0);
+  assert.ok(clamped.x + clamped.w <= 1.0001, `right edge ${clamped.x + clamped.w}`);
+  assert.ok(clamped.y + clamped.h <= 1.0001, `bottom edge ${clamped.y + clamped.h}`);
+});
+
+test('faceBox: with no cropping the box maps straight onto the element', () => {
+  const rect = projectBox({ x: 0.25, y: 0.5, w: 0.5, h: 0.25 },
+    { videoWidth: 640, videoHeight: 480, clientWidth: 640, clientHeight: 480 });
+  assert.deepEqual(rect, { left: 160, top: 240, width: 320, height: 120 });
+});
+
+test('faceBox: object-cover cropping is accounted for', () => {
+  // 16:9 element showing a 4:3 camera: the video is scaled to cover, so the
+  // top and bottom are cropped and a centred box must move up accordingly.
+  const size = { videoWidth: 640, videoHeight: 480, clientWidth: 1600, clientHeight: 900 };
+  const rect = projectBox({ x: 0.25, y: 0.25, w: 0.5, h: 0.5 }, size);
+  // scale = max(1600/640, 900/480) = 2.5 → drawn 1600x1200, 150px cropped top+bottom
+  assert.deepEqual(rect, { left: 400, top: 150, width: 800, height: 600 });
+  // A box centred in the source stays centred in the element.
+  const centred = projectBox({ x: 0.45, y: 0.45, w: 0.1, h: 0.1 }, size);
+  assert.ok(Math.abs((centred.left + centred.width / 2) - 800) < 0.001);
+  assert.ok(Math.abs((centred.top + centred.height / 2) - 450) < 0.001);
+});
+
+test('faceBox: mirroring flips the box to match a mirrored preview', () => {
+  const size = { videoWidth: 640, videoHeight: 480, clientWidth: 640, clientHeight: 480 };
+  const box = { x: 0.1, y: 0.2, w: 0.2, h: 0.2 };
+  const plain = projectBox(box, size);
+  const mirrored = projectBox(box, { ...size, mirrored: true });
+  assert.equal(mirrored.top, plain.top, 'mirroring must not move the box vertically');
+  assert.equal(mirrored.width, plain.width);
+  assert.equal(mirrored.left, 640 - (plain.left + plain.width));
+  // Mirroring twice is the identity.
+  const back = 640 - (mirrored.left + mirrored.width);
+  assert.equal(back, plain.left);
+});
+
+test('faceBox: missing dimensions produce no rectangle', () => {
+  const box = { x: 0.1, y: 0.1, w: 0.2, h: 0.2 };
+  assert.equal(projectBox(box, { videoWidth: 0, videoHeight: 480, clientWidth: 640, clientHeight: 480 }), null);
+  assert.equal(projectBox(box, { videoWidth: 640, videoHeight: 480, clientWidth: 0, clientHeight: 480 }), null);
+  assert.equal(projectBox(null, { videoWidth: 640, videoHeight: 480, clientWidth: 640, clientHeight: 480 }), null);
+});
+
+test('faceBox: fully cropped-out boxes are reported offscreen', () => {
+  const size = { clientWidth: 640, clientHeight: 480 };
+  assert.equal(isOffscreen({ left: 10, top: 10, width: 100, height: 100 }, size), false);
+  assert.equal(isOffscreen({ left: -150, top: 10, width: 100, height: 100 }, size), true);
+  assert.equal(isOffscreen({ left: 700, top: 10, width: 100, height: 100 }, size), true);
+  assert.equal(isOffscreen({ left: 10, top: 600, width: 100, height: 100 }, size), true);
+  assert.equal(isOffscreen(null, size), true);
+});
+
 // ── trigger ──────────────────────────────────────────────────────────────
-test('trigger: a single frame never fires', () => {
-  assert.deepEqual(run(createTrigger(), [[0, 'hand', 'thumbs_up']]), []);
+// classify.js returns { label, score }; `g` builds one, `weak` stays under
+// the fast-path score so those cases exercise the hold instead.
+const g = (label, score) => ({ label, score });
+const weak = (label) => g(label, 0.7);
+const strong = (label) => g(label, 0.9);
+
+test('trigger: a single weak frame never fires', () => {
+  assert.deepEqual(run(createTrigger(), [[0, 'hand', weak('thumbs_up')]]), []);
 });
 
-test('trigger: a hold fires exactly once, however long it lasts', () => {
-  assert.deepEqual(run(createTrigger(), frames('hand', 'thumbs_up', 0, 20000)), [[500, 'thumbs_up']]);
+test('trigger: one unmistakable hand frame fires immediately', () => {
+  assert.deepEqual(run(createTrigger(), [[0, 'hand', strong('thumbs_up')]]), [[0, 'thumbs_up']]);
 });
 
-test('trigger: works at the slow-device frame rate too', () => {
-  assert.deepEqual(run(createTrigger(), frames('hand', 'thumbs_up', 0, 3000, 500)), [[500, 'thumbs_up']]);
+test('trigger: the fast path is hand-only — a strong face frame still holds', () => {
+  assert.deepEqual(run(createTrigger(), [[0, 'face', g('laugh', 0.99)]]), []);
+  assert.deepEqual(run(createTrigger(), frames('face', g('laugh', 0.99), 0, 2000)), [[500, 'laugh']]);
+});
+
+test('trigger: a weak gesture still needs a sustained hold', () => {
+  assert.deepEqual(run(createTrigger(), frames('hand', weak('thumbs_up'), 0, 20000)), [[250, 'thumbs_up']]);
+});
+
+test('trigger: a strong gesture held on still fires only once', () => {
+  assert.deepEqual(run(createTrigger(), frames('hand', strong('thumbs_up'), 0, 20000)), [[0, 'thumbs_up']]);
 });
 
 test('trigger: re-firing the same label needs a return to neutral', () => {
   const noCooldown = { globalCooldownMs: 0, labelCooldownMs: 0 };
-  const steps = [
-    ...frames('hand', 'thumbs_up', 0, 1000),
-    [1250, 'hand', null],
-    [1500, 'hand', null],
-    ...frames('hand', 'thumbs_up', 1750, 3000),
+  const held = frames('hand', strong('peace'), 0, 500);
+  // Still held, no neutral in between: one fire only.
+  assert.deepEqual(run(createTrigger(noCooldown), held), [[0, 'peace']]);
+  const withNeutral = [
+    ...held,
+    [750, 'hand', null], [1000, 'hand', null], [1250, 'hand', null],
+    ...frames('hand', strong('peace'), 1500, 2000),
   ];
-  assert.deepEqual(run(createTrigger(noCooldown), steps), [[500, 'thumbs_up'], [2250, 'thumbs_up']]);
+  assert.deepEqual(run(createTrigger(noCooldown), withNeutral), [[0, 'peace'], [1500, 'peace']]);
 });
 
-test('trigger: one dropped frame keeps the hold; two restart it', () => {
-  const oneMiss = [[0, 'hand', 'peace'], [250, 'hand', 'peace'], [500, 'hand', null], [750, 'hand', 'peace'], [1000, 'hand', 'peace']];
-  assert.deepEqual(run(createTrigger(), oneMiss), [[750, 'peace']]);
+test('trigger: two dropped frames keep a hold, three restart it', () => {
+  const slowHold = { holdMs: 700 };
   const twoMisses = [
-    [0, 'hand', 'peace'], [250, 'hand', 'peace'], [500, 'hand', null], [750, 'hand', null],
-    ...frames('hand', 'peace', 1000, 2000),
+    [0, 'hand', weak('peace')], [250, 'hand', weak('peace')],
+    [500, 'hand', null], [750, 'hand', null],
+    ...frames('hand', weak('peace'), 1000, 1500),
   ];
-  assert.deepEqual(run(createTrigger(), twoMisses), [[1500, 'peace']]);
+  assert.deepEqual(run(createTrigger(slowHold), twoMisses), [[1000, 'peace']]);
+  const threeMisses = [
+    [0, 'hand', weak('peace')], [250, 'hand', weak('peace')],
+    [500, 'hand', null], [750, 'hand', null], [1000, 'hand', null],
+    ...frames('hand', weak('peace'), 1250, 2500),
+  ];
+  assert.deepEqual(run(createTrigger(slowHold), threeMisses), [[2000, 'peace']]);
 });
 
 test('trigger: flickering between two labels never fires', () => {
   const steps = [];
-  for (let t = 0; t <= 5000; t += 250) steps.push([t, 'hand', (t / 250) % 2 ? 'peace' : 'thumbs_up']);
+  for (let t = 0; t <= 5000; t += 250) steps.push([t, 'hand', weak((t / 250) % 2 ? 'peace' : 'thumbs_up')]);
   assert.deepEqual(run(createTrigger(), steps), []);
 });
 
 test('trigger: the global cooldown spaces out different labels', () => {
   const steps = [
-    ...frames('hand', 'thumbs_up', 0, 750),
-    [1000, 'hand', null],
-    [1250, 'hand', null],
-    ...frames('hand', 'peace', 1500, 4500),
+    [0, 'hand', strong('thumbs_up')],
+    ...frames('hand', strong('peace'), 250, 2000),
   ];
-  assert.deepEqual(run(createTrigger(), steps), [[500, 'thumbs_up'], [3500, 'peace']]);
+  assert.deepEqual(run(createTrigger(), steps), [[0, 'thumbs_up'], [1500, 'peace']]);
 });
 
 test('trigger: the per-label cooldown holds back a repeat of the same label', () => {
   const steps = [
-    ...frames('hand', 'thumbs_up', 0, 750),
-    ...frames('hand', null, 1000, 1500),
-    ...frames('hand', 'thumbs_up', 1750, 12000),
+    [0, 'hand', strong('thumbs_up')],
+    [250, 'hand', null], [500, 'hand', null], [750, 'hand', null],
+    ...frames('hand', strong('thumbs_up'), 1000, 5000),
   ];
-  assert.deepEqual(run(createTrigger(), steps), [[500, 'thumbs_up'], [10500, 'thumbs_up']]);
+  assert.deepEqual(run(createTrigger(), steps), [[0, 'thumbs_up'], [4000, 'thumbs_up']]);
 });
 
 test('trigger: a held hand gesture suppresses the face channel', () => {
   const steps = byTime(
-    frames('hand', 'thumbs_up', 0, 3000),
+    frames('hand', weak('thumbs_up'), 0, 3000),
     frames('hand', null, 3250, 5000),
-    frames('face', 'laugh', 125, 5000),
+    frames('face', weak('laugh'), 125, 5000),
   );
-  // The laugh clears its own hold early on, but the thumbs up is still up.
-  // Once the hand drops (reset at 3500) and the global cooldown from the
-  // thumbs up expires, the laugh lands on the next face frame.
-  assert.deepEqual(run(createTrigger(), steps), [[500, 'thumbs_up'], [3625, 'laugh']]);
+  // The laugh clears its own hold early, but the thumbs up owns the channel
+  // until the hand has been gone long enough to drop its hold.
+  assert.deepEqual(run(createTrigger(), steps), [[250, 'thumbs_up'], [3875, 'laugh']]);
 });
 
 test('trigger: the face channel fires on its own with a longer hold', () => {
-  assert.deepEqual(run(createTrigger(), frames('face', 'laugh', 0, 3000)), [[750, 'laugh']]);
+  assert.deepEqual(run(createTrigger(), frames('face', weak('laugh'), 0, 3000)), [[500, 'laugh']]);
 });
 
-test('trigger: a wink needs only a short hold, a one-frame blip never fires', () => {
-  assert.deepEqual(run(createTrigger(), frames('face', 'wink', 0, 1000)), [[500, 'wink']]);
-  assert.deepEqual(run(createTrigger(), [[0, 'face', 'wink'], [250, 'face', null], [500, 'face', null]]), []);
+test('trigger: a wink needs two frames, a one-frame blip never fires', () => {
+  assert.deepEqual(run(createTrigger(), frames('face', weak('wink'), 0, 1000)), [[250, 'wink']]);
+  assert.deepEqual(run(createTrigger(), [[0, 'face', weak('wink')], [250, 'face', null], [500, 'face', null]]), []);
 });
 
 test('trigger: a pause longer than staleMs drops a half-built hold', () => {
-  // Two samples, short of the hold, then a gap well past staleMs. Without
-  // the stale reset the old hold would complete on the first frame back.
   const steps = [
-    ...frames('hand', 'thumbs_up', 0, 250),
-    ...frames('hand', 'thumbs_up', 2000, 3500),
+    ...frames('hand', weak('thumbs_up'), 0, 250),
+    ...frames('hand', weak('thumbs_up'), 2000, 3500),
   ];
-  assert.deepEqual(run(createTrigger(), steps), [[2500, 'thumbs_up']]);
+  // Without the stale reset the old hold would complete on the first frame back.
+  assert.deepEqual(run(createTrigger({ holdMs: 700 }), steps), [[2750, 'thumbs_up']]);
 });
 
 test('trigger: reset() forgets holds, fired labels and cooldowns', () => {
   const t = createTrigger();
-  assert.deepEqual(run(t, frames('hand', 'thumbs_up', 0, 750)), [[500, 'thumbs_up']]);
+  assert.deepEqual(run(t, [[0, 'hand', strong('thumbs_up')]]), [[0, 'thumbs_up']]);
   t.reset();
-  assert.deepEqual(run(t, frames('hand', 'thumbs_up', 1000, 1750)), [[1500, 'thumbs_up']]);
+  assert.deepEqual(run(t, [[250, 'hand', strong('thumbs_up')]]), [[250, 'thumbs_up']]);
 });
 
-test('trigger: unknown channels and non-string candidates are ignored', () => {
+test('trigger: unknown channels and malformed candidates are ignored', () => {
   const t = createTrigger();
-  assert.equal(t.observe({ channel: 'toString', candidate: 'wave' }, 0), null);
-  assert.equal(t.observe({ channel: '__proto__', candidate: 'wave' }, 0), null);
-  const steps = frames('hand', 42, 0, 2000);
-  assert.deepEqual(run(t, steps), []);
+  assert.equal(t.observe({ channel: 'toString', candidate: strong('wave') }, 0), null);
+  assert.equal(t.observe({ channel: '__proto__', candidate: strong('wave') }, 0), null);
+  for (const bad of [42, {}, { label: 7 }, { score: 0.9 }, []]) {
+    assert.deepEqual(run(createTrigger(), frames('hand', bad, 0, 2000)), [], JSON.stringify(bad));
+  }
+});
+
+test('trigger: a bare label string still works and takes the hold path', () => {
+  assert.deepEqual(run(createTrigger(), [[0, 'hand', 'thumbs_up']]), []);
+  assert.deepEqual(run(createTrigger(), frames('hand', 'thumbs_up', 0, 1000)), [[250, 'thumbs_up']]);
 });
 
 if (process.exitCode) console.error(`reactions: FAILED (${passed} passed)`);

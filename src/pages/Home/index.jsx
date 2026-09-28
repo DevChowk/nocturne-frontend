@@ -29,28 +29,6 @@ import VideoCallView from './VideoCallView';
 // the runtime check + auto-end-call behavior unchanged.
 const NSFW_SCAN_ENABLED = import.meta.env.VITE_NSFW_SCAN_ENABLED === 'true';
 
-// Idle-time preload + warm-up of the camera-reaction models, used from the
-// lobby. Kept at module scope (rather than inline in an effect) so the hooks
-// lint rules can still analyse HomePage — an async callback inside the
-// component makes them bail and silently drop their other findings.
-// Returns a cleanup function, so an effect can `return` it directly.
-function preloadReactionModels(getVideo) {
-  if (typeof navigator !== 'undefined' && navigator.connection?.saveData === true) return undefined;
-  let cancelled = false;
-  const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 500));
-  const cancelIdle = window.cancelIdleCallback || clearTimeout;
-  const handle = idle(() => {
-    import('../../reactions/vision')
-      .then(({ getVision, warmUp }) => getVision().then((vision) => {
-        if (!cancelled) warmUp(vision, getVideo());
-      }))
-      .catch(() => {
-        // Model load failed — the in-call detector surfaces it on its chip.
-      });
-  });
-  return () => { cancelled = true; cancelIdle(handle); };
-}
-
 // Short two-tone chime via Web Audio (no asset). Browsers gate AudioContext
 // behind a user gesture; on initial app load there's none, so the first ping
 // after refresh may be silent. Subsequent matches (same session) play fine.
@@ -514,18 +492,7 @@ export default function HomePage() {
     roomId: matchInfo?.roomId,
     enabled: REACTIONS_ENABLED && (!!isInCall || lobbyPreviewVisible),
   });
-  // Load and warm the reaction models while the user waits in the lobby, so
-  // the first gesture of a call pays neither the one-time download nor
-  // MediaPipe's per-task warm-up. Fail-open: the detector retries in-call.
-  useEffect(() => {
-    if (!REACTIONS_ENABLED || !settings.autoReactions || isInCall) return undefined;
-    // Skip while the lobby detector is already running — it warms the models
-    // itself, and two loops on the same camera is wasted CPU.
-    if (lobbyPreviewVisible && cameraEnabled) return undefined;
-    return preloadReactionModels(() => localVideoRef.current);
-  }, [settings.autoReactions, isInCall, lobbyPreviewVisible, cameraEnabled]);
-
-  const { status: reactionStatus } = useReactionDetector({
+  const { status: reactionStatus, faceBoxes } = useReactionDetector({
     videoRef: localVideoRef,
     enabled: reactions.available && settings.autoReactions && !reactions.paused && cameraEnabled
       && (isInCall ? !!remoteConnected : lobbyPreviewVisible),
@@ -614,6 +581,7 @@ export default function HomePage() {
       reactions={reactions}
       reactionStatus={reactionStatus}
       autoReactions={REACTIONS_ENABLED && settings.autoReactions}
+      faceBoxes={faceBoxes}
     />
   ) : (
     <LobbyView
@@ -621,6 +589,7 @@ export default function HomePage() {
       reactions={reactions}
       reactionStatus={reactionStatus}
       autoReactions={REACTIONS_ENABLED && settings.autoReactions}
+      faceBoxes={faceBoxes}
       isGuest={isGuest}
       isConnected={isConnected}
       socketError={socketError}

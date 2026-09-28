@@ -7,6 +7,7 @@ import EmojiPicker from '../../components/EmojiPicker';
 import MobileLiveChat from '../../components/MobileLiveChat';
 import CallControlsBar from '../../components/CallControlsBar';
 import ReactionOverlay, { ReactionStatusChip } from '../../components/ReactionOverlay';
+import FaceFrames from '../../components/FaceFrames';
 import { FRIEND_STYLE, FRIEND_ICON, FRIEND_LABEL } from '../../constants/friendStatus';
 import api from '../../api/axios';
 
@@ -33,7 +34,7 @@ function PanelActionButton({ icon, label, onClick, disabled, style }) {
   );
 }
 
-export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange, chatCollapsed, onChatToggle, unreadChat, isGuest, peerIsGuest, game, reactions, reactionStatus, autoReactions }) {
+export default function VideoCallView({ user, localVideoRef, remoteVideoRef, messages, chatInput, setChatInput, chatEndRef, sendMessage, skip, endCall, micEnabled, cameraEnabled, toggleMic, toggleCamera, peerMicEnabled, peerCameraEnabled, remoteConnected, roomId, peerUserId, peerUsername, peerDisplayName, peerCountry, peerInterests, mirrorLocal, friendStatus, onFriendStatusChange, chatCollapsed, onChatToggle, unreadChat, isGuest, peerIsGuest, game, reactions, reactionStatus, autoReactions, faceBoxes }) {
   const [showReport, setShowReport] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
   const [chatEmojiOpen, setChatEmojiOpen] = useState(false);
@@ -373,6 +374,10 @@ export default function VideoCallView({ user, localVideoRef, remoteVideoRef, mes
               </div>
             )}
             <div className="absolute inset-0 video-gradient-overlay pointer-events-none"></div>
+            {/* Framing boxes on your own face(s), so you can see you're in
+                shot. Mirrored to match the preview when the mirror is on. */}
+            {!gameOpen && <FaceFrames boxes={faceBoxes} videoRef={localVideoRef} mirrored={mirrorLocal} />}
+
             {/* Your own camera reactions, as your peer sees them. Outside the
                 mirrored <video>, so GIF text isn't flipped. Hidden on the
                 108x74 corner tile while a game is open on phones. */}

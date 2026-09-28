@@ -41,6 +41,23 @@ export function useReactions({ socket, roomId, enabled }) {
   const timeoutsRef = useRef(0);
   useEffect(() => { roomIdRef.current = roomId; }, [roomId]);
 
+  // Track the live connection: send() drops anything emitted while the socket
+  // is down, so without this the chip would claim "Reactions on" while every
+  // gesture silently went nowhere — indistinguishable from a missed gesture.
+  const [connected, setConnected] = useState(() => !!socket?.connected);
+  useEffect(() => {
+    if (!socket) return undefined;
+    const onConnect = () => setConnected(true);
+    const onDisconnect = () => setConnected(false);
+    setTimeout(() => setConnected(!!socket.connected), 0);
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+    };
+  }, [socket]);
+
   // Reset on room identity change, during render (useGameSession's pattern),
   // so a new peer never sees a frame of the previous match's reaction.
   const [lastRoomId, setLastRoomId] = useState(roomId);
@@ -107,7 +124,7 @@ export function useReactions({ socket, roomId, enabled }) {
 
   const togglePaused = useCallback(() => setPaused((p) => !p), []);
 
-  const available = !!socket && !!enabled && serverAvailable;
+  const available = !!socket && connected && !!enabled && serverAvailable;
   const selfItems = useMemo(() => items.filter((i) => i.side === 'self'), [items]);
   const peerItems = useMemo(() => items.filter((i) => i.side === 'peer'), [items]);
 
