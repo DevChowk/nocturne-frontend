@@ -502,24 +502,33 @@ export default function HomePage() {
 
   // Camera reactions. Receiving follows the feature flag alone, so you see
   // your peer's reactions whether or not you opted in. DETECTING on your own
-  // camera also needs your opt-in, a live camera and a connected peer, and
-  // stops while paused from the chip on your self-view.
+  // camera also needs your opt-in, a live camera, and either a connected peer
+  // or the lobby preview on screen; it stops while paused from the chip.
+  //
+  // The lobby preview only exists in the idle and post-call states — while
+  // searching, LobbyView swaps it for a mini self-view that owns its own
+  // element, so there is nothing for the detector to read.
+  const lobbyPreviewVisible = !isInCall && (status === 'idle' || status === 'peer_left');
   const reactions = useReactions({
     socket,
     roomId: matchInfo?.roomId,
-    enabled: REACTIONS_ENABLED && !!isInCall,
+    enabled: REACTIONS_ENABLED && (!!isInCall || lobbyPreviewVisible),
   });
   // Load and warm the reaction models while the user waits in the lobby, so
   // the first gesture of a call pays neither the one-time download nor
   // MediaPipe's per-task warm-up. Fail-open: the detector retries in-call.
   useEffect(() => {
     if (!REACTIONS_ENABLED || !settings.autoReactions || isInCall) return undefined;
+    // Skip while the lobby detector is already running — it warms the models
+    // itself, and two loops on the same camera is wasted CPU.
+    if (lobbyPreviewVisible && cameraEnabled) return undefined;
     return preloadReactionModels(() => localVideoRef.current);
-  }, [settings.autoReactions, isInCall]);
+  }, [settings.autoReactions, isInCall, lobbyPreviewVisible, cameraEnabled]);
 
   const { status: reactionStatus } = useReactionDetector({
     videoRef: localVideoRef,
-    enabled: reactions.available && settings.autoReactions && !reactions.paused && cameraEnabled && !!remoteConnected,
+    enabled: reactions.available && settings.autoReactions && !reactions.paused && cameraEnabled
+      && (isInCall ? !!remoteConnected : lobbyPreviewVisible),
     onDetect: reactions.send,
   });
 
@@ -609,6 +618,9 @@ export default function HomePage() {
   ) : (
     <LobbyView
       user={user}
+      reactions={reactions}
+      reactionStatus={reactionStatus}
+      autoReactions={REACTIONS_ENABLED && settings.autoReactions}
       isGuest={isGuest}
       isConnected={isConnected}
       socketError={socketError}

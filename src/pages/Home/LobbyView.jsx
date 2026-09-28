@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../../hooks/useSettings';
+import ReactionOverlay, { ReactionStatusChip } from '../../components/ReactionOverlay';
 import { SHOW_ONLINE_COUNT } from '../../constants/features';
 
 // Elapsed time is withheld for the first few seconds of a search — see the
@@ -113,6 +114,7 @@ export default function LobbyView({
   localStream, mediaError,
   micEnabled, cameraEnabled, toggleMic, toggleCamera,
   localVideoRef, mirrorLocal, lastEndReason, onlineCount,
+  reactions, reactionStatus, autoReactions,
 }) {
   const username = user?.username || user?.email?.split('@')[0] || 'You';
   const initial = username[0]?.toUpperCase() ?? '?';
@@ -317,9 +319,23 @@ export default function LobbyView({
                 <img src="/logo-lockup-dark.svg" alt="" aria-hidden="true" className="h-4 md:h-5 w-auto" />
               </div>
 
+              {/* Camera reactions, previewed on your own picture. Nothing is
+                  sent anywhere here — there is no peer yet. A sibling of the
+                  <video>, never a wrapper, same as in the call view. */}
+              {reactions?.available && (
+                <ReactionOverlay items={reactions.selfItems} onExpire={reactions.dismiss} />
+              )}
+
               {/* YOU · PREVIEW — video-overlay chip, bottom-left. */}
-              <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10">
+              <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10 flex items-center gap-1.5">
                 <span className="chip-video">You · Preview</span>
+                {autoReactions && reactions?.available && (
+                  <ReactionStatusChip
+                    status={reactionStatus}
+                    paused={reactions.paused}
+                    onToggle={reactions.togglePaused}
+                  />
+                )}
               </div>
 
               {/* Inline media controls — bottom-right of the video panel per

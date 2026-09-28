@@ -10,6 +10,10 @@ import { isReactionLabel, isSafeGifUrl } from '../reactions/labels.js';
 //
 // Listening does NOT depend on the user's own opt-in: if the feature is on,
 // you see your peer's reactions even if you never turned on your camera's.
+//
+// Works with or without a `roomId`. Without one the user is on the lobby
+// screen with no peer, so reactions are a private preview: the server still
+// picks the GIF (clients never choose URLs) but relays it to nobody.
 
 const ACK_TIMEOUT_MS = 3000;
 // The server flag is authoritative. With it off, no handler exists and every
@@ -84,22 +88,26 @@ export function useReactions({ socket, roomId, enabled }) {
     const room = roomIdRef.current;
     // socket.io buffers emits while disconnected and flushes them on
     // reconnect under a NEW socket.id — a stale reaction is worse than none.
-    if (!socket?.connected || !room || !isReactionLabel(label)) return;
-    socket.timeout(ACK_TIMEOUT_MS).emit('reaction', { roomId: room, label }, (err, res) => {
+    if (!socket?.connected || !isReactionLabel(label)) return;
+    // No room means the lobby: the server answers with a GIF for this user
+    // and relays nothing. In a call it also tells the peer.
+    socket.timeout(ACK_TIMEOUT_MS).emit('reaction', room ? { roomId: room, label } : { label }, (err, res) => {
       if (err) {
         timeoutsRef.current += 1;
         if (timeoutsRef.current >= TIMEOUTS_BEFORE_UNAVAILABLE) setServerAvailable(false);
         return;
       }
       timeoutsRef.current = 0;
-      if (!res?.ok || res.reaction?.roomId !== roomIdRef.current) return;
+      // Drop an answer that arrives after the user moved on (lobby → call,
+      // call → lobby, or a skip to a new room).
+      if (!res?.ok || (res.reaction?.roomId ?? null) !== (roomIdRef.current ?? null)) return;
       push('self', res.reaction);
     });
   }, [socket, push]);
 
   const togglePaused = useCallback(() => setPaused((p) => !p), []);
 
-  const available = !!socket && !!roomId && !!enabled && serverAvailable;
+  const available = !!socket && !!enabled && serverAvailable;
   const selfItems = useMemo(() => items.filter((i) => i.side === 'self'), [items]);
   const peerItems = useMemo(() => items.filter((i) => i.side === 'peer'), [items]);
 
